@@ -2,6 +2,7 @@ package com.mungwithme.security.jwt.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.mungwithme.user.model.Role;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,12 +49,20 @@ public class JwtService {
      * AccessToken 생성
      * @param email Claim 추가를 위함
      * @return
+//   * @param role 토큰 role값 검증을 위함
+     * @modification.author 전형근
+     * @modification.date 2024.8.8
+     * @modifiation.details 토큰 생성 메서드의 role값 받는것을 추가.
+     * ENUM 타입은 JWT토큰(String)에 순수하게 들어갈 수 없기때문에 String으로 변환해준다
+     * + 발행일자 추가 (withIssuedAt)
      */
-    public String createAccessToken(String email) {
+    public String createAccessToken(String email, Role role) {
         Date now = new Date();
         return JWT.create()                             // JWT 토큰을 생성하는 빌더
                 .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
+                .withIssuedAt(new Date())
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
+                .withClaim("role", String.valueOf(role)) // 권한
                 .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
                 .sign(Algorithm.HMAC512(secretKey));    // HMAC512 알고리즘 사용, application-jwt.yml에서 지정한 secret 키로 암호화
     }
@@ -108,12 +117,19 @@ public class JwtService {
      * @modification.date 2024.8.8
      * @modifiation.details 헤더 토큰 추출 -> 쿠키 토큰 추출
      */
+    /**
+     * 토큰에서 Bearer 추출 주석
+     *
+     * @modification.author 전형근
+     * @modification.date 2024.8.9
+     * @modifiation.details 현재 토큰 value에 BEARER가 포함되어있지 않아 토큰추출 오류발생해서 임시주석처리
+     */
     public Optional<String> extractRefreshToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
                 .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
                         .filter(cookie -> refreshCookie.equals(cookie.getName()))           // refreshToken 쿠키를 찾습니다.
                         .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
+//                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
                         .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
                         .findFirst());
     }
@@ -125,12 +141,19 @@ public class JwtService {
      * @modification.date 2024.8.8
      * @modifiation.details 헤더 토큰 추출 -> 쿠키 토큰 추출
      */
+    /**
+     * 토큰에서 Bearer 추출 주석
+     *
+     * @modification.author 전형근
+     * @modification.date 2024.8.9
+     * @modifiation.details 현재 토큰 value에 BEARER가 포함되어있지 않아 토큰추출 오류발생해서 임시주석처리
+     */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
                 .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
                         .filter(cookie -> accessCookie.equals(cookie.getName()))            // accessToken 쿠키를 찾습니다.
                         .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
+//                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
                         .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
                         .findFirst());
     }

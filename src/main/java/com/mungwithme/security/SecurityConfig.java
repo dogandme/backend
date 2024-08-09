@@ -5,8 +5,11 @@ import com.mungwithme.login.filter.CustomJsonUsernamePasswordAuthenticationFilte
 import com.mungwithme.login.handler.LoginFailureHandler;
 import com.mungwithme.login.handler.LoginSuccessHandler;
 import com.mungwithme.login.service.LoginService;
+import com.mungwithme.security.jwt.filter.CustomLogoutFilter;
 import com.mungwithme.security.jwt.filter.JwtAuthenticationProcessingFilter;
 import com.mungwithme.security.jwt.service.JwtService;
+import com.mungwithme.security.oauth.handler.CustomSuccessHandler;
+import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
 import com.mungwithme.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -33,6 +36,9 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
+    private final CustomSuccessHandler customSuccessHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -47,6 +53,16 @@ public class SecurityConfig {
 
         http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(), LogoutFilter.class);
         http.addFilterBefore(jwtAuthenticationProcessingFilter(), CustomJsonUsernamePasswordAuthenticationFilter.class);
+
+        //oauth2
+        http
+                .oauth2Login((oauth2) -> oauth2
+                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                                .userService(customOAuth2UserService))
+                        .successHandler(customSuccessHandler));
+        //logout
+        http
+                .addFilterBefore(new CustomLogoutFilter(jwtService, userRepository), LogoutFilter.class);
 
         return http.build();
     }
