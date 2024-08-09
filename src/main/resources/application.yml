@@ -7,4 +7,4 @@ spring:
       hibernate:
         format_sql: true
   profiles:
-    include: db, jwt
+    include: db, jwt, oauth
