@@ -41,24 +41,28 @@ public class JwtService {
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String EMAIL_CLAIM = "email";
-    private static final String BEARER = "Bearer";
+    private static final String BEARER = "Bearer+";
 
     private final UserRepository userRepository;
 
     /**
      * AccessToken 생성
      * @param email Claim 추가를 위함
-     * @return
-//   * @param role 토큰 role값 검증을 위함
+     * @param role 토큰 role값 검증을 위함
+     *
      * @modification.author 전형근
      * @modification.date 2024.8.8
-     * @modifiation.details 토큰 생성 메서드의 role값 받는것을 추가.
+     * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
      * ENUM 타입은 JWT토큰(String)에 순수하게 들어갈 수 없기때문에 String으로 변환해준다
      * + 발행일자 추가 (withIssuedAt)
+     *
+     * @modification.author 장수현
+     * @modification.date 2024.8.14
+     * @modification.details 토큰 앞에 "BEARER+" 추가
      */
     public String createAccessToken(String email, Role role) {
         Date now = new Date();
-        return JWT.create()                             // JWT 토큰을 생성하는 빌더
+        return "Bearer+" + JWT.create()                             // JWT 토큰을 생성하는 빌더
                 .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
@@ -69,10 +73,14 @@ public class JwtService {
 
     /**
      * RefreshToken 생성
+     *
+     * @modification.author 장수현
+     * @modification.date 2024.8.14
+     * @modification.details 토큰 앞에 "BEARER+" 추가
      */
     public String createRefreshToken() {
         Date now = new Date();
-        return JWT.create()
+        return "Bearer+" + JWT.create()
                 .withSubject(REFRESH_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(now.getTime() + refreshTokenExpirationPeriod))
                 .sign(Algorithm.HMAC512(secretKey));
@@ -84,7 +92,7 @@ public class JwtService {
      *
      * @modification.author 장수현
      * @modification.date 2024.8.8
-     * @modifiation.details 토큰 헤더 전송 -> 토큰 쿠키 전송
+     * @modification.details 토큰 헤더 전송 -> 토큰 쿠키 전송
      */
     public void sendAccessToken(HttpServletResponse response, String accessToken) {
         response.setStatus(HttpServletResponse.SC_OK);         // 요청이 성공적으로 처리되었음을 나타냄(HTTP 상태코드 200)
@@ -100,7 +108,7 @@ public class JwtService {
      *
      * @modification.author 장수현
      * @modification.date 2024.8.8
-     * @modifiation.details 토큰 헤더 전송 -> 토큰 쿠키 전송
+     * @modification.details 토큰 헤더 전송 -> 토큰 쿠키 전송
      */
     public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
         response.setStatus(HttpServletResponse.SC_OK);
@@ -115,21 +123,14 @@ public class JwtService {
      *
      * @modification.author 장수현
      * @modification.date 2024.8.8
-     * @modifiation.details 헤더 토큰 추출 -> 쿠키 토큰 추출
-     */
-    /**
-     * 토큰에서 Bearer 추출 주석
-     *
-     * @modification.author 전형근
-     * @modification.date 2024.8.9
-     * @modifiation.details 현재 토큰 value에 BEARER가 포함되어있지 않아 토큰추출 오류발생해서 임시주석처리
+     * @modification.details 헤더 토큰 추출 -> 쿠키 토큰 추출
      */
     public Optional<String> extractRefreshToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
                 .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
                         .filter(cookie -> refreshCookie.equals(cookie.getName()))           // refreshToken 쿠키를 찾습니다.
                         .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-//                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
+                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
                         .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
                         .findFirst());
     }
@@ -139,21 +140,14 @@ public class JwtService {
      *
      * @modification.author 장수현
      * @modification.date 2024.8.8
-     * @modifiation.details 헤더 토큰 추출 -> 쿠키 토큰 추출
-     */
-    /**
-     * 토큰에서 Bearer 추출 주석
-     *
-     * @modification.author 전형근
-     * @modification.date 2024.8.9
-     * @modifiation.details 현재 토큰 value에 BEARER가 포함되어있지 않아 토큰추출 오류발생해서 임시주석처리
+     * @modification.details 헤더 토큰 추출 -> 쿠키 토큰 추출
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
                 .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
                         .filter(cookie -> accessCookie.equals(cookie.getName()))            // accessToken 쿠키를 찾습니다.
                         .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-//                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
+                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
                         .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
                         .findFirst());
     }
@@ -214,11 +208,18 @@ public class JwtService {
 
     /**
      * RefreshToken DB 저장(업데이트)
+     *
+     * @modification.author 장수현
+     * @modification.date 2024.8.14
+     * @modification.detail 토큰을 업데이트하고 DB 저장 로직 추
      */
     public void updateRefreshToken(String email, String refreshToken) {
         userRepository.findByEmail(email)   // 이메일로 회원 찾기
                 .ifPresentOrElse(
-                        user -> user.updateRefreshToken(refreshToken),  // 있으면 리프레시 토큰 업데이트
+                        user -> {
+                            user.updateRefreshToken(refreshToken);  // 있으면 리프레시 토큰 업데이트
+                            userRepository.saveAndFlush(user);      // 수정된 내용을 저장
+                        },
                         () -> new Exception("일치하는 회원이 없습니다.")     // 없으면 예외발생
                 );
     }

@@ -70,13 +70,10 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
     /**
      * Refresh Token 으로 유저 정보 찾기 & Access/Refresh Token 재발급 메소드
      * @param refreshToken Access Token이 만료 되어서 새로 발급하기 위해 이용
-     */
-
-
-    /** @param  -> createAccessToken 매개변수 role값 추가
+     * @param  -> createAccessToken 매개변수 role값 추가
      * @modification.author 전형근
      * @modification.date 2024.8.9
-     * @modifiation.details 토큰 생성 메서드의 role값 받는것을 추가.
+     * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
      */
     public void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
         userRepository.findByRefreshToken(refreshToken) // refresh Token으로 회원 찾기
