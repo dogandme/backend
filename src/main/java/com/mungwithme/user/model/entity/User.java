@@ -3,10 +3,7 @@ package com.mungwithme.user.model.entity;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.SocialType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -21,10 +18,10 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")   // 컬럼명 : user_iD Todo 확인필요
+    @Column(name = "user_id")   // 컬럼명 : user_id
     private Long id;
 
-    // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다. Todo 확인필요
+    // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다.
     private String email;           // 이메일(ID)
     private String password;        // 비밀번호
     private String nickname;        // 닉네임

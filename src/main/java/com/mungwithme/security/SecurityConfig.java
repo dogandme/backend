@@ -8,6 +8,7 @@ import com.mungwithme.login.service.LoginService;
 import com.mungwithme.security.jwt.filter.CustomLogoutFilter;
 import com.mungwithme.security.jwt.filter.JwtAuthenticationProcessingFilter;
 import com.mungwithme.security.jwt.service.JwtService;
+import com.mungwithme.security.oauth.handler.CustomFailureHandler;
 import com.mungwithme.security.oauth.handler.CustomSuccessHandler;
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
 import com.mungwithme.user.repository.UserRepository;
@@ -37,6 +38,7 @@ public class SecurityConfig {
     private final ObjectMapper objectMapper;
 
     private final CustomSuccessHandler customSuccessHandler;
+    private final CustomFailureHandler customFailureHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
 
     @Bean
@@ -48,21 +50,23 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않으므로 STATELESS로 설정
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/", "/users").permitAll()
+                                .requestMatchers("/", "/users", "/oauth/**").permitAll()
                                 .anyRequest().authenticated());
-
-        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(), LogoutFilter.class);
-        http.addFilterBefore(jwtAuthenticationProcessingFilter(), CustomJsonUsernamePasswordAuthenticationFilter.class);
 
         //oauth2
         http
                 .oauth2Login((oauth2) -> oauth2
+                        .successHandler(customSuccessHandler)
+                        .failureHandler(customFailureHandler)
                         .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                                .userService(customOAuth2UserService))
-                        .successHandler(customSuccessHandler));
+                            .userService(customOAuth2UserService)))
+                ;
+
+        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(), LogoutFilter.class);
+        http.addFilterBefore(jwtAuthenticationProcessingFilter(), CustomJsonUsernamePasswordAuthenticationFilter.class);
+
         //logout
-        http
-                .addFilterBefore(new CustomLogoutFilter(jwtService, userRepository), LogoutFilter.class);
+        http.addFilterBefore(new CustomLogoutFilter(jwtService, userRepository), LogoutFilter.class);
 
         return http.build();
     }
