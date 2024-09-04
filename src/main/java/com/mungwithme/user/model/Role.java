@@ -10,7 +10,11 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Role {
 
-    GUEST("ROLE_GUEST"), USER("ROLE_USER"), ADMIN("ROLE_ADMIN");
+    NONE("ROLE_NONE"), GUEST("ROLE_GUEST"), USER("ROLE_USER"), ADMIN("ROLE_ADMIN");
 
     private final String key;
+
+    public String getAuthority() {
+        return "ROLE_" + this.name();
+    }
 }

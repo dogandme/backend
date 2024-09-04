@@ -41,7 +41,8 @@ public class JwtService {
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String EMAIL_CLAIM = "email";
-    private static final String BEARER = "Bearer+";
+    private static final String USERID_CLAIM = "userId";
+    private static final String BEARER = "Bearer_";
 
     private final UserRepository userRepository;
 
@@ -59,15 +60,20 @@ public class JwtService {
      * @modification.author 장수현
      * @modification.date 2024.8.14
      * @modification.details 토큰 앞에 "BEARER+" 추가
+     *
+     * @modification.author 장수현
+     * @modification.date 2024.8.17
+     * @modification.details 토큰에 userId Clamin 추가
      */
-    public String createAccessToken(String email, Role role) {
+    public String createAccessToken(String email, String role, Long userId) {
         Date now = new Date();
-        return "Bearer+" + JWT.create()                             // JWT 토큰을 생성하는 빌더
+        return BEARER + JWT.create()                    // JWT 토큰을 생성하는 빌더
                 .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
                 .withIssuedAt(new Date())
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
-                .withClaim("role", String.valueOf(role)) // 권한
+                .withClaim("role", role)          // 권한
                 .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
+                .withClaim(USERID_CLAIM, userId)        // userId Claim 설정
                 .sign(Algorithm.HMAC512(secretKey));    // HMAC512 알고리즘 사용, application-jwt.yml에서 지정한 secret 키로 암호화
     }
 
@@ -80,7 +86,7 @@ public class JwtService {
      */
     public String createRefreshToken() {
         Date now = new Date();
-        return "Bearer+" + JWT.create()
+        return JWT.create()
                 .withSubject(REFRESH_TOKEN_SUBJECT)
                 .withExpiresAt(new Date(now.getTime() + refreshTokenExpirationPeriod))
                 .sign(Algorithm.HMAC512(secretKey));
@@ -95,27 +101,10 @@ public class JwtService {
      * @modification.details 토큰 헤더 전송 -> 토큰 쿠키 전송
      */
     public void sendAccessToken(HttpServletResponse response, String accessToken) {
-        response.setStatus(HttpServletResponse.SC_OK);         // 요청이 성공적으로 처리되었음을 나타냄(HTTP 상태코드 200)
-        response.addCookie(createCookie(accessCookie, accessToken, accessTokenExpirationPeriod, false));
+        response.setStatus(HttpServletResponse.SC_OK);
+        response.addCookie(createCookie(accessCookie, BEARER + accessToken, accessTokenExpirationPeriod, false));
 
         log.info("재발급된 Access Token : {}", accessToken);
-    }
-
-    /**
-     * AccessToken + RefreshToken 쿠키에 담아 보내기
-     * @param accessToken 쿠키에 담을 토큰
-     * @param refreshToken 쿠키에 담을 토큰
-     *
-     * @modification.author 장수현
-     * @modification.date 2024.8.8
-     * @modification.details 토큰 헤더 전송 -> 토큰 쿠키 전송
-     */
-    public void sendAccessAndRefreshToken(HttpServletResponse response, String accessToken, String refreshToken) {
-        response.setStatus(HttpServletResponse.SC_OK);
-        setAccessTokenCookie(response, accessToken);
-        setRefreshTokenCookie(response, refreshToken);
-
-        log.info("Access Token, Refresh Token 쿠키 설정 완료");
     }
 
     /**
@@ -139,17 +128,16 @@ public class JwtService {
      * 토큰에서 AccessToken 추출
      *
      * @modification.author 장수현
-     * @modification.date 2024.8.8
-     * @modification.details 헤더 토큰 추출 -> 쿠키 토큰 추출
+     * @modification.date 2024.8.26
+     * @modification.details 쿠키 토큰 추출 -> 헤더 토큰 추출
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
-        return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
-                .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
-                        .filter(cookie -> accessCookie.equals(cookie.getName()))            // accessToken 쿠키를 찾습니다.
-                        .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
-                        .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
-                        .findFirst());
+        log.info("extractAccessToken: {}", request);
+
+        return Optional.ofNullable(request.getHeader("Authorization"))        // Authorization 헤더를 가져옵니다.
+                .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
+                .map(header -> header.replace(BEARER, ""))             // "BEARER "를 제거하고 추출합니다.
+                .map(String::trim);
     }
 
     /**
@@ -161,8 +149,25 @@ public class JwtService {
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))    // 토큰 검증기 생성
                     .build()
                     .verify(accessToken)    // accessToken을 검증하고 유효하지 않다면 예외 발생
-                    .getClaim(EMAIL_CLAIM)  // claim(Emial) 가져오기
+                    .getClaim(EMAIL_CLAIM)  // claim(Email) 가져오기
                     .asString());
+        } catch (Exception e) {
+            log.error("액세스 토큰이 유효하지 않습니다.");
+            return Optional.empty();
+        }
+    }
+
+    /**
+     * AccessToken에서 userId 추출
+     * @param accessToken
+     */
+    public Optional<Long> extractUserId(String accessToken) {
+        try {
+            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))    // 토큰 검증기 생성
+                    .build()
+                    .verify(accessToken)     // accessToken을 검증하고 유효하지 않다면 예외 발생
+                    .getClaim(USERID_CLAIM)  // claim(userId) 가져오기
+                    .asLong());
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
             return Optional.empty();
@@ -188,7 +193,7 @@ public class JwtService {
      * @modification.details 토큰 헤더 저장 -> 토큰 쿠키 저장
      */
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        response.addCookie(createCookie(refreshCookie, refreshToken, refreshTokenExpirationPeriod, true));
+        response.addCookie(createCookie(refreshCookie, BEARER + refreshToken, refreshTokenExpirationPeriod, true));
     }
 
     /**
@@ -199,6 +204,7 @@ public class JwtService {
      * @param httpOnly httpOnly 설정 여부
      */
     public Cookie createCookie(String key, String value, int expirationPeriod, boolean httpOnly) {
+        log.info("createCookie**");
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(expirationPeriod);
         cookie.setPath("/");
@@ -229,12 +235,31 @@ public class JwtService {
      * @param token 검증할 토큰
      */
     public boolean isTokenValid(String token) {
+        log.info("token: {}", token);
         try {
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             return true;
         } catch (Exception e) {
             log.error("유효하지 않은 토큰입니다. {}", e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * 쿠키에 있는 JWT 삭제
+     */
+    public void clearAllCookie(HttpServletRequest request, HttpServletResponse response) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                // 쿠키 이름이 "authorization" 또는 "Authorization-refresh"인 경우 삭제
+                if (accessCookie.equals(cookie.getName()) || refreshCookie.equals(cookie.getName())) {
+                    cookie.setMaxAge(0);        // 쿠키의 만료시간을 0으로 설정하여 삭제
+                    cookie.setHttpOnly(true);
+                    cookie.setPath("/");
+                    response.addCookie(cookie);
+                }
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
-public class CustomFailureHandler implements AuthenticationFailureHandler {
+public class CustomOAuthAuthenticationFailureHandler implements AuthenticationFailureHandler {
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
         response.setStatus(HttpServletResponse.SC_BAD_REQUEST);

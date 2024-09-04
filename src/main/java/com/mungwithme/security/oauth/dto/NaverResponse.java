@@ -38,11 +38,6 @@ public class NaverResponse extends OAuth2Response {
         return (String) getResponseAttribute("name");
     }
 
-    @Override
-    public String getImageUrl() {
-        return (String) getResponseAttribute("profile_image");
-    }
-
     // response 필드를 가져오는 공통 메서드
     private Object getResponseAttribute(String key) {
         Map<String, Object> response = (Map<String, Object>) attributes.get("response");

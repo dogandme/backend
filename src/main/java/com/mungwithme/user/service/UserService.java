@@ -1,14 +1,23 @@
 package com.mungwithme.user.service;
 
+import com.mungwithme.common.exception.DuplicateResourceException;
+import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -16,31 +25,87 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+
+    private static final String BEARER = "Bearer_";
 
     /**
-     * 화원가입
+     * 화원가입 및 NONE권한 토큰 발행
      * @param userSignUpDto 가입요청 회원정보
      */
-    public void signUp(UserSignUpDto userSignUpDto) throws Exception {
+    @Transactional
+    public HashMap<String, Object> signUp(UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        if (userRepository.findByEmail(userSignUpDto.getEmail()).isPresent()) {
-            throw new Exception("이미 존재하는 이메일입니다.");
-        }
+        HashMap<String, Object> result = new HashMap<>();
 
-        if (userRepository.findByNickname(userSignUpDto.getNickname()).isPresent()) {
-            throw new Exception("이미 존재하는 닉네임입니다.");
-        }
+        // 이메일 중복 확인
+        userRepository.findByEmail(userSignUpDto.getEmail())
+                .ifPresent(user -> {
+                    throw new DuplicateResourceException("이메일 중복");
+                });
 
-        User user = User.builder()
+        User newUser = User.builder()
                 .email(userSignUpDto.getEmail())
                 .password(userSignUpDto.getPassword())
-                .nickname(userSignUpDto.getNickname())
-                .age(userSignUpDto.getAge())
-                .city(userSignUpDto.getCity())
-                .role(Role.USER)
+                .role(Role.NONE)
                 .build();
 
-        user.passwordEncode(passwordEncoder);
-        userRepository.save(user);
+        newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
+        newUser = userRepository.save(newUser);    // DB 저장
+
+        // NONE 권한의 토큰 발행(기본정보입력 화면으로 넘어가기 위함)
+        String email = newUser.getEmail();
+        Role role = newUser.getRole();
+        Long userId = newUser.getId();
+
+        String accessToken = jwtService.createAccessToken(email, role.getKey(), userId);   // AccessToken 발급
+        String refreshToken = jwtService.createRefreshToken();                             // RefreshToken 발급
+        log.info("회원가입 신규 accessToken: {}", accessToken);
+        log.info("회원가입 신규 refreshToken: {}", refreshToken);
+
+        jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
+
+        userRepository.findByEmail(email)
+                .ifPresent(user -> {
+                    user.updateRefreshToken(refreshToken);
+                    userRepository.saveAndFlush(user);
+                });
+
+        log.info("NONE 로그인에 성공하였습니다. 이메일 : {}", email);
+
+        result.put("authorization", accessToken);
+        result.put("role", role.getKey());
+        result.put("userId", userId);
+
+        return result;
+    }
+
+    /**
+     * 추가 정보 저장 및 GUEST권한 토큰 발행
+     * @param userSignUpDto 추가 회원정보
+     */
+    public User signUp2(UserSignUpDto userSignUpDto) throws Exception {
+
+        // 닉네임 중복 확인
+        userRepository.findByNickname(userSignUpDto.getNickname())
+                .ifPresent(user -> {
+                    throw new DuplicateResourceException("닉네임 중복");
+                });
+
+        // 추가 정보 저장
+        User updatedUser = userRepository.findById(userSignUpDto.getUserId())
+                .map(user -> {
+                    user.setRole(Role.GUEST);
+                    user.setNickname(userSignUpDto.getNickname());
+                    user.setGender(userSignUpDto.getGender());
+                    user.setAge(userSignUpDto.getAge());
+                    user.setRegion(userSignUpDto.getRegion());
+                    user.setMarketingYn(userSignUpDto.getMarketingYn());
+
+                    return userRepository.save(user);
+                })
+                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));         // userId로 회원조회 실패했으면 예외 발생
+
+        return updatedUser;
     }
 }

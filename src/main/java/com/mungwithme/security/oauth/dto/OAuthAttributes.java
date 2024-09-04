@@ -52,15 +52,4 @@ public class OAuthAttributes {
                 .oAuth2Response(new NaverResponse(attributes))
                 .build();
     }
-
-    public User toEntity(SocialType socialType, OAuth2Response oAuth2Response) {
-        return User.builder()
-                .socialType(socialType)
-                .socialId(oAuth2Response.getProviderId())
-                .email(oAuth2Response.getEmail())
-                .nickname(oAuth2Response.getName())
-                .imageUrl(oAuth2Response.getImageUrl())
-                .role(Role.GUEST)
-                .build();
-    }
 }

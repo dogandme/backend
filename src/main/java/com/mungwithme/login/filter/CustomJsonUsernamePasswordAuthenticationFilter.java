@@ -1,6 +1,8 @@
 package com.mungwithme.login.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -25,15 +27,18 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
     private static final String CONTENT_TYPE = "application/json";    // JSON 타입의 데이터로 오는 로그인 요청만 처리
     private static final String USERNAME_KEY = "email";               // 회원 로그인 시 이메일 요청 JSON Key : "email"
     private static final String PASSWORD_KEY = "password";            // 회원 로그인 시 비밀번호 요청 JSon Key : "password"
+    private static final String PERSIST_LOGIN = "persistLogin";      // 회원 로그인 시 로그인 유지 여부
     private static final AntPathRequestMatcher DEFAULT_LOGIN_PATH_REQUEST_MATCHER =
             new AntPathRequestMatcher(DEFAULT_LOGIN_REQUEST_URL, HTTP_METHOD); // "/login" + POST로 온 요청에 매칭된다.
 
     private final ObjectMapper objectMapper;
+    private final UserRepository userRepository;
 
     // JSON 형식의 로그인 요청을 처리하도록 커스텀
-    public CustomJsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper) {
+    public CustomJsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper, UserRepository userRepository) {
         super(DEFAULT_LOGIN_PATH_REQUEST_MATCHER); // 위에서 설정한 "login" + POST로 온 요청을 처리하기 위해 설정
         this.objectMapper = objectMapper;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -52,14 +57,22 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
 
         // messageBody를 Map으로 변환
         Map<String, String> usernamePasswordMap = objectMapper.readValue(messageBody, Map.class);
-
         String email = usernamePasswordMap.get(USERNAME_KEY);
-        String password = usernamePasswordMap.get(PASSWORD_KEY);
+        String password = usernamePasswordMap.get(PASSWORD_KEY);;
+        Boolean persistLogin = Boolean.valueOf(String.valueOf(usernamePasswordMap.get(PERSIST_LOGIN)));
 
         //principal(username), credentials(password) 전달
         UsernamePasswordAuthenticationToken authRequest = new UsernamePasswordAuthenticationToken(email, password);
 
         // 인증 처리
-        return this.getAuthenticationManager().authenticate(authRequest);
+        Authentication authentication = this.getAuthenticationManager().authenticate(authRequest);
+
+        // 인증 성공 후 persistLogin 저장
+        userRepository.findByEmail(email).ifPresent(user -> {
+            user.updatePersistLogin(persistLogin); // persistLogin 업데이트
+            userRepository.save(user); // 변경 사항 저장
+        });
+
+        return authentication;
     }
 }

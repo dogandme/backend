@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Jwt 인증 필터
@@ -35,9 +36,14 @@ import java.io.IOException;
  */
 @RequiredArgsConstructor
 @Slf4j
-public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String NO_CHECK_URL = "/login"; // "/login"으로 들어오는 요청은 Filter 작동 X
+    // 아래 URL로 들어오는 요청은 Filter 작동 X
+    private static final String NO_CHECK_URL_LOGIN = "/login";
+    private static final String NO_CHECK_URL_SIGNUP = "/users";
+    private static final String NO_CHECK_URL_AWS = "/health";
+    private static final String NO_CHECK_URL_SWAGGER1 = "/swagger-ui/";
+    private static final String NO_CHECK_URL_SWAGGER2 = "/v3/api-docs";
 
     private final JwtService jwtService;
     private final UserRepository userRepository;
@@ -46,25 +52,44 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().equals(NO_CHECK_URL)) {
-            filterChain.doFilter(request, response); // "/login" 요청이 들어오면 아래 과정 생략
+        if (request.getRequestURI().equals(NO_CHECK_URL_LOGIN) ||
+                request.getRequestURI().equals(NO_CHECK_URL_SIGNUP) ||
+                request.getRequestURI().equals(NO_CHECK_URL_AWS) ||
+                request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER1) ||
+                request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER2)) { // 로그인, 회원가입, AWS, SWAGGER는 JWT 필터 패스
+            filterChain.doFilter(request, response);
             return;
         }
 
-        // 사용자 요청 쿠키에서 RefreshToken 추출
-        String refreshToken = jwtService.extractRefreshToken(request)
+        // 사용자 요청 쿠키에서 accessToken 추출
+        String accessToken = jwtService.extractAccessToken(request)
                 .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
                 .orElse(null);                // 없으면 null 반환
 
+        // accessToken이 유효하지 않으면 RefreshToken 추출
+        if (accessToken == null) {
+            String refreshToken = jwtService.extractRefreshToken(request)
+                    .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
+                    .orElse(null);                // 없으면 null 반환
 
-        if (refreshToken != null) { // refresh Token이 있으면 AccessToken 이 만료되었다는 것
-            checkRefreshTokenAndReIssueAccessToken(response, refreshToken); // 해당 refresh Token을 가지고 있는 회원이 있는 찾고, 있으면 Refresh/Access 토큰 모두 재발행
-            return; // RefreshToken을 보낸 경우에는 AccessToken을 재발급 하고 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
+            if (refreshToken != null) { // refresh Token이 있으면 AccessToken 이 만료되었다는 것
+                String newAccessToken = checkRefreshTokenAndReIssueAccessToken(response, refreshToken); // 해당 refresh Token을 가지고 있는 회원이 있는 찾고, 있으면 Refresh/Access 토큰 모두 재발행
+
+                // 신규 access token을 body에 담아 전송
+                response.setContentType("application/json");
+                response.setStatus(HttpServletResponse.SC_OK); // HTTP 상태 코드 200
+
+                // JSON 응답 본문 작성
+                String jsonResponse = String.format("{\"authorization\": \"%s\"}", newAccessToken);
+                response.getWriter().write(jsonResponse);
+                response.getWriter().flush(); // 응답을 클라이언트에 전송
+
+                return; // RefreshToken을 보낸 경우에는 AccessToken을 재발급 하고 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
+            }
         }
 
-        if (refreshToken == null) { // refresh Token이 없으면 AccessToken을 검증하여 인증처리
-            checkAccessTokenAndAuthentication(request, response, filterChain);
-        }
+        // AccessToken이 유효하면 검증하여 인증처리
+        checkAccessTokenAndAuthentication(request, response, filterChain);
     }
 
     /**
@@ -75,13 +100,18 @@ public class JwtAuthenticationProcessingFilter extends OncePerRequestFilter {
      * @modification.date 2024.8.9
      * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
      */
-    public void checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
+    public String checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
+        AtomicReference<String> accessToken = new AtomicReference<>("");
+
         userRepository.findByRefreshToken(refreshToken) // refresh Token으로 회원 찾기
                 .ifPresent(user -> {                    // 회원이 있다면
                     String reIssuedRefreshToken = reIssueRefreshToken(user); // refresh Token 재발행
-                    jwtService.sendAccessAndRefreshToken(response, jwtService.createAccessToken(user.getEmail(),user.getRole()), // 재발행한 Token 담아 보내기
-                            reIssuedRefreshToken);
+                    jwtService.setRefreshTokenCookie(response, reIssuedRefreshToken);
+
+                    accessToken.set(jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(), user.getId()));
                 });
+
+        return accessToken.get();
     }
 
     /**

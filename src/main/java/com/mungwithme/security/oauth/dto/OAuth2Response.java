@@ -13,7 +13,7 @@ import java.util.Map;
  * }
  * @modification.author 장수현
  * @modification.date 2024.8.12
- * @modification.details interface -> abstract class, ImageUrl 추가
+ * @modification.details interface -> abstract class
  */
 public abstract class OAuth2Response {
 
@@ -31,6 +31,4 @@ public abstract class OAuth2Response {
     public abstract String getEmail();
     //사용자 실명 (설정한 이름)
     public abstract String getName();
-    // 프로필 이미지
-    public abstract String getImageUrl();
 }

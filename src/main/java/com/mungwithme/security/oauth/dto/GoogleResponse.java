@@ -28,9 +28,4 @@ public class GoogleResponse extends OAuth2Response{
     public String getName() {
         return (String) attributes.get("name");
     }
-
-    @Override
-    public String getImageUrl() {
-        return (String) attributes.get("picture");
-    }
 }

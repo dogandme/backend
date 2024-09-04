@@ -1,15 +1,24 @@
 package com.mungwithme.user.model.entity;
 
+import com.mungwithme.pet.model.entity.Pet;
+import com.mungwithme.user.model.Gender;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.SocialType;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
 
 /**
  * 회원 ENTITY
  */
 @Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -25,9 +34,11 @@ public class User {
     private String email;           // 이메일(ID)
     private String password;        // 비밀번호
     private String nickname;        // 닉네임
-    private String imageUrl;        // 프로필 이미지
     private int age;                // 나이(추가정보)
-    private String city;            // 사는 도시(추가정보)
+    private String region;          // 사는지역(추가정보)
+
+    @Enumerated(EnumType.STRING)
+    private Gender gender;          // 성별
 
     @Enumerated(EnumType.STRING)
     private Role role;              // 권한 (기본:GUEST, 선택정보입력시:USER, 관리자:ADMIN)
@@ -37,6 +48,17 @@ public class User {
 
     private String socialId;        // 로그인한 소셜 타입의 식별자 값(일반 로그인:null)
     private String refreshToken;
+    private Boolean marketingYn;    // 마케팅 수신 동의 여부
+    private Boolean persistLogin;   // 로그인 유지 여부
+
+    @CreationTimestamp
+    private Date regDt;             // 등록일
+
+    @UpdateTimestamp
+    private Date modDt;             // 수정일
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<Pet> pets;          // One(User)-to-Many(Pet) Join
 
     /**
      * 유저 권한 설정 메소드
@@ -59,5 +81,12 @@ public class User {
      */
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;
+    }
+
+    /**
+     * 로그인 유지 여부 업데이트
+     */
+    public void updatePersistLogin(Boolean persistLogin) {
+        this.persistLogin = persistLogin;
     }
 }
