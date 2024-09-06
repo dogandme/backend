@@ -6,6 +6,7 @@ import lombok.Data;
 
 @Data
 public class EmailAuthRequestDto {
+
     @Email
     @NotEmpty(message = "이메일을 입력해 주세요")
     private String email;

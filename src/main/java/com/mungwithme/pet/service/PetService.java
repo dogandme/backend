@@ -1,12 +1,10 @@
 package com.mungwithme.pet.service;
 
 import com.mungwithme.common.exception.ResourceNotFoundException;
-import com.mungwithme.pet.Base64DecodedMultipartFile;
-import com.mungwithme.pet.model.dto.FileUploadDto;
+import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.user.model.Role;
-import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +18,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Objects;
 import java.util.UUID;
 

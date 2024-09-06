@@ -3,17 +3,17 @@ package com.mungwithme.pet.controller;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.pet.model.Personality;
-import com.mungwithme.pet.service.PetService;
 import com.mungwithme.pet.model.dto.PetSignUpDto;
+import com.mungwithme.pet.service.PetService;
 import com.mungwithme.user.model.entity.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
-import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,6 +34,9 @@ public class PetController {
         HashMap<String, Object> result = new HashMap<>();
 
         try {
+
+            // Todo jwt에서 userId 가져오기
+
             User user = petService.signUp3(petSignUpDto); // 추가 정보 저장
 
             result.put("role", user.getRole().getKey());

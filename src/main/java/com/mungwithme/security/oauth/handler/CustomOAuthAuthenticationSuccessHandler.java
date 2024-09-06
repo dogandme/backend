@@ -4,7 +4,6 @@ package com.mungwithme.security.oauth.handler;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.CustomOAuth2User;
 import com.mungwithme.user.repository.UserRepository;
-import com.mungwithme.user.service.UserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +17,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
-
-
 import java.util.Iterator;
 
 /**
@@ -40,7 +37,6 @@ public class CustomOAuthAuthenticationSuccessHandler extends SimpleUrlAuthentica
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        log.info("OAuth2 Login 성공");
 
         try {
             CustomOAuth2User customUserDetails = (CustomOAuth2User) authentication.getPrincipal();
@@ -51,28 +47,13 @@ public class CustomOAuthAuthenticationSuccessHandler extends SimpleUrlAuthentica
 
             String role = auth.getAuthority();
             String email = customUserDetails.getEmail();
-            Long userId = customUserDetails.getUserId();
 
-            String accessToken = jwtService.createAccessToken(email, role, userId);   // AccessToken 발급
-            String refreshToken = jwtService.createRefreshToken();                    // RefreshToken 발급
+            String accessToken = jwtService.createAccessToken(email, role);   // AccessToken 발급
+            String refreshToken = jwtService.createRefreshToken();            // RefreshToken 발급
 
             // Todo 일반 로그인 로직과 통일되게 통합 메소드 찾기
             jwtService.setRefreshTokenCookie(response, refreshToken); // 응답 쿠키에 RefreshToken 담아 응답
             jwtService.updateRefreshToken(email, refreshToken);
-
-            // 신규 access token을 body에 담아 전송
-//            response.setContentType("application/json");
-//            response.setStatus(HttpServletResponse.SC_OK); // HTTP 상태 코드 200
-//
-//            // JSON 응답 본문 작성
-//            String jsonResponse = String.format(
-//                    "{\"code\": %d, \"message\": \"%s\", \"content\": {\"authorization\": \"%s\", \"role\": \"%s\", \"userId\": %d}}",
-//                    200,
-//                    "success",
-//                    accessToken,
-//                    role,
-//                    userId
-//            );
 
             // 기존 회원일 경우 닉네임 쿠키에 저장
             int maxAge = 3600000;

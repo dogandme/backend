@@ -11,7 +11,6 @@ import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
-import java.util.List;
 import java.util.Set;
 
 /**

@@ -29,7 +29,6 @@ public class CustomJsonAuthenticationFailureHandler extends SimpleUrlAuthenticat
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
         baseResponse.sendErrorResponse(response, 401, "로그인 실패", objectMapper);
-        log.info("로그인에 실패했습니다. 메시지 : {}", exception.getMessage());
     }
 }
 

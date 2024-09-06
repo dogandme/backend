@@ -1,7 +1,6 @@
 package com.mungwithme.security.oauth.dto;
 
 import java.util.Map;
-import java.util.UUID;
 
 public class GoogleResponse extends OAuth2Response{
 

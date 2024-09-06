@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -56,12 +57,9 @@ public class UserService {
         // NONE 권한의 토큰 발행(기본정보입력 화면으로 넘어가기 위함)
         String email = newUser.getEmail();
         Role role = newUser.getRole();
-        Long userId = newUser.getId();
 
-        String accessToken = jwtService.createAccessToken(email, role.getKey(), userId);   // AccessToken 발급
+        String accessToken = jwtService.createAccessToken(email, role.getKey());   // AccessToken 발급
         String refreshToken = jwtService.createRefreshToken();                             // RefreshToken 발급
-        log.info("회원가입 신규 accessToken: {}", accessToken);
-        log.info("회원가입 신규 refreshToken: {}", refreshToken);
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
 
@@ -71,11 +69,8 @@ public class UserService {
                     userRepository.saveAndFlush(user);
                 });
 
-        log.info("NONE 로그인에 성공하였습니다. 이메일 : {}", email);
-
         result.put("authorization", accessToken);
         result.put("role", role.getKey());
-        result.put("userId", userId);
 
         return result;
     }
@@ -93,7 +88,7 @@ public class UserService {
                 });
 
         // 추가 정보 저장
-        User updatedUser = userRepository.findById(userSignUpDto.getUserId())
+        return userRepository.findById(userSignUpDto.getUserId())
                 .map(user -> {
                     user.setRole(Role.GUEST);
                     user.setNickname(userSignUpDto.getNickname());
@@ -104,8 +99,16 @@ public class UserService {
 
                     return userRepository.save(user);
                 })
-                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));         // userId로 회원조회 실패했으면 예외 발생
+                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));
+    }
 
-        return updatedUser;
+    /**
+     * 이메일을 이용하여 회원 조회
+     *
+     * @param email 이메일
+     * @return
+     */
+    public Optional<User> findByEmail(String email) {
+         return userRepository.findByEmail(email);
     }
 }

@@ -1,7 +1,6 @@
 package com.mungwithme.login.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
