@@ -2,7 +2,6 @@ package com.mungwithme.security.oauth.service;
 
 
 import com.mungwithme.security.oauth.dto.CustomOAuth2User;
-import com.mungwithme.security.oauth.dto.NaverResponse;
 import com.mungwithme.security.oauth.dto.OAuth2Response;
 import com.mungwithme.security.oauth.dto.OAuthAttributes;
 import com.mungwithme.user.model.Role;
@@ -42,7 +41,6 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
-        log.info("CustomOAuth2UserService.loadUser() 실행 - OAuth2 로그인 요청 진입");
 
         OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
 

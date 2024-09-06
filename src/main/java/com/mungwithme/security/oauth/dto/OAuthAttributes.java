@@ -1,8 +1,6 @@
 package com.mungwithme.security.oauth.dto;
 
-import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.SocialType;
-import com.mungwithme.user.model.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 

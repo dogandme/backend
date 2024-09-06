@@ -33,7 +33,6 @@ public class CustomLogoutHandler  implements LogoutHandler {
 
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
-        log.info("refreshToken : {}", refreshToken.get());
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             try {
                 baseResponse.sendErrorResponse(httpResponse, 401, "로그아웃 토큰 검증 실패", objectMapper);

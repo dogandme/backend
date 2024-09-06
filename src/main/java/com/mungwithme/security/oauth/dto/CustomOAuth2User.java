@@ -2,7 +2,6 @@ package com.mungwithme.security.oauth.dto;
 
 
 import com.mungwithme.user.model.entity.User;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;
