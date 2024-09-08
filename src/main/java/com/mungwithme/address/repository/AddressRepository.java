@@ -3,6 +3,7 @@ package com.mungwithme.address.repository;
 import com.mungwithme.address.model.entity.Address;
 import java.util.List;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -30,16 +31,30 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
     List<Address> findAllBySubDist(String subDistrict, Pageable pageable);
 
 
+    /**
+     *
+         POINT()는 MySQL에서 공간 데이터 타입인 POINT를 생성하는 함수입니다.
+         POINT() 함수는 지리적 좌표를 나타내는 POINT 객체를 생성합니다.
 
+         POINT() 함수는 두 개의 인자를 가지며, 각각 x 좌표와 y 좌표입니다.
+         일반적으로 경도(Longitude)와 위도(Latitude) 값을 사용하여 지리적 좌표를 표현합니다.
 
+         예를 들어, POINT(127.1234, 37.5678)은 경도가 127.1234이고 위도가 37.5678인 지점을 나타내는 POINT 객체를 생성합니다.
+         이를 통해 해당 레코드의 위치 정보를 POINT 객체로 저장하고 업데이트할 수 있습니다.
+     *
+     * @param lng
+     * @param lat
+     * @param radius
+     * @return
+     */
     @Query(value = "SELECT *, ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) as distance " +
         "FROM Address a " +
-        "WHERE ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radius   " +
-        "ORDER BY distance ASC",
+        "WHERE ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radius "
+        + "ORDER BY distance ASC " ,
         nativeQuery = true)
     List<Address> findAllWithinDistance(
         @Param("lng") double lng,
         @Param("lat") double lat,
-        @Param("radius") double radius);
+        @Param("radius") double radius,Pageable pageable );
 
 }
