@@ -95,7 +95,13 @@ class AddressRepositoryTest {
         double radius1 = 10000; //  10km
         // when
 
-        List<Address> allWithinDistance = addressRepository.findAllWithinDistance(lng, lat, radius1);
+
+        Sort sort = Sort.by(
+            Order.desc("id")
+        );
+        PageRequest pageRequest = PageRequest.of(0, 7, sort);
+
+        List<Address> allWithinDistance = addressRepository.findAllWithinDistance(lng, lat, radius1,null);
 
         // then
 

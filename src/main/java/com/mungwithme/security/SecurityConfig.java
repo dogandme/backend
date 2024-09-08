@@ -77,7 +77,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않으므로 STATELESS로 설정
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
-                                .requestMatchers("/", "/users", "/users/auth/**", "/auth", "/oauth2/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/health").permitAll()
+                                .requestMatchers("/", "/users", "/users/auth/**", "/auth", "/oauth2/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html","/health","/addresses","/addresses/**").permitAll()
                                 .anyRequest().authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(customAuthenticationEntryPoint)

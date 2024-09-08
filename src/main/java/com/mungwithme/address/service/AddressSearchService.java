@@ -33,7 +33,6 @@ public class AddressSearchService {
     private final AddressRepository addressRepository;
 
 
-
     /**
      * 회원 가입 시 키워드 동네 검색 API
      *
@@ -45,13 +44,13 @@ public class AddressSearchService {
      *     데이터 size
      * @return
      */
-    public List<AddressResponseDto> fetchListBySubDist(AddressSearchDto addressSearchDto, int pageNumber, int pageSize) {
+    public List<AddressResponseDto> fetchListBySubDist(AddressSearchDto addressSearchDto, int pageNumber,
+        int pageSize) {
         String keyword = addressSearchDto.getKeyword();
         if (!StringUtils.hasText(keyword)) {
             throw new IllegalArgumentException();
         }
         String district = addressSearchDto.getKeyword() + "*";
-
 
         Sort sort = Sort.by(
             Order.desc("id")
@@ -71,26 +70,64 @@ public class AddressSearchService {
     }
 
     /**
-     * 회원 가입 시 좌표로 인한 동네 검색 API
+     *
+     */
+
+    /**
+     * 좌표를 사용하여 근처 미터 단위로 읍면동 리스트 검색 API
      *
      * @param coordinatesDto
-     *     읍면동 검색 키워드를 담은 dto
+     *     위경도를 담은 DTO
      * @param pageNumber
      *     page 시작 위치
      * @param pageSize
      *     데이터 size
+     * @param radius
+     *     m (1000m -> 1km)
      * @return
      */
-    public List<AddressResponseDto> fetchListBySubDist(AddressCoordinatesDto coordinatesDto, int pageNumber, int pageSize) {
+    public List<AddressResponseDto> fetchListByLngLat(AddressCoordinatesDto coordinatesDto, int pageNumber,
+        int pageSize, int radius) {
 
+        double lat = coordinatesDto.getLat();
+        double lng = coordinatesDto.getLng();
 
-        return null;
+        // 좌표 값 확인
+        if (!isWithinKorea(lat,lng)) {
+            throw new IllegalArgumentException();
+        }
+
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+
+        List<Address> addressList = addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
+
+        if (addressList.isEmpty()) {
+            throw new ResourceNotFoundException("잘못된 위치 정보입니다.");
+        }
+
+        return addressList.stream().map(address ->
+            AddressResponseDto.builder().id(address.getId()).cityCounty(address.getCityCounty())
+                .province(address.getProvince())
+                .district(address.getDistrict()).subDistrict(address.getSubDistrict()).build()
+        ).toList();
     }
 
+    /**
+     *     대한민국의 위도 및 경도 범위 확인
+     * @param lat
+     * @param lng
+     * @return
+     */
+    private boolean isWithinKorea(double lat, double lng) {
+        // 대한민국의 위도 및 경도 범위 설정
+        double minLat = 33.0;
+        double maxLat = 43.0;
+        double minLng = 124.0;
+        double maxLng = 132.0;
 
-
-
-
+        // 위도와 경도가 대한민국 범위 내에 있는지 확인
+        return (lat >= minLat && lat <= maxLat) && (lng >= minLng && lng <= maxLng);
+    }
 
 
 }

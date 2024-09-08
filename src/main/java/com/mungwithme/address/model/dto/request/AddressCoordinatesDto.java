@@ -20,10 +20,10 @@ public class AddressCoordinatesDto {
 
 
     @NotBlank
-    private Long lat;
+    private Double lat;
 
     @NotBlank
-    private Long lng;
+    private Double lng;
 
 
 }
