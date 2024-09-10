@@ -40,12 +40,17 @@ public class Address {
 
     private String district; // 구
 
+
     @Column(name = "subdistrict")
     private String subDistrict; // 읍면동
 
+
+
     private String village; // 리
+
 
     private Double lat; // 위도
 
+    
     private Double lng; // 경도
 }
