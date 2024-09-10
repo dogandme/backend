@@ -41,6 +41,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String NO_CHECK_URL_LOGIN = "/login";
     private static final String NO_CHECK_URL_SIGNUP = "/users";
     private static final String NO_CHECK_URL_SIGNUP_EMAIL = "/users/auth";
+    private static final String NO_CHECK_URL_NEW_PASSWORD = "/users/password";
+    private static final String NO_CHECK_URL_OAUTH2 = "/oauth2";
     private static final String NO_CHECK_URL_AWS = "/health";
     private static final String NO_CHECK_URL_SWAGGER1 = "/swagger-ui/";
     private static final String NO_CHECK_URL_SWAGGER2 = "/v3/api-docs";
@@ -52,11 +54,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().equals(NO_CHECK_URL_LOGIN) ||
+        if (request.getRequestURI().startsWith(NO_CHECK_URL_LOGIN) ||
                 request.getRequestURI().equals(NO_CHECK_URL_SIGNUP) ||
                 request.getRequestURI().startsWith(NO_CHECK_URL_SIGNUP_EMAIL) ||
+                request.getRequestURI().equals(NO_CHECK_URL_NEW_PASSWORD) ||
                 request.getRequestURI().equals(NO_CHECK_URL_AWS) ||
-                request.getRequestURI().equals("/auth") ||
+                request.getRequestURI().startsWith(NO_CHECK_URL_OAUTH2) ||
                 request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER1) ||
                 request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER2)) { // 로그인, 회원가입, AWS, SWAGGER는 JWT 필터 패스
             filterChain.doFilter(request, response);

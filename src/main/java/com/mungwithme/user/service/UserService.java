@@ -106,9 +106,41 @@ public class UserService {
      * 이메일을 이용하여 회원 조회
      *
      * @param email 이메일
-     * @return
+     * @return 조회된 회원
      */
     public Optional<User> findByEmail(String email) {
          return userRepository.findByEmail(email);
+    }
+
+    /**
+     * 이메일을 이용하여 비밀번호 업데이트
+     * @param email 이메일
+     * @param password 신규 비밀번호
+     */
+    public void updatePasswordByEmail(String email, String password) {
+        Optional<User> updatedUser = findByEmail(email) // 이메일을 이용하여 회원 조회
+                .map(user -> {
+                    user.setPassword(password);
+                    user.passwordEncode(passwordEncoder);
+                    return userRepository.save(user);   // 비밀번호 업데이트
+                });
+    }
+
+    /**
+     * 이메일을 이용하여 일반 회원 조회
+     * @param email 이메일
+     * @return 조회된 회원
+     */
+    public Optional<User> findByEmailAndSocialTypeIsNull(String email) {
+        return userRepository.findByEmailAndSocialTypeIsNull(email);
+    }
+
+    /**
+     * 닉네임을 이용하여 회원 조회
+     * @param nickname 닉네임
+     * @return 조회된 회원
+     */
+    public Optional<User> findByNickname(String nickname) {
+        return userRepository.findByNickname(nickname);
     }
 }
