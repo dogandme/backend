@@ -1,9 +1,6 @@
 package com.mungwithme.pet.model.entity;
 
 import com.mungwithme.common.converter.StringListConverter;
-import com.mungwithme.pet.model.Breed;
-import com.mungwithme.pet.model.Personality;
-import com.mungwithme.user.model.Gender;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -29,12 +26,10 @@ public class Pet {
     private String name;                    // 애완동물 이름
     private String description;             // 간단소개
     private String profile;                 // 프로필 이미지
+    private String breed;                   // 강아지 종
 
     @Convert(converter = StringListConverter.class)
-    private List<Personality> personalities;// 성격
-
-    @Enumerated(EnumType.STRING)
-    private Breed breed;                    // 강아지 종
+    private List<String> personalities;// 성격
 
     @CreationTimestamp
     private Date regDt;                     // 등록일

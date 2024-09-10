@@ -2,7 +2,7 @@ package com.mungwithme.security.jwt.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
 @Service
@@ -41,7 +42,6 @@ public class JwtService {
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
     private static final String EMAIL_CLAIM = "email";
-    private static final String USERID_CLAIM = "userId";
     private static final String BEARER = "Bearer_";
 
     private final UserRepository userRepository;
@@ -60,12 +60,8 @@ public class JwtService {
      * @modification.author 장수현
      * @modification.date 2024.8.14
      * @modification.details 토큰 앞에 "BEARER+" 추가
-     *
-     * @modification.author 장수현
-     * @modification.date 2024.8.17
-     * @modification.details 토큰에 userId Clamin 추가
      */
-    public String createAccessToken(String email, String role, Long userId) {
+    public String createAccessToken(String email, String role) {
         Date now = new Date();
         return BEARER + JWT.create()                    // JWT 토큰을 생성하는 빌더
                 .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
@@ -73,7 +69,6 @@ public class JwtService {
                 .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
                 .withClaim("role", role)          // 권한
                 .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
-                .withClaim(USERID_CLAIM, userId)        // userId Claim 설정
                 .sign(Algorithm.HMAC512(secretKey));    // HMAC512 알고리즘 사용, application-jwt.yml에서 지정한 secret 키로 암호화
     }
 
@@ -103,8 +98,6 @@ public class JwtService {
     public void sendAccessToken(HttpServletResponse response, String accessToken) {
         response.setStatus(HttpServletResponse.SC_OK);
         response.addCookie(createCookie(accessCookie, BEARER + accessToken, accessTokenExpirationPeriod, false));
-
-        log.info("재발급된 Access Token : {}", accessToken);
     }
 
     /**
@@ -132,8 +125,6 @@ public class JwtService {
      * @modification.details 쿠키 토큰 추출 -> 헤더 토큰 추출
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
-        log.info("extractAccessToken: {}", request);
-
         return Optional.ofNullable(request.getHeader("Authorization"))        // Authorization 헤더를 가져옵니다.
                 .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
                 .map(header -> header.replace(BEARER, ""))             // "BEARER "를 제거하고 추출합니다.
@@ -151,23 +142,6 @@ public class JwtService {
                     .verify(accessToken)    // accessToken을 검증하고 유효하지 않다면 예외 발생
                     .getClaim(EMAIL_CLAIM)  // claim(Email) 가져오기
                     .asString());
-        } catch (Exception e) {
-            log.error("액세스 토큰이 유효하지 않습니다.");
-            return Optional.empty();
-        }
-    }
-
-    /**
-     * AccessToken에서 userId 추출
-     * @param accessToken
-     */
-    public Optional<Long> extractUserId(String accessToken) {
-        try {
-            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))    // 토큰 검증기 생성
-                    .build()
-                    .verify(accessToken)     // accessToken을 검증하고 유효하지 않다면 예외 발생
-                    .getClaim(USERID_CLAIM)  // claim(userId) 가져오기
-                    .asLong());
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
             return Optional.empty();
@@ -204,7 +178,6 @@ public class JwtService {
      * @param httpOnly httpOnly 설정 여부
      */
     public Cookie createCookie(String key, String value, int expirationPeriod, boolean httpOnly) {
-        log.info("createCookie**");
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(expirationPeriod);
         cookie.setPath("/");
@@ -235,7 +208,6 @@ public class JwtService {
      * @param token 검증할 토큰
      */
     public boolean isTokenValid(String token) {
-        log.info("token: {}", token);
         try {
             JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
             return true;
@@ -261,5 +233,58 @@ public class JwtService {
                 }
             }
         }
+    }
+
+    /**
+     * AccessToken에서 추출한 email로 userId 조회
+     * @param request
+     */
+    public Long findUserIdByEmailFromJwt(HttpServletRequest request) {
+
+        // jwt에서 email 추출
+        Optional<String> accessToken = extractAccessToken(request);
+        Optional<String> email = extractEmail(accessToken.get());
+
+        // 추출한 email을 이용하여 userId 조회
+        Long userId = 0L;
+        if (email.isPresent()) {
+            userId = userRepository.findByEmail(email.get()).get().getId();
+        }
+
+        return userId;
+    }
+
+    /**
+     * Refresh Token 으로 유저 정보 찾기 & Access/Refresh Token 재발급 메소드
+     * @param refreshToken Access Token이 만료 되어서 새로 발급하기 위해 이용
+     * @param  -> createAccessToken 매개변수 role값 추가
+     * @modification.author 전형근
+     * @modification.date 2024.8.9
+     * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
+     */
+    public String checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
+        AtomicReference<String> accessToken = new AtomicReference<>("");
+
+        userRepository.findByRefreshToken(refreshToken) // refresh Token으로 회원 찾기
+                .ifPresent(user -> {                    // 회원이 있다면
+                    String reIssuedRefreshToken = reIssueRefreshToken(user); // refresh Token 재발행
+                    setRefreshTokenCookie(response, reIssuedRefreshToken);
+
+                    accessToken.set(createAccessToken(user.getEmail(), user.getRole().getKey()));
+                });
+
+        return accessToken.get();
+    }
+
+    /**
+     * Refresh Token 생성 및 저장
+     * @param user 토근 소유자
+     * @return
+     */
+    private String reIssueRefreshToken(User user) {
+        String reIssuedRefreshToken = createRefreshToken();
+        user.updateRefreshToken(reIssuedRefreshToken);
+        userRepository.saveAndFlush(user);
+        return reIssuedRefreshToken;
     }
 }

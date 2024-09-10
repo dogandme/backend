@@ -1,12 +1,8 @@
 package com.mungwithme.security.oauth.service;
 
 
-import com.mungwithme.security.oauth.dto.CustomOAuth2User;
-import com.mungwithme.security.oauth.dto.NaverResponse;
-import com.mungwithme.security.oauth.dto.OAuth2Response;
-import com.mungwithme.security.oauth.dto.OAuthAttributes;
-import com.mungwithme.user.model.Role;
-import com.mungwithme.user.model.SocialType;
+import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
+import com.mungwithme.security.oauth.dto.PrincipalDetails;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -42,41 +38,32 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     @Override
     public OAuth2User loadUser(OAuth2UserRequest oAuth2UserRequest) throws OAuth2AuthenticationException {
-        log.info("CustomOAuth2UserService.loadUser() 실행 - OAuth2 로그인 요청 진입");
 
-        OAuth2User oAuth2User = super.loadUser(oAuth2UserRequest);
+        // 1. 회원 정보(attributes) 가져오기
+        Map<String, Object> attributes = super.loadUser(oAuth2UserRequest).getAttributes();
 
+        // 2. registrationId(third-party id) 가져오기
         String registrationId = oAuth2UserRequest.getClientRegistration().getRegistrationId();
-        SocialType socialType = getSocialType(registrationId);
+
+        // 3. userNameAttributeName 가져오기
         String userNameAttributeName = oAuth2UserRequest.getClientRegistration()
-                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName(); // OAuth2 로그인 시 키(PK)가 되는 값
-        Map<String, Object> attributes = oAuth2User.getAttributes();                    // 소셜 로그인에서 API가 제공하는 userInfo의 Json 값(유저 정보들)
+                .getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
 
-        // socialType에 따라 유저 정보를 통해 OAuthAttributes 객체 생성
-        OAuthAttributes extractAttritbutes = OAuthAttributes.of(socialType, userNameAttributeName, attributes);
-        OAuth2Response oAuth2Response = extractAttritbutes.getOAuth2Response();
+        // 4. 회원 정보 dto 생성
+        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, attributes);
 
-        User existData = userRepository.findByEmail(extractAttritbutes.getOAuth2Response().getEmail())
-                .orElseGet(() -> {  // 기존에 등록되지 않은 회원일 경우 신규 생성
-                    return User.builder()
-                            .email(oAuth2Response.getEmail())
-                            .nickname(oAuth2Response.getName())
-                            .role(Role.NONE)
-                            .socialType(socialType)
-                            .socialId(oAuth2Response.getProviderId())
-                            .build();
-                });
+        // 5. 회원가입 및 로그인
+        User user = getOrSave(oAuth2UserInfo);
 
-        userRepository.save(existData);
-
-        return new CustomOAuth2User(existData);
+        // 6. OAuth2User로 반환
+        return new PrincipalDetails(user, attributes, userNameAttributeName);
     }
 
-    private SocialType getSocialType(String registrationId) {
-        if (NAVER.equals(registrationId)) {
-            return SocialType.NAVER;
-        }
-        return SocialType.GOOGLE;
+    private User getOrSave(OAuth2UserInfo oAuth2UserInfo) {
+        User user = userRepository.findByEmail(oAuth2UserInfo.email())
+                .orElseGet(oAuth2UserInfo::toEntity);
+
+        return userRepository.save(user);
     }
 
 }

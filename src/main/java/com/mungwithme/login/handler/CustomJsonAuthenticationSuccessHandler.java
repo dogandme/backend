@@ -3,8 +3,6 @@ package com.mungwithme.login.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.security.jwt.service.JwtService;
-import com.mungwithme.security.oauth.dto.CustomUserDetails;
-import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -52,10 +50,9 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
 
         String email = extractUsername(authentication);             // 인증 정보에서 Username(email) 추출 (JwtAuthenticationProcessingFilter에서 생성했었음)
         List<String> roles = extractRoles(authentication);          // 인증 정보에서 역할(Role) 추출
-        Long userId = extractUserId(authentication);                // 인증 정보에서 userId(PK) 추출
 
         // Role값 추가로 인한 createAccessToken 매개변수,메서드 변경
-        String accessToken = jwtService.createAccessToken(email, roles.get(0), userId);   // AccessToken 발급
+        String accessToken = jwtService.createAccessToken(email, roles.get(0));   // AccessToken 발급
         String refreshToken = jwtService.createRefreshToken();                            // RefreshToken 발급
         jwtService.setRefreshTokenCookie(response, refreshToken); // 응답 쿠키에 AccessToken, RefreshToken 담아 응답 Todo 수정 필요
 
@@ -69,11 +66,8 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
 
         result.put("authorization", accessToken);
         result.put("role", roles.get(0));
-        result.put("userId", userId);
 
         baseResponse.sendContentResponse(result, response, 200, objectMapper);  // 권한에 따른 분기처리를 위해 role 추가하여 성공 응답
-
-        log.info("로그인에 성공하였습니다. 이메일 : {} / AccessToken : {} ", email, accessToken);
     }
 
     /**
@@ -94,13 +88,5 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
-    }
-
-    /**
-     * 인증정보에서 userId(PK) 추출
-     */
-    private Long extractUserId(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        return userDetails.getUserId();
     }
 }
