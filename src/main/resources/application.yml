@@ -20,5 +20,5 @@ com:
   example:
     ex8_fileupload:
       upload:
-        path: /your/desired/path
+        path: /Users/imhaneul/files/image
 
