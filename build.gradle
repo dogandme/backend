@@ -39,6 +39,11 @@ dependencies {
 	implementation 'javax.mail:mail:1.4.7'
 	implementation 'org.springframework:spring-context-support:5.3.9'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+	// Apache Tika
+	implementation 'org.apache.tika:tika-core:2.8.0'
+	implementation 'org.apache.tika:tika-parsers:2.8.0'
+
 }
 
 tasks.named('test') {
