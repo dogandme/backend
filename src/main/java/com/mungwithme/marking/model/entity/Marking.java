@@ -41,15 +41,14 @@ public class Marking {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;              // 작성자
 
     @Column(nullable = false)
-    private Double latitude;        // 위도
+    private Double lat;        // 위도
     @Column(nullable = false)
-    private Double longitude;       // 경도
+    private Double lng;       // 경도
 
     @Column(nullable = false, length = 150)
     private String content;         // 내용 150 자 이내에
