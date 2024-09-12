@@ -32,6 +32,12 @@ public class MarkingModifyDto {
     @NotNull
     private Set<Long> removeIds;
 
+    // 임시 저장 여부
+    // true 일 경우 임시 저장
+    // false 일 경우 임시 저장 X
+    @NotNull
+    private Boolean isTempSaved;
+
 
 }
 

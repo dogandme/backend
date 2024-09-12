@@ -50,42 +50,6 @@ public class MarkingService {
 
     public final int MAX_IMAGE_UPLOAD_SIZE = 5;
 
-
-    /**
-     * 유저가 작성한 마킹 임시 저장
-     *
-     * @param markingAddDto
-     *     마킹 정보
-     * @param images
-     *     마킹 이미지 최소 1개
-     */
-    @Transactional
-    public void addTempMarking(MarkingAddDto markingAddDto, List<MultipartFile> images) {
-        addMarking(markingAddDto, images, true);
-    }
-
-    /**
-     * 유저가 작성한 임시 저장 마킹 수정
-     *
-     * @param markingModifyDto
-     * @param images
-     */
-    @Transactional
-    public void patchTempMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images) {
-        patchMarking(markingModifyDto, images, true);
-    }
-
-    /**
-     * 유저가 작성한 임시 저장 마킹 삭제
-     *
-     * @param markingRemoveDto
-     */
-    @Transactional
-    public void deleteTempMarking(MarkingRemoveDto markingRemoveDto) {
-        deleteMarking(markingRemoveDto, true);
-    }
-
-
     /**
      * @param markingAddDto
      *     마킹 정보
@@ -96,7 +60,7 @@ public class MarkingService {
      */
     @Transactional
     public void addMarking(MarkingAddDto markingAddDto, List<MultipartFile> images, boolean isTempSaved) {
-        imageSizeCheck(images);
+        imageSizeCheck(images, isTempSaved);
         User user = getUser();
 
         Marking marking = Marking.create(markingAddDto, user);
@@ -155,6 +119,16 @@ public class MarkingService {
     }
 
 
+    /**
+     * marking 수정 API
+     *
+     * @param markingModifyDto
+     *     수정할 내용
+     * @param images
+     *     저장할 이미지
+     * @param isTempSaved
+     *     수정할 마킹이 임시저장인지 아닌지 여부
+     */
     @Transactional
     public void patchMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images, boolean isTempSaved) {
 //        imageSizeCheck(images);
@@ -169,14 +143,28 @@ public class MarkingService {
             throw new IllegalArgumentException("ex) 수정 권한이 없습니다.");
         }
 
-        // 업데이트
+        // 내용 업데이트
         marking.updateContent(markingModifyDto.getContent());
 
+        // 권한 업데이트
         marking.updateIsVisible(markingModifyDto.getIsVisible());
+
+
+        //  임시저장 -> 저장 으로 상태 변경일 경우 실행
+        if (!markingModifyDto.getIsTempSaved() && marking.getIsTempSaved()) {
+            /**
+             *  isTempSaved 를 false 로 변경
+             *  원래 임시저장이였던 마킹을 최종저장으로 업데이트
+             */
+            isTempSaved = markingModifyDto.getIsTempSaved();
+            marking.updateIsTempSaved(isTempSaved);
+        }
+
 
         // 이미지 삭제 ids
         Set<Long> removeIds = markingModifyDto.getRemoveIds();
 
+        // list 를 Map 형태로 변경
         Map<Long, MarkImage> imageMap = marking.getImages().stream()
             .collect(Collectors.toMap(MarkImage::getId, value -> value));
 
@@ -195,9 +183,13 @@ public class MarkingService {
         // 추가 이미지 갯수
         int addSize = images.size();
 
+        // 최종 이미지 갯수 계산
         int allSize = (existSize - removeSize) + addSize;
 
-        if (allSize <= 0 || MAX_IMAGE_UPLOAD_SIZE < allSize) {
+        // 임시저장 마킹일 경우 image 파일 존재하지 않아도 됨
+        // 임시저장이 아니면서 allSize 가 0보다 작거나 같다면
+        // 임시저장 여부 상관없이 총 이미지 파일 max 사이즈 보다 큰 경우
+        if ((!isTempSaved && allSize <= 0) || MAX_IMAGE_UPLOAD_SIZE < allSize) {
             throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
         }
 
@@ -258,8 +250,22 @@ public class MarkingService {
     }
 
 
-    private void imageSizeCheck(List<MultipartFile> images) {
-        if (images.size() > MAX_IMAGE_UPLOAD_SIZE || images.isEmpty()) {
+    /**
+     * image 갯수 제한 최대 5개
+     * <p>
+     * 임시저장은 Image 파일이 없어도 됨
+     *
+     * @param images
+     * @param isTempSaved
+     */
+    private void imageSizeCheck(List<MultipartFile> images, boolean isTempSaved) {
+
+        // 임시저장이면서 isEmpty 일경우에는 return
+        if (isTempSaved && images.isEmpty()) {
+            return;
+        }
+
+        if (images.size() > MAX_IMAGE_UPLOAD_SIZE || (!isTempSaved && images.isEmpty())) {
             throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
         }
     }

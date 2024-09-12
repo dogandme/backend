@@ -17,7 +17,7 @@ class MarkingQueryServiceTest {
     @Test
     void findById() {
 
-        Marking byId = markingQueryService.findById(1, false, false);
+        Marking byId = markingQueryService.findById(21, false, true);
 
         Set<MarkImage> images = byId.getImages();
 
