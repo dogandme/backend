@@ -6,8 +6,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,12 +30,16 @@ public class FileStore {
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
 
-    public static final String PET_DIR = "pet/";
-    public static final String MARKING_DIR = "marking/";
-    public static final String PROFILE_DIR = "profile/";
+    public static final String PET_DIR = "pet";
+    public static final String MARKING_DIR = "marking";
+    public static final String USER_PROFILE_DIR = "profile";
+
+    public static final String USER_DEFAULT_DIR = "default";
+
+
 
     /**
-     * 이미지 List 로 업로드
+     * 이미지 파일 다중 업로드 API
      *
      * @param multipartFileList
      *   업로드 할 파일 리스트
@@ -53,12 +55,7 @@ public class FileStore {
         }
         return uploadFiles;
     }
-    /**
-     * 이미지 업로드
-     *
-     * @param multipartFile
-     *     업로드 할 파일
-     */
+
     /**
      *
      * @param multipartFile
@@ -75,23 +72,25 @@ public class FileStore {
 
         // 확장자 jpeg 로 통일
         // 사진 이미지의 파일명은 전부다 랜덤아이디로
-        String fileFormatName = ".jpeg";
+        String fileFormat = ".jpeg";
 
         String folderPath = makeFolder(pathType);  // 날짜 폴더 생성
 
         String uuid = UUID.randomUUID().toString(); // UUID 생성
 
-        String saveName = folderPath + File.separator + uuid + "_" + multipartFile.getOriginalFilename() + fileFormatName;
+        String storeName = uuid + fileFormat;
+
+        String saveName = folderPath + File.separator + storeName;
 
         Path savePath = Paths.get(saveName);
 
         multipartFile.transferTo(savePath);
 
-        return saveName;
+        return storeName;
     }
 
     /**
-     * 디렉터리 생성
+     * 해당 디렉터리가 있는지 확인 후 없으면 생성
      * <p>
      * image/이미지 타입 (pet,profile,marking)/년도/월/일
      *
@@ -100,19 +99,55 @@ public class FileStore {
      * @return
      */
     public String makeFolder(String path) {
-        String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+//        String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
 
-        String folderPath = str.replace("/", File.separator);
+//        String folderPath = str.replace("/", File.separator);
 
-        String fullRoot = uploadPath + File.separator + path + folderPath;
-        Path directoryPath = Paths.get(fullRoot);
+//        String fullRoot = uploadPath + File.separator + path + folderPath;
+//        Path directoryPath = Paths.get(fullRoot);
 
+        String folderPath = getFolderPath(path);
+        Path directoryPath = Paths.get(folderPath);
         try {
-            Files.createDirectories(directoryPath);
+            boolean isDirectory = Files.isDirectory(directoryPath);
+            if (!isDirectory) { // 있는지 확인
+                Files.createDirectories(directoryPath);
+            }
         } catch (IOException e) {
-            throw new RuntimeException();
+            throw new IllegalArgumentException("ex) ");
         }
-        return fullRoot;
+        return folderPath;
+    }
+
+    /**
+     *
+     * 사진 삭제 API
+     *
+     * @param dirPath
+     *  path type
+     * @param filename
+     *  fileName
+     *
+     */
+    public void deleteFile(String dirPath, String filename) {
+
+        String folderPath = getFolderPath(dirPath);
+        Path filePath = Paths.get( folderPath + File.separator + filename);
+        try {
+            boolean isExecutable = Files.exists(filePath);
+            if (isExecutable) { // 있는지 확인
+                Files.delete(filePath);
+            }
+        } catch (IOException e) {
+            throw new IllegalArgumentException("ex) ");
+        }
+    }
+
+
+
+
+    private String getFolderPath( String path) {
+        return this.uploadPath + File.separator + path;
     }
 
 
