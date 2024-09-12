@@ -42,7 +42,7 @@ class FileStoreTest {
             inputStream
         );
 
-        String s = fileStore.uploadFile(multipartFile,FileStore.PROFILE_DIR);
+        String s = fileStore.uploadFile(multipartFile,FileStore.USER_PROFILE_DIR);
 
         System.out.println("s = " + s)
         ;
@@ -54,12 +54,15 @@ class FileStoreTest {
     // given
     
     // when
-        String dir = fileStore.makeFolder(FileStore.PET_DIR);
-
-        System.out.println("File.separator = " + dir);
-
+        fileStore.makeFolder(FileStore.PET_DIR);
 
     // then
     
+    }
+
+
+    @Test
+    public void deleteFile() {
+        fileStore.deleteFile(FileStore.USER_PROFILE_DIR,"fd2ca386-2a1e-4ba1-8711-adcf0d62a6c6_NJ_BubbleGum_21.jpeg");
     }
 }

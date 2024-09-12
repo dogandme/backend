@@ -1,4 +1,4 @@
-package com.mungwithme.marking.repository;
+package com.mungwithme.marking.repository.marking;
 
 
 import com.mungwithme.marking.model.entity.Marking;

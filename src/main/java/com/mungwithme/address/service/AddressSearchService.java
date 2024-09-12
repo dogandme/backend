@@ -7,6 +7,7 @@ import com.mungwithme.address.model.dto.request.AddressSearchDto;
 import com.mungwithme.address.model.dto.response.AddressResponseDto;
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
+import com.mungwithme.common.util.GeoUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -48,7 +49,7 @@ public class AddressSearchService {
         int pageSize) {
         String keyword = addressSearchDto.getKeyword();
         if (!StringUtils.hasText(keyword)) {
-            throw new IllegalArgumentException();
+            throw new IllegalArgumentException("keyword 는 필수입니다.");
         }
         String district = addressSearchDto.getKeyword() + "*";
 
@@ -93,8 +94,8 @@ public class AddressSearchService {
         double lng = coordinatesDto.getLng();
 
         // 좌표 값 확인
-        if (!isWithinKorea(lat,lng)) {
-            throw new IllegalArgumentException();
+        if (!GeoUtils.isWithinKorea(lat,lng)) {
+            throw new IllegalArgumentException("ex) 좌표 값이 정확하지 않습니다.");
         }
 
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
@@ -112,22 +113,7 @@ public class AddressSearchService {
         ).toList();
     }
 
-    /**
-     *     대한민국의 위도 및 경도 범위 확인
-     * @param lat
-     * @param lng
-     * @return
-     */
-    private boolean isWithinKorea(double lat, double lng) {
-        // 대한민국의 위도 및 경도 범위 설정
-        double minLat = 33.0;
-        double maxLat = 43.0;
-        double minLng = 124.0;
-        double maxLng = 132.0;
 
-        // 위도와 경도가 대한민국 범위 내에 있는지 확인
-        return (lat >= minLat && lat <= maxLat) && (lng >= minLng && lng <= maxLng);
-    }
 
 
 }

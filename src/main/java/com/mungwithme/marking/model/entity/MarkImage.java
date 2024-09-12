@@ -9,6 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -42,9 +45,16 @@ public class MarkImage {
     @Column(nullable = false)
     private String imageUrl;   // imageUrl
 
-    @CreationTimestamp
-    private Date regDt;        // 등록일
+    @Column(nullable = false)
+    private Integer lank;
 
+    @CreationTimestamp
+    private Date regDt;   // 등록일
+
+
+    public static MarkImage create (Marking marking, String imageUrl,int order) {
+        return MarkImage.builder().marking(marking).imageUrl(imageUrl).lank(order).build();
+    }
 
 
 }

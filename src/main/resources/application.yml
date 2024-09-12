@@ -2,6 +2,12 @@ server:
   port: 80
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10000MB
+      max-request-size: 10000MB
+      enabled: true
+      # 파일 사이즈 체크
   jpa:
     hibernate:
       ddl-auto: update
@@ -9,6 +15,12 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        order_inserts: true
+        order_updates: true
+        default_batch_fetch_size: 300
+        jdbc:
+          batch_size: 100
+#          배치처리
   profiles:
     include: db, jwt, oauth
   data:

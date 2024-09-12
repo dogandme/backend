@@ -1,6 +1,7 @@
 package com.mungwithme.marking.model.entity;
 
 import com.mungwithme.marking.model.Visibility;
+import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -46,15 +47,18 @@ public class Marking {
     private User user;              // 작성자
 
     @Column(nullable = false)
+    private String title;
+
+    @Column(nullable = false)
     private Double lat;        // 위도
     @Column(nullable = false)
     private Double lng;       // 경도
 
-    @Column(nullable = false, length = 150)
+    @Column(length = 150)
     private String content;         // 내용 150 자 이내에
 
     @Column(nullable = false)
-    private Boolean isTempSaved;    // 임시 저장 여부
+    private Boolean isTempSaved;    // 임시 저장 여부 true일 경우 임시저장, false 면 임시저장 X
 
     @Column(nullable = false)
     private Boolean isDeleted;      // 마킹 삭제 여부 true일 경우 삭제, false 면 삭제 X
@@ -71,4 +75,31 @@ public class Marking {
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkImage> images;   // One(marking)-to-Many(images) Join
+
+
+    public static Marking create(MarkingAddDto markingAddDto, User user) {
+        return Marking.builder().content(markingAddDto.getContent())
+            .title(markingAddDto.getTitle())
+            .lat(markingAddDto.getLat())
+            .lng(markingAddDto.getLng())
+            .isDeleted(false)
+            .isVisible(markingAddDto.getIsVisible())
+            .user(user).build();
+    }
+    public void updateIsTempSaved (boolean isTempSaved) {
+        this.isTempSaved = isTempSaved;
+    }
+    public void updateIsDeleted (boolean isDeleted) {
+        this.isDeleted = isDeleted;
+    }
+
+
+    public void updateContent (String content) {
+        this.content = content;
+    }
+
+    public void updateIsVisible (Visibility isVisible) {
+        this.isVisible = isVisible;
+    }
+
 }

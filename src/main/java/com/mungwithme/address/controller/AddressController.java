@@ -7,8 +7,10 @@ import com.mungwithme.address.service.AddressSearchService;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +35,7 @@ public class AddressController {
      * @return
      */
     @GetMapping("")
-    public CommonBaseResult fetchListBySubDist(@ModelAttribute AddressSearchDto addressSearchDto) {
+    public CommonBaseResult fetchListBySubDist(@Validated @ModelAttribute AddressSearchDto addressSearchDto) {
         try {
             return baseResponse.getContentResult(addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7));
         } catch (ResourceNotFoundException e) {
