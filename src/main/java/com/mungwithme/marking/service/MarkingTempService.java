@@ -60,11 +60,9 @@ public class MarkingTempService {
         markingService.deleteMarking(markingRemoveDto, true);
     }
 
-    public TempMarkingInfoResponseDto getTempMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        TempMarkingInfoResponseDto markingInfoResponseDto = (TempMarkingInfoResponseDto) markingService.getMarkingInfoResponseDto(
+    public MarkingInfoResponseDto getTempMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
+        return markingService.getMarkingInfoResponseDto(
             id, isDeleted,
             isTempSaved);
-        markingInfoResponseDto.updateIsTempSaved(isTempSaved);
-        return markingInfoResponseDto;
     }
 }

@@ -6,6 +6,7 @@ import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
+import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.TempMarkingInfoResponseDto;
 import com.mungwithme.marking.service.MarkingTempService;
 import java.util.ArrayList;
@@ -98,9 +99,9 @@ public class MarkingTempController {
 
 
     @GetMapping("/{id}")
-    public CommonBaseResult fetchTempMarkingById(@PathVariable Long id) {
+    public CommonBaseResult fetchTempMarkingById(@PathVariable(name = "id") Long id) {
         try {
-            TempMarkingInfoResponseDto tempMarkingInfoResponseDto = markingTempService.getTempMarkingInfoResponseDto(id,
+            MarkingInfoResponseDto tempMarkingInfoResponseDto = markingTempService.getTempMarkingInfoResponseDto(id,
                 false,
                 true);
             return baseResponse.getContentResult(tempMarkingInfoResponseDto);

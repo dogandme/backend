@@ -36,6 +36,7 @@ public class MarkingInfoResponseDto {
     // 자신의 포스트 인지 확인
     private Boolean isOwner;
 
+    private Boolean isTempSaved;
     private List<MarkImageResponseDto> images;
 
     public MarkingInfoResponseDto(Marking marking) {
@@ -50,6 +51,8 @@ public class MarkingInfoResponseDto {
         this.lng = marking.getLng();
         this.isVisible = marking.getIsVisible();
         this.regDt = marking.getRegDt();
+        this.isTempSaved = marking.getIsTempSaved();
+
         List<MarkImageResponseDto> imageDtos = new java.util.ArrayList<>(
             marking.getImages().stream().map(MarkImageResponseDto::new)
                 .toList());
