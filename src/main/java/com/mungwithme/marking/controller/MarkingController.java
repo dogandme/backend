@@ -1,6 +1,7 @@
 package com.mungwithme.marking.controller;
 
 
+import com.mungwithme.common.file.FileStore;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
@@ -9,10 +10,19 @@ import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.MarkingQueryService;
 import com.mungwithme.marking.service.MarkingService;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,7 +46,7 @@ public class MarkingController {
 
     private final MarkingService markingService;
     private final BaseResponse baseResponse;
-    private final MarkingQueryService markingQueryService;
+    private final FileStore fileStore;
 
     /**
      * marking 저장 API
@@ -100,7 +110,7 @@ public class MarkingController {
      * 마킹 상세 정보 반환 API
      *
      * @param id
-     *       마킹 아이디
+     *     마킹 아이디
      * @return
      */
     @GetMapping("/{id}")
@@ -111,6 +121,32 @@ public class MarkingController {
         } catch (Exception e) {
             return baseResponse.getFailResult(400, e.getMessage());
         }
+    }
+
+    /**
+     * id:user_file_Api_1
+     * <p>
+     * 서버에서 마킹 이미지 가져오기
+     *
+     * @return
+     * @throws IOException
+     */
+    @GetMapping("/image/{fileName}")
+    public ResponseEntity<UrlResource> fetchMarkingImage(@PathVariable(name = "fileName") String fileName) {
+        // file MediaType 확인 후 header 에 저장
+        MediaType mediaType = null;
+        UrlResource pictureImage = null;
+        try {
+            if (StringUtils.hasText(fileName)) {
+                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
+                pictureImage = fileStore.getUrlResource(fileName, FileStore.MARKING_DIR);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity(HttpStatus.NOT_FOUND);
+        }
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+            .body(pictureImage);
     }
 
 }
