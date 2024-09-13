@@ -67,7 +67,7 @@ class MarkingServiceTest {
         markingAddDto.setLat(36.55);
         markingAddDto.setLng(126.55);
         markingAddDto.setIsVisible(Visibility.FOLLOWERS_ONLY);
-        markingAddDto.setTitle("하하요하요");
+        markingAddDto.setRegion("하하요하요");
         markingService.addMarking(markingAddDto, images, false);
 
     }

@@ -8,6 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 public class MarkingImageFileDto {
-    private Integer order;
+    private Integer lank;
     private MultipartFile image;
 }
