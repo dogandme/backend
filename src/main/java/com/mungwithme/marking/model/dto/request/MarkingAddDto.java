@@ -18,7 +18,7 @@ import lombok.Setter;
 public class MarkingAddDto {
 
     @NotBlank
-    private String title;
+    private String region;
 
     @Size(max = 150)
     @NotBlank

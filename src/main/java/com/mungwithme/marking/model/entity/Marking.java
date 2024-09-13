@@ -47,7 +47,7 @@ public class Marking {
     private User user;              // 작성자
 
     @Column(nullable = false)
-    private String title;
+    private String region; // 지역
 
     @Column(nullable = false)
     private Double lat;        // 위도
@@ -79,7 +79,7 @@ public class Marking {
 
     public static Marking create(MarkingAddDto markingAddDto, User user) {
         return Marking.builder().content(markingAddDto.getContent())
-            .title(markingAddDto.getTitle())
+            .region(markingAddDto.getRegion())
             .lat(markingAddDto.getLat())
             .lng(markingAddDto.getLng())
             .isDeleted(false)

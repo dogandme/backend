@@ -3,16 +3,13 @@ package com.mungwithme.marking.model.dto.response;
 
 import com.mungwithme.marking.model.Visibility;
 import com.mungwithme.marking.model.entity.Marking;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.domain.Sort;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
@@ -21,7 +18,7 @@ public class MarkingInfoResponseDto {
 
     private Long id;
 
-    private String title;
+    private String region;
     private String content;
 
     private Double lat;
@@ -45,7 +42,7 @@ public class MarkingInfoResponseDto {
         this.userId = marking.getUser().getId();
         this.nickName = marking.getUser().getNickname();
 
-        this.title = marking.getTitle();
+        this.region = marking.getRegion();
         this.content = marking.getContent();
         this.lat = marking.getLat();
         this.lng = marking.getLng();
