@@ -11,18 +11,20 @@ import org.springframework.data.repository.query.Param;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
-    /**
-     * 동네 검색 (읍,면,동)
-     *
-     * @param subDistrict
-     * @param pageable
-     * @return
-     */
+
 
 //    @Query(value = "SELECT * FROM Address a WHERE MATCH(a.subdistrict) AGAINST (?1 IN BOOLEAN MODE)", nativeQuery = true)
 //    @Query(value = "select a from Address a where a.subDistrict like :subDistrict ")
 //    Page<Address> findAllBySubDist(@Param("subDistrict") String subDistrict, Pageable pageable);
 
+
+    @Query("SELECT a FROM Address a WHERE a.lat BETWEEN :southBottomLat AND :northTopLat AND a.lng BETWEEN :southLeftLng AND :northRightLng")
+    List<Address> findAddressInBounds(
+        @Param("southBottomLat") double southBottomLat,
+        @Param("northTopLat") double northTopLat,
+        @Param("southLeftLng") double southLeftLng,
+        @Param("northRightLng") double northRightLng
+    );
 
     //
     //    문자열을 단어 단위로 분리한 후 검색 규칙을 붙여서 검색을 할 수 있습니다. 행을 정렬하지 않습니다. 조건을 만족하면 반환하는 식입니다.
