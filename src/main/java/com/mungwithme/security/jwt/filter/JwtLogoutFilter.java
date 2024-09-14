@@ -32,7 +32,6 @@ public class JwtLogoutFilter extends GenericFilterBean {
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
@@ -53,20 +52,20 @@ public class JwtLogoutFilter extends GenericFilterBean {
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
-            baseResponse.sendErrorResponse(httpResponse, 401, "로그아웃 토큰 검증 실패", objectMapper);
+            baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "로그아웃 토큰 검증 실패"));
             return;
         }
 
         // refreshToken으로 User 조회
         Optional<User> byRefreshToken = userRepository.findByRefreshToken(refreshToken.get());
         if (byRefreshToken.isEmpty()) {
-            baseResponse.sendErrorResponse(httpResponse, 404, "유저 조회 실패", objectMapper);   // 조회된 User가 없을 경우 에러
+            baseResponse.handleResponse(response, baseResponse.sendErrorResponse(404, "유저 조회 실패"));   // 조회된 User가 없을 경우 에러
             return;
         }
 
         //로그아웃 진행
         jwtService.updateRefreshToken(byRefreshToken.get().getEmail(), null); // Refresh 토큰 DB에서 제거
         jwtService.clearAllCookie(request, response);                                    // 토큰 삭제
-        baseResponse.sendSuccessResponse(httpResponse, 200, objectMapper);      // 로그아웃 성공 응답
+        baseResponse.handleResponse(response, baseResponse.sendSuccessResponse(200));      // 로그아웃 성공 응답
     }
 }

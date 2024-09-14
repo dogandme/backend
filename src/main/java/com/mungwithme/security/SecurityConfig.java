@@ -136,7 +136,7 @@ public class SecurityConfig {
      */
     @Bean
     public CustomJsonAuthenticationSuccessHandler loginSuccessHandler() {
-        return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse, objectMapper);
+        return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse);
     }
 
     /**
@@ -144,7 +144,7 @@ public class SecurityConfig {
      */
     @Bean
     public CustomJsonAuthenticationFailureHandler loginFailureHandler() {
-        return new CustomJsonAuthenticationFailureHandler(jwtService, userRepository, baseResponse, objectMapper);
+        return new CustomJsonAuthenticationFailureHandler(baseResponse);
     }
 
     /**

@@ -16,12 +16,11 @@ import java.io.IOException;
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void handle(HttpServletRequest request,
                        HttpServletResponse response,
                        AccessDeniedException accessDeniedException) throws IOException {
-        baseResponse.sendErrorResponse(response, 403, "리소스 접근 권한 없음", objectMapper);
+        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(403, "리소스 접근 권한 없음"));
     }
 }

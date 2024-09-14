@@ -16,12 +16,11 @@ import java.io.IOException;
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        baseResponse.sendErrorResponse(response, 401, "인증 실패", objectMapper);
+        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "인증 실패"));
     }
 }

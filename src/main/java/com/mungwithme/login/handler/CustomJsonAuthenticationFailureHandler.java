@@ -20,15 +20,12 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class CustomJsonAuthenticationFailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    private final JwtService jwtService;
-    private final UserRepository userRepository;
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
                                         AuthenticationException exception) throws IOException {
-        baseResponse.sendErrorResponse(response, 401, "로그인 실패", objectMapper);
+        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "아이디, 비밀번호를 확인해주세요"));
     }
 }
 

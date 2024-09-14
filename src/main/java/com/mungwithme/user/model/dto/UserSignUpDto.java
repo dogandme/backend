@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 /**
  * 일반 회원가입 요청 DTO
  */
@@ -21,6 +23,6 @@ public class UserSignUpDto {
     private String nickname;
     private Gender gender;
     private int age;
-    private String region;
+    private List<String> region;
     private Boolean marketingYn;
 }

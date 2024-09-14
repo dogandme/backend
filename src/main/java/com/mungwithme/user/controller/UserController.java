@@ -1,5 +1,6 @@
 package com.mungwithme.user.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.email.EmailAuthRequestDto;
 import com.mungwithme.common.email.EmailRequestDto;
 import com.mungwithme.common.email.EmailService;
@@ -9,6 +10,7 @@ import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.security.jwt.PasswordUtil;
 import com.mungwithme.security.jwt.service.JwtService;
+import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
@@ -17,8 +19,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -40,26 +44,24 @@ public class UserController {
      * @return 공통 응답 메세지
      */
     @PostMapping("")
-    public CommonBaseResult signUp(@RequestBody UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ResponseEntity<CommonBaseResult> signUp(@RequestBody UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        String email = userSignUpDto.getEmail();        // 이메일
-        String password = userSignUpDto.getPassword();  // 패스워드
+        String email = userSignUpDto.getEmail();
+        String password = userSignUpDto.getPassword();
 
         // email, password null 체크
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
-            return baseResponse.getFailResult(400, "이메일/비밀번호는 필수 입력 항목입니다.");
+            return baseResponse.sendErrorResponse(400, "이메일,비밀번호를 확인해주세요.");
         }
 
         try {
-
-            HashMap<String, Object> result = userService.signUp(userSignUpDto, request, response); // 회원가입
-            return baseResponse.getContentResult(result);
-
+            UserResponseDto userResponseDto = userService.signUp(userSignUpDto, request, response); // 회원가입
+            return baseResponse.sendContentResponse(userResponseDto, 200);
         } catch (DuplicateResourceException e) {
-            return baseResponse.getFailResult(409, "이미 존재하는 이메일입니다.");
+            return baseResponse.sendErrorResponse(409, "이미 존재하는 이메일입니다.");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.getFailResult(400, "error");
+            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 
@@ -67,32 +69,34 @@ public class UserController {
      * 회원가입 이메일 인증 코드 전송
      */
     @PostMapping("/auth")
-    public CommonBaseResult mailSend(@RequestBody @Valid EmailRequestDto emailDto) {// 이메일 발송
+    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Valid EmailRequestDto emailDto, HttpServletResponse response) throws IOException {
         try {
-
             // 이메일 중복
             Optional<User> user = userService.findByEmail(emailDto.getEmail());
-            if (!user.isEmpty()) {
-                return baseResponse.getFailResult(409, "이미 존재하는 이메일입니다.");
+            if (user.isPresent()) {
+                return baseResponse.sendErrorResponse(409, "이미 존재하는 이메일입니다.");
             }
 
             emailService.joinEmail(emailDto.getEmail()); // 인증코드 이메일 전송
-
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.getFailResult(400, "error");
+            return baseResponse.sendErrorResponse( 500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
 
-        return baseResponse.getSuccessResult();
+        return baseResponse.sendSuccessResponse(200);
     }
 
     /**
      * 회원가입 이메일 인증 코드 검증
      */
     @PostMapping("/auth/check")
-    public CommonBaseResult mailAuth(@RequestBody @Valid EmailAuthRequestDto emailAuthRequestDto) {
+    public ResponseEntity<CommonBaseResult> mailAuth(@RequestBody @Valid EmailAuthRequestDto emailAuthRequestDto, HttpServletResponse response) throws IOException {
         Boolean checked = emailService.checkAuthNum(emailAuthRequestDto);
-        return checked ? baseResponse.getSuccessResult() : baseResponse.getFailResult(401, "이메일 인증 실패");
+        if (checked) {
+            return baseResponse.sendSuccessResponse(200);
+        } else {
+            return baseResponse.sendErrorResponse(401, "이메일 인증에 실패했습니다.");
+        }
     }
 
     /**
@@ -101,28 +105,25 @@ public class UserController {
      * @param userSignUpDto 추가회원정보
      */
     @PutMapping("/additional-info")
-    public CommonBaseResult signUp2(@RequestBody UserSignUpDto userSignUpDto,
-                                    HttpServletRequest request) throws Exception {
+    public ResponseEntity<CommonBaseResult> signUp2(@RequestBody UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
 
-        HashMap<String, Object> result = new HashMap<>();
+        UserResponseDto userResponseDto = new UserResponseDto();
 
         try {
-            // jwt에서 userId 가져오기
-            Long userId = jwtService.findUserIdByEmailFromJwt(request);
+            userSignUpDto.setUserId(userService.getCurrentUser().getId());  // UserDetails에서 유저 정보 조회
+            User user = userService.signUp2(userSignUpDto);                 // 추가 정보 저장
 
-            userSignUpDto.setUserId(userId);
-            User user = userService.signUp2(userSignUpDto); // 추가 정보 저장
+            userResponseDto.setRole(user.getRole().getKey());
+            userResponseDto.setNickname(user.getNickname());
 
-            result.put("role", user.getRole().getKey());
-            result.put("nickname", user.getNickname());
-            return baseResponse.getContentResult(result);
+            return baseResponse.sendContentResponse(userResponseDto, 200);
         } catch (DuplicateResourceException e) {
-            return baseResponse.getFailResult(409, "중복된 닉네임 입니다.");
+            return baseResponse.sendErrorResponse(409, "이미 존재하는 닉네임입니다.");
         } catch (ResourceNotFoundException e) {
-            return baseResponse.getFailResult(404, "회원을 찾을 수 없습니다.");
+            return baseResponse.sendErrorResponse(404, "회원을 찾을 수 없습니다.");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.getFailResult(400, "error");
+            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 
@@ -132,7 +133,7 @@ public class UserController {
      * @param emailDto 수신 이메일
      */
     @PostMapping("/password")
-    public CommonBaseResult sendTemporaryPassword(@RequestBody @Valid EmailRequestDto emailDto) {
+    public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Valid EmailRequestDto emailDto, HttpServletResponse response) throws IOException {
 
         String email = emailDto.getEmail();
 
@@ -141,7 +142,7 @@ public class UserController {
 
         // 2. 실패 시 실패 응답 return
         if (user.isEmpty()) {
-            return baseResponse.getFailResult(404, "회원 조회 실패");
+            return baseResponse.sendErrorResponse(404, "회원을 찾을 수 없습니다.");
         }
 
         // 3. 성공 시 임시 비밀번호 생성
@@ -155,7 +156,7 @@ public class UserController {
         emailService.temporaryPasswordEmail(email, temporaryPassword);
 
         // 6. 성공 응답 return
-        return baseResponse.getSuccessResult();
+        return baseResponse.sendSuccessResponse(200);
     }
 
     /**
@@ -163,13 +164,13 @@ public class UserController {
      * @param userSignUpDto 닉네임
      */
     @PostMapping("/nickname")
-    public CommonBaseResult checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto) {
+    public ResponseEntity<CommonBaseResult> checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto, HttpServletResponse response) throws IOException {
         Optional<User> user = userService.findByNickname(userSignUpDto.getNickname());
 
         if (user.isPresent()) {
-            return baseResponse.getFailResult(409, "이미 존재하는 닉네임 입니다.");
+            return baseResponse.sendErrorResponse(409, "이미 존재하는 닉네임입니다.");
         } else {
-            return baseResponse.getSuccessResult();
+            return baseResponse.sendSuccessResponse(200);
         }
     }
 }
