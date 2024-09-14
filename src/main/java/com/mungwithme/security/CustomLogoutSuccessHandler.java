@@ -16,11 +16,10 @@ import java.io.IOException;
 public class CustomLogoutSuccessHandler implements LogoutSuccessHandler {
 
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
             throws IOException {
-        baseResponse.sendSuccessResponse(response, 200, objectMapper);
+        baseResponse.handleResponse(response, baseResponse.sendSuccessResponse(200));
     }
 }

@@ -4,6 +4,7 @@ import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
@@ -12,6 +13,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,9 +40,9 @@ public class UserService {
      * @param userSignUpDto 가입요청 회원정보
      */
     @Transactional
-    public HashMap<String, Object> signUp(UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
-        HashMap<String, Object> result = new HashMap<>();
+        UserResponseDto userResponseDto = new UserResponseDto();
 
         // 이메일 중복 확인
         userRepository.findByEmail(userSignUpDto.getEmail())
@@ -69,10 +74,10 @@ public class UserService {
                     userRepository.saveAndFlush(user);
                 });
 
-        result.put("authorization", accessToken);
-        result.put("role", role.getKey());
+        userResponseDto.setAuthorization(accessToken);
+        userResponseDto.setRole(role.getKey());
 
-        return result;
+        return userResponseDto;
     }
 
     /**
@@ -94,7 +99,7 @@ public class UserService {
                     user.setNickname(userSignUpDto.getNickname());
                     user.setGender(userSignUpDto.getGender());
                     user.setAge(userSignUpDto.getAge());
-                    user.setRegion(userSignUpDto.getRegion());
+                    user.setRegion(userSignUpDto.getRegion().get(0)); // Todo 수정 필요
                     user.setMarketingYn(userSignUpDto.getMarketingYn());
 
                     return userRepository.save(user);
@@ -118,7 +123,7 @@ public class UserService {
      * @param password 신규 비밀번호
      */
     public void updatePasswordByEmail(String email, String password) {
-        Optional<User> updatedUser = findByEmail(email) // 이메일을 이용하여 회원 조회
+        findByEmail(email) // 이메일을 이용하여 회원 조회
                 .map(user -> {
                     user.setPassword(password);
                     user.passwordEncode(passwordEncoder);
@@ -142,5 +147,28 @@ public class UserService {
      */
     public Optional<User> findByNickname(String nickname) {
         return userRepository.findByNickname(nickname);
+    }
+
+    /**
+     * SecurityContextHolder > UserDetails에서 User 조회
+     * @return
+     */
+    public User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+
+        String email = null;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
+        }
+
+        if (email != null) {
+            return userRepository.findByEmail(email)
+                    .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));
+        } else {
+            throw new ResourceNotFoundException("회원 조회 실패");
+        }
     }
 }

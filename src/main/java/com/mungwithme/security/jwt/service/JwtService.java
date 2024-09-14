@@ -236,25 +236,6 @@ public class JwtService {
     }
 
     /**
-     * AccessToken에서 추출한 email로 userId 조회
-     * @param request
-     */
-    public Long findUserIdByEmailFromJwt(HttpServletRequest request) {
-
-        // jwt에서 email 추출
-        Optional<String> accessToken = extractAccessToken(request);
-        Optional<String> email = extractEmail(accessToken.get());
-
-        // 추출한 email을 이용하여 userId 조회
-        Long userId = 0L;
-        if (email.isPresent()) {
-            userId = userRepository.findByEmail(email.get()).get().getId();
-        }
-
-        return userId;
-    }
-
-    /**
      * Refresh Token 으로 유저 정보 찾기 & Access/Refresh Token 재발급 메소드
      * @param refreshToken Access Token이 만료 되어서 새로 발급하기 위해 이용
      * @param  -> createAccessToken 매개변수 role값 추가

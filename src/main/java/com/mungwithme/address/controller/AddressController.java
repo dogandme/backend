@@ -7,12 +7,16 @@ import com.mungwithme.address.service.AddressSearchService;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.io.IOException;
 
 @Slf4j
 @RestController
@@ -33,14 +37,15 @@ public class AddressController {
      * @return
      */
     @GetMapping("")
-    public CommonBaseResult fetchListBySubDist(@ModelAttribute AddressSearchDto addressSearchDto) {
+    public ResponseEntity fetchListBySubDist(@ModelAttribute AddressSearchDto addressSearchDto, HttpServletResponse response) throws IOException {
         try {
-            return baseResponse.getContentResult(addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7));
+            return baseResponse.sendContentResponse(
+                    addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7), 200);
         } catch (ResourceNotFoundException e) {
-            return baseResponse.getFailResult(204, "입력하신 주소가 없습니다");
+            return baseResponse.sendErrorResponse(204, "입력하신 주소가 없습니다");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.getFailResult(400, "error");
+            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 
@@ -52,14 +57,14 @@ public class AddressController {
      * @return
      */
     @GetMapping("/search-by-location")
-    public CommonBaseResult fetchListByLocation(@ModelAttribute AddressCoordinatesDto addressCoordinatesDto) {
+    public ResponseEntity<CommonBaseResult> fetchListByLocation(@ModelAttribute AddressCoordinatesDto addressCoordinatesDto, HttpServletResponse response) throws IOException {
         try {
-            return baseResponse.getContentResult(addressSearchService.fetchListByLngLat(addressCoordinatesDto, 0, 7,10000));
+            return baseResponse.sendContentResponse(addressSearchService.fetchListByLngLat(addressCoordinatesDto, 0, 7,10000), 200);
         } catch (ResourceNotFoundException e) {
-            return baseResponse.getFailResult(204, "잘못된 위치 정보입니다.");
+            return baseResponse.sendErrorResponse(204, "잘못된 위치 정보입니다.");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.getFailResult(400, "error");
+            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 
