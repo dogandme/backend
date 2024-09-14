@@ -24,7 +24,6 @@ public class CustomLogoutHandler  implements LogoutHandler {
     private final UserRepository userRepository;
     private final JwtService jwtService;
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
@@ -35,7 +34,7 @@ public class CustomLogoutHandler  implements LogoutHandler {
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             try {
-                baseResponse.sendErrorResponse(httpResponse, 401, "로그아웃 토큰 검증 실패", objectMapper);
+                baseResponse.handleResponse(httpResponse, baseResponse.sendErrorResponse(401, "토큰 검증에 실패했습니다."));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
@@ -46,7 +45,7 @@ public class CustomLogoutHandler  implements LogoutHandler {
         Optional<User> byRefreshToken = userRepository.findByRefreshToken(refreshToken.get());
         if (byRefreshToken.isEmpty()) {
             try {
-                baseResponse.sendErrorResponse(httpResponse, 404, "유저 조회 실패", objectMapper);   // 조회된 User가 없을 경우 에러
+                baseResponse.handleResponse(response, baseResponse.sendErrorResponse(404, "회원을 찾을 수 없습니다."));   // 조회된 User가 없을 경우 에러
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }

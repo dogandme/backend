@@ -3,6 +3,7 @@ package com.mungwithme.login.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.security.jwt.service.JwtService;
+import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,7 +30,6 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final BaseResponse baseResponse;
-    private final ObjectMapper objectMapper;
 
     @Value("${jwt.access.expiration}")
     private String accessTokenExpiration;
@@ -46,7 +46,7 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
-        HashMap<String, Object> result = new HashMap<>();
+        UserResponseDto userResponseDto = new UserResponseDto();
 
         String email = extractUsername(authentication);             // 인증 정보에서 Username(email) 추출 (JwtAuthenticationProcessingFilter에서 생성했었음)
         List<String> roles = extractRoles(authentication);          // 인증 정보에서 역할(Role) 추출
@@ -59,15 +59,15 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
         // 새로 발급된 refresh token 저장
         userRepository.findByEmail(email)
                 .ifPresent(user -> {
-                    result.put("nickname", user.getNickname());
+                    userResponseDto.setNickname(user.getNickname());
                     user.updateRefreshToken(refreshToken);
                     userRepository.saveAndFlush(user);
                 });
 
-        result.put("authorization", accessToken);
-        result.put("role", roles.get(0));
+        userResponseDto.setAuthorization(accessToken);
+        userResponseDto.setRole(roles.get(0));
 
-        baseResponse.sendContentResponse(result, response, 200, objectMapper);  // 권한에 따른 분기처리를 위해 role 추가하여 성공 응답
+        baseResponse.handleResponse(response, baseResponse.sendContentResponse(userResponseDto, 200));
     }
 
     /**
