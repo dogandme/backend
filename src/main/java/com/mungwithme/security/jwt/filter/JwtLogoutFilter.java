@@ -41,8 +41,6 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-
         // POST "/logout"이 아니면 CustomLogoutFilter 패스
         if (!"/logout".equals(request.getRequestURI()) || !"POST".equals(request.getMethod())) {
             filterChain.doFilter(request, response);

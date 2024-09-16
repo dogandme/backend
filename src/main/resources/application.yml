@@ -32,5 +32,5 @@ com:
   example:
     ex8_fileupload:
       upload:
-        path: /Users/imhaneul/files/image
+        path: \Users\장수현\Desktop\images
 

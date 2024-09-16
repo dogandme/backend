@@ -9,10 +9,8 @@ import java.util.List;
 @Setter
 @Getter
 public class PetSignUpDto {
-    private Long userId;
     private String name;
     private List<String> personalities;
     private String description;
-    private MultipartFile profile;
     private String breed;
 }

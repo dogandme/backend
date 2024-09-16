@@ -38,7 +38,7 @@ public class AddressController {
      * @return
      */
     @GetMapping("")
-    public ResponseEntity fetchListBySubDist(@Validated @ModelAttribute AddressSearchDto addressSearchDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity fetchListBySubDist(@Validated @ModelAttribute AddressSearchDto addressSearchDto) throws IOException {
         try {
             return baseResponse.sendContentResponse(
                     addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7), 200);
@@ -58,7 +58,7 @@ public class AddressController {
      * @return
      */
     @GetMapping("/search-by-location")
-    public ResponseEntity<CommonBaseResult> fetchListByLocation(@ModelAttribute AddressCoordinatesDto addressCoordinatesDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<CommonBaseResult> fetchListByLocation(@ModelAttribute AddressCoordinatesDto addressCoordinatesDto) throws IOException {
         try {
             return baseResponse.sendContentResponse(addressSearchService.fetchListByLngLat(addressCoordinatesDto, 0, 7,10000), 200);
         } catch (ResourceNotFoundException e) {
