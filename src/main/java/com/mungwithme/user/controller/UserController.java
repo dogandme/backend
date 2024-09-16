@@ -14,7 +14,6 @@ import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
-import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +43,7 @@ public class UserController {
      * @return 공통 응답 메세지
      */
     @PostMapping("")
-    public ResponseEntity<CommonBaseResult> signUp(@RequestBody UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public ResponseEntity<CommonBaseResult> signUp(@RequestBody UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
 
         String email = userSignUpDto.getEmail();
         String password = userSignUpDto.getPassword();
@@ -55,7 +54,7 @@ public class UserController {
         }
 
         try {
-            UserResponseDto userResponseDto = userService.signUp(userSignUpDto, request, response); // 회원가입
+            UserResponseDto userResponseDto = userService.signUp(userSignUpDto, response); // 회원가입
             return baseResponse.sendContentResponse(userResponseDto, 200);
         } catch (DuplicateResourceException e) {
             return baseResponse.sendErrorResponse(409, "이미 존재하는 이메일입니다.");
@@ -69,7 +68,7 @@ public class UserController {
      * 회원가입 이메일 인증 코드 전송
      */
     @PostMapping("/auth")
-    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Valid EmailRequestDto emailDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Valid EmailRequestDto emailDto) throws IOException {
         try {
             // 이메일 중복
             Optional<User> user = userService.findByEmail(emailDto.getEmail());
@@ -90,7 +89,7 @@ public class UserController {
      * 회원가입 이메일 인증 코드 검증
      */
     @PostMapping("/auth/check")
-    public ResponseEntity<CommonBaseResult> mailAuth(@RequestBody @Valid EmailAuthRequestDto emailAuthRequestDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<CommonBaseResult> mailAuth(@RequestBody @Valid EmailAuthRequestDto emailAuthRequestDto) throws IOException {
         Boolean checked = emailService.checkAuthNum(emailAuthRequestDto);
         if (checked) {
             return baseResponse.sendSuccessResponse(200);
@@ -105,7 +104,7 @@ public class UserController {
      * @param userSignUpDto 추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> signUp2(@RequestBody UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
+    public ResponseEntity<CommonBaseResult> signUp2(@RequestBody UserSignUpDto userSignUpDto) throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -120,7 +119,7 @@ public class UserController {
         } catch (DuplicateResourceException e) {
             return baseResponse.sendErrorResponse(409, "이미 존재하는 닉네임입니다.");
         } catch (ResourceNotFoundException e) {
-            return baseResponse.sendErrorResponse(404, "회원을 찾을 수 없습니다.");
+            return baseResponse.sendErrorResponse(404, e.getMessage());
         } catch (Exception e) {
             log.error(e.getMessage());
             return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
@@ -133,7 +132,7 @@ public class UserController {
      * @param emailDto 수신 이메일
      */
     @PostMapping("/password")
-    public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Valid EmailRequestDto emailDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Valid EmailRequestDto emailDto) throws IOException {
 
         String email = emailDto.getEmail();
 
@@ -164,7 +163,7 @@ public class UserController {
      * @param userSignUpDto 닉네임
      */
     @PostMapping("/nickname")
-    public ResponseEntity<CommonBaseResult> checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto, HttpServletResponse response) throws IOException {
+    public ResponseEntity<CommonBaseResult> checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto) throws IOException {
         Optional<User> user = userService.findByNickname(userSignUpDto.getNickname());
 
         if (user.isPresent()) {

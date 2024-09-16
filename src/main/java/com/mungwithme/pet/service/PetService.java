@@ -1,12 +1,14 @@
 package com.mungwithme.pet.service;
 
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.file.FileStore;
 import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -26,7 +29,8 @@ import java.util.UUID;
 public class PetService {
 
     private final PetRepository petRepository;
-    private final UserRepository userRepository;
+    private  final UserService userService;
+    private final FileStore fileStore;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
@@ -35,24 +39,19 @@ public class PetService {
      * 애완동물 정보 저장 및 USER권한 토큰 발행
      * @param petSignUpDto 애완동물정보
      */
-    public User signUp3(PetSignUpDto petSignUpDto) throws IOException {
+    public User signUp3(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
 
-        // userId로 user entity 조회
-        User user = userRepository.findById(petSignUpDto.getUserId())
-                .map(updatedUser -> {
-                    updatedUser.setRole(Role.USER);
-                    return userRepository.save(updatedUser);
-                })
-                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));
+        // UserDetails에서 user 엔터티 조회
+        User user = userService.getCurrentUser();
 
         // 강쥐 프로필 이미지 업로드
-        String profile = uploadFile(petSignUpDto.getProfile());
+        List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
 
         Pet pet = Pet.builder()
                 .name(petSignUpDto.getName())
                 .description(petSignUpDto.getDescription())
                 .personalities(petSignUpDto.getPersonalities())
-                .profile(profile)
+                .profile(profile.get(0))
                 .breed(petSignUpDto.getBreed())
                 .user(user)
                 .build();

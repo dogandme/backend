@@ -2,8 +2,6 @@ package com.mungwithme.login.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.response.BaseResponse;
-import com.mungwithme.security.jwt.service.JwtService;
-import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

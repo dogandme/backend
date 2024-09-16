@@ -3,19 +3,17 @@ package com.mungwithme.address.model.entity;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Index;
-import jakarta.persistence.Table;
+import com.mungwithme.user.model.entity.User;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Getter
@@ -53,4 +51,7 @@ public class Address {
 
     
     private Double lng; // 경도
+
+    @ManyToMany(mappedBy = "regions")
+    private Set<User> users = new HashSet<>();
 }

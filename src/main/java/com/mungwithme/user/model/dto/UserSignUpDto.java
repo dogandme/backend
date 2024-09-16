@@ -23,6 +23,6 @@ public class UserSignUpDto {
     private String nickname;
     private Gender gender;
     private int age;
-    private List<String> region;
+    private List<Long> region;
     private Boolean marketingYn;
 }

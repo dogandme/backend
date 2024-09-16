@@ -12,10 +12,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -34,13 +35,14 @@ public class PetController {
      * @return
      */
     @PostMapping("")
-    public ResponseEntity<CommonBaseResult> signUp3(@ModelAttribute PetSignUpDto petSignUpDto, HttpServletResponse response) throws Exception {
+    public ResponseEntity<CommonBaseResult> signUp3(
+            @RequestPart(name = "petSignUpDto") PetSignUpDto petSignUpDto,
+            @RequestPart(name = "images") List<MultipartFile> images) throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
         try {
-            petSignUpDto.setUserId(userService.getCurrentUser().getId());  // UserDetails에서 유저 정보 조회
-            User user = petService.signUp3(petSignUpDto);                  // 강쥐 정보 저장
+            User user = petService.signUp3(petSignUpDto, images);                  // 강쥐 정보 저장
 
             userResponseDto.setRole(user.getRole().getKey());
 

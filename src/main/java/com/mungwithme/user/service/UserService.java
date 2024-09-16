@@ -1,5 +1,7 @@
 package com.mungwithme.user.service;
 
+import com.mungwithme.address.model.entity.Address;
+import com.mungwithme.address.repository.AddressRepository;
 import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.security.jwt.service.JwtService;
@@ -8,7 +10,7 @@ import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +23,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -32,6 +37,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final AddressRepository addressRepository;
 
     private static final String BEARER = "Bearer_";
 
@@ -40,7 +46,7 @@ public class UserService {
      * @param userSignUpDto 가입요청 회원정보
      */
     @Transactional
-    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -95,11 +101,20 @@ public class UserService {
         // 추가 정보 저장
         return userRepository.findById(userSignUpDto.getUserId())
                 .map(user -> {
+                    // 요청 데이터에서 region ID 리스트를 가져옴
+                    List<Long> regionIds = userSignUpDto.getRegion();
+
+                    // region ID를 기반으로 Address 엔터티 조회
+                    Set<Address> addresses = regionIds.stream()
+                            .map(addressId -> addressRepository.findById(addressId)
+                                    .orElseThrow(() -> new ResourceNotFoundException("주소가 없습니다.")))
+                            .collect(Collectors.toSet());
+
                     user.setRole(Role.GUEST);
                     user.setNickname(userSignUpDto.getNickname());
                     user.setGender(userSignUpDto.getGender());
                     user.setAge(userSignUpDto.getAge());
-                    user.setRegion(userSignUpDto.getRegion().get(0)); // Todo 수정 필요
+                    user.setRegions(addresses);
                     user.setMarketingYn(userSignUpDto.getMarketingYn());
 
                     return userRepository.save(user);

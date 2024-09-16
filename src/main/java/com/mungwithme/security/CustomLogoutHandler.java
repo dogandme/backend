@@ -28,13 +28,11 @@ public class CustomLogoutHandler  implements LogoutHandler {
     @Override
     public void logout(HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
 
-        HttpServletResponse httpResponse = (HttpServletResponse) response;
-
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             try {
-                baseResponse.handleResponse(httpResponse, baseResponse.sendErrorResponse(401, "토큰 검증에 실패했습니다."));
+                baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "토큰 검증에 실패했습니다."));
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
