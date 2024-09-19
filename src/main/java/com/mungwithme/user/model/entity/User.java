@@ -22,50 +22,51 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-    @Entity
-    public class User {
+@Entity
+@Table( indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
+public class User {
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        @Column(name = "user_id")   // 컬럼명 : user_id
-        private Long id;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "user_id")   // 컬럼명 : user_id
+    private Long id;
 
-        // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다.
-        private String email;           // 이메일(ID)
-        private String password;        // 비밀번호
-        private String nickname;        // 닉네임
-        private int age;                // 나이(추가정보)
+    // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다.
+    private String email;           // 이메일(ID)
+    private String password;        // 비밀번호
+    private String nickname;        // 닉네임
+    private int age;                // 나이(추가정보)
 
-        @Enumerated(EnumType.STRING)
-        private Gender gender;          // 성별
+    @Enumerated(EnumType.STRING)
+    private Gender gender;          // 성별
 
-        @Enumerated(EnumType.STRING)
-        private Role role;              // 권한 (기본:GUEST, 선택정보입력시:USER, 관리자:ADMIN)
+    @Enumerated(EnumType.STRING)
+    private Role role;              // 권한 (기본:GUEST, 선택정보입력시:USER, 관리자:ADMIN)
 
-        @Enumerated(EnumType.STRING)
-        private SocialType socialType;  // 소셜 채널(Kakao, Google, Naver)
+    @Enumerated(EnumType.STRING)
+    private SocialType socialType;  // 소셜 채널(Kakao, Google, Naver)
 
-        private String socialId;        // 로그인한 소셜 타입의 식별자 값(일반 로그인:null)
-        private String refreshToken;
-        private Boolean marketingYn;    // 마케팅 수신 동의 여부
-        private Boolean persistLogin;   // 로그인 유지 여부
+    private String socialId;        // 로그인한 소셜 타입의 식별자 값(일반 로그인:null)
+    private String refreshToken;
+    private Boolean marketingYn;    // 마케팅 수신 동의 여부
+    private Boolean persistLogin;   // 로그인 유지 여부
 
-        @CreationTimestamp
-        private Date regDt;             // 등록일
+    @CreationTimestamp
+    private Date regDt;             // 등록일
 
-        @UpdateTimestamp
-        private Date modDt;             // 수정일
+    @UpdateTimestamp
+    private Date modDt;             // 수정일
 
-        @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-        private Set<Pet> pets;          // One(User)-to-Many(Pet) Join
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private Set<Pet> pets;          // One(User)-to-Many(Pet) Join
 
-        @ManyToMany(cascade = CascadeType.ALL)
-        @JoinTable(
-                name = "user_address",
-                joinColumns = @JoinColumn(name = "user_id"),
-                inverseJoinColumns = @JoinColumn(name = "address_id")
-        )
-        private Set<Address> regions;
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "user_address",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "address_id")
+    )
+    private Set<Address> regions;
 
     /**
      * 유저 권한 설정 메소드
