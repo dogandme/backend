@@ -10,7 +10,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking,Long> {
 
 
 
-    @Query("select distinct m from Marking m left join fetch m.images where m.id = :id and m.isDeleted = :isDeleted and m.isTempSaved =:isTempSaved")
+    @Query("select distinct m from Marking m join fetch m.user left join fetch m.images where m.id = :id and m.isDeleted = :isDeleted and m.isTempSaved =:isTempSaved")
     Optional<Marking> findById(@Param("id") long id, @Param("isDeleted") boolean isDeleted,@Param("isTempSaved") boolean isTempSaved);
 
 

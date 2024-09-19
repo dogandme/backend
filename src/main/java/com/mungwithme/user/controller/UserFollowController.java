@@ -33,8 +33,8 @@ public class UserFollowController {
      *     팔로잉을 당할 유저
      * @return
      */
-    @PostMapping("/my-followings/{followingEmail}")
-    public ResponseEntity<CommonBaseResult> saveFollowing(@PathVariable(name = "followingEmail") String followingEmail)
+    @PostMapping("/my-followings/{following-email}")
+    public ResponseEntity<CommonBaseResult> saveFollowing(@PathVariable(name = "following-email") String followingEmail)
         throws IOException {
         try {
             userFollowService.addFollowing(followingEmail);
@@ -52,9 +52,9 @@ public class UserFollowController {
      * @return
      * @throws IOException
      */
-    @DeleteMapping("/my-followings/{followingEmail}")
+    @DeleteMapping("/my-followings/{following-email}")
     public ResponseEntity<CommonBaseResult> cancelFollowing(
-        @PathVariable(name = "followingEmail") String followingEmail) throws IOException {
+        @PathVariable(name = "following-email") String followingEmail) throws IOException {
         try {
             userFollowService.cancelFollow(followingEmail);
             return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
@@ -70,9 +70,9 @@ public class UserFollowController {
      *         팔로워 리스트에서 삭제될 팔로워 유저
      * @return
      */
-    @DeleteMapping("/my-followers/{followerEmail}")
+    @DeleteMapping("/my-followers/{follower-email}")
     public ResponseEntity<CommonBaseResult> removeFollowers(
-        @PathVariable(name = "followerEmail") String followerEmail) throws IOException {
+        @PathVariable(name = "follower-email") String followerEmail) throws IOException {
         try {
             userFollowService.forceUnfollow(followerEmail);
             return baseResponse.sendSuccessResponse(HttpStatus.OK.value());

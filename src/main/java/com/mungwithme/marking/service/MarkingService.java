@@ -2,6 +2,8 @@ package com.mungwithme.marking.service;
 
 
 import com.mungwithme.common.file.FileStore;
+import com.mungwithme.likes.model.enums.ContentType;
+import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
@@ -15,7 +17,6 @@ import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -25,9 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -47,6 +45,7 @@ public class MarkingService {
     private final MarkImageRepository markImageRepository;
     private final MarkingRepository markingRepository;
     private final MarkImageRepositoryImpl markImageRepositoryImpl;
+    private final LikesService likesService;
 
     public final int MAX_IMAGE_UPLOAD_SIZE = 5;
 
@@ -116,6 +115,9 @@ public class MarkingService {
 
         // 삭제
         markImageRepository.deleteAllInBatch(images);
+
+        // like 삭제
+        likesService.deleteAllLikes(marking.getId(),ContentType.MARKING);
     }
 
 
@@ -225,7 +227,7 @@ public class MarkingService {
     }
 
 
-    public MarkingInfoResponseDto getMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
+    public MarkingInfoResponseDto fetchMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
         User user = userService.getCurrentUser();
 
         MarkingInfoResponseDto markingInfoResponseDto = markingQueryService.fetchMarkingInfoDto(user, id, isDeleted,

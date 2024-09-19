@@ -5,7 +5,6 @@ import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.model.entity.UserFollows;
 import com.mungwithme.user.repository.UserFollowRepository;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -46,7 +45,7 @@ public class UserFollowService {
      * @param followingUser
      */
     @Transactional
-    public void removeFollow(User followerUser, User followingUser) {
+    public void deleteFollow(User followerUser, User followingUser) {
 
         UserFollows userFollows = findByFollowingUser(followerUser, followingUser);
 
@@ -72,7 +71,7 @@ public class UserFollowService {
 
         User followerUser = userService.findByEmail(followerEmail)
             .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
-        removeFollow(followerUser, followingUser);
+        deleteFollow(followerUser, followingUser);
     }
 
 
@@ -89,7 +88,7 @@ public class UserFollowService {
 
         User followingUser = userService.findByEmail(followingEmail)
             .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
-        removeFollow(followerUser, followingUser);
+        deleteFollow(followerUser, followingUser);
     }
     /**
      * 팔로잉 유무 확인

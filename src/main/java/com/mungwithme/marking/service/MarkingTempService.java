@@ -5,7 +5,6 @@ import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.model.dto.response.TempMarkingInfoResponseDto;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +60,7 @@ public class MarkingTempService {
     }
 
     public MarkingInfoResponseDto getTempMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        return markingService.getMarkingInfoResponseDto(
+        return markingService.fetchMarkingInfoResponseDto(
             id, isDeleted,
             isTempSaved);
     }
