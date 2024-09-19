@@ -1,31 +1,23 @@
 package com.mungwithme.marking.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
-import com.mungwithme.marking.model.Visibility;
+import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
-import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.repository.markImge.MarkImageRepository;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
+import com.mungwithme.marking.service.marking.MarkingService;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.multipart.MultipartFile;
 
 @SpringBootTest

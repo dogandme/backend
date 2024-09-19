@@ -1,4 +1,4 @@
-package com.mungwithme.marking.service;
+package com.mungwithme.marking.service.marking;
 
 
 import com.mungwithme.common.file.FileStore;
@@ -10,9 +10,12 @@ import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.repository.markImge.MarkImageRepository;
 import com.mungwithme.marking.repository.impl.MarkImageRepositoryImpl;
 import com.mungwithme.marking.repository.marking.MarkingRepository;
+import com.mungwithme.marking.service.marking.MarkingQueryService;
+import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.io.IOException;
@@ -46,6 +49,7 @@ public class MarkingService {
     private final MarkingRepository markingRepository;
     private final MarkImageRepositoryImpl markImageRepositoryImpl;
     private final LikesService likesService;
+    private final MarkingSavesService markingSavesService;
 
     public final int MAX_IMAGE_UPLOAD_SIZE = 5;
 
@@ -113,11 +117,15 @@ public class MarkingService {
         // isDeleted true 로 업데이트
         marking.updateIsDeleted(true);
 
+
         // 삭제
         markImageRepository.deleteAllInBatch(images);
 
         // like 삭제
         likesService.deleteAllLikes(marking.getId(),ContentType.MARKING);
+
+        markingSavesService.deleteAllSaves(marking);
+
     }
 
 

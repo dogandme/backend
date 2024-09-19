@@ -4,9 +4,9 @@ package com.mungwithme.likes.service;
 import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.repository.LikesRepository;
-import com.mungwithme.marking.model.Visibility;
+import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.entity.Marking;
-import com.mungwithme.marking.service.MarkingQueryService;
+import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
 import com.mungwithme.user.service.UserService;
@@ -55,10 +55,10 @@ public class LikesService {
             if (!isOwner) {
                 switch (visibility) {
                     case PRIVATE:
-                        throw new IllegalArgumentException("비공개 마킹은 좋아요를 누를 수 없습니다");
+                        throw new IllegalArgumentException("ex) 비공개 마킹은 좋아요를 누를 수 없습니다");
                     case FOLLOWERS_ONLY:
                         if (userFollowService.existsFollowing(currentUser, postUser)) {
-                            throw new IllegalArgumentException("팔로우만 좋아요를 누를 수 있습니다.");
+                            throw new IllegalArgumentException("ex) 팔로우만 좋아요를 누를 수 있습니다.");
                         }
                         break;
                     default:
