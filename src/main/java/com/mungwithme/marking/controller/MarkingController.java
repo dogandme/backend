@@ -8,7 +8,6 @@ import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.service.MarkingQueryService;
 import com.mungwithme.marking.service.MarkingService;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -116,7 +115,7 @@ public class MarkingController {
     @GetMapping("/{id}")
     public CommonBaseResult fetchMarkingById(@PathVariable(name = "id") Long id) {
         try {
-            MarkingInfoResponseDto markingInfoResponseDto = markingService.getMarkingInfoResponseDto(id, false, false);
+            MarkingInfoResponseDto markingInfoResponseDto = markingService.fetchMarkingInfoResponseDto(id, false, false);
             return baseResponse.getContentResult(markingInfoResponseDto);
         } catch (Exception e) {
             return baseResponse.getFailResult(400, e.getMessage());

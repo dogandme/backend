@@ -35,6 +35,10 @@ public class MarkingQueryService {
             .orElseThrow(() -> new IllegalArgumentException("ex) 찾고자 하는 마킹 정보가 없습니다."));
     }
 
+    /**
+     * marking
+     *
+     */
 
     /**
      * marking 상세 정보 검색 API
