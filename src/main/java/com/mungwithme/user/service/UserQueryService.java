@@ -17,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserQueryService {
 
 
-
+/*
     public User findOne() {
         Authentication authentication = getAuthentication();
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
@@ -34,5 +34,5 @@ public class UserQueryService {
             throw new IllegalArgumentException("ex) user notFind");
         }
         return authentication;
-    }
+    }*/
 }

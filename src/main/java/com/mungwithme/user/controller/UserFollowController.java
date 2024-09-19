@@ -1,6 +1,11 @@
 package com.mungwithme.user.controller;
 
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.response.BaseResponse;
+import com.mungwithme.common.response.CommonBaseResult;
+import com.mungwithme.user.service.UserFollowService;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -12,59 +17,68 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users/follows")
 public class UserFollowController {
+    private final UserFollowService userFollowService;
 
-
+    private final BaseResponse baseResponse;
 
     /**
-     * @param followingUid
-     *     팔로우를 당하는 유저 ID
+     * 유저 이메일을 이용하여 유저 팔로잉
+     *
+     * @param followingEmail
+     *     팔로잉을 당할 유저
      * @return
      */
-    // 팔로우
-    @PostMapping("/my-following/{followingUid}")
-    public ResponseEntity<?> saveFollowing(@PathVariable(name = "followingUid") Long followingUid) {
-
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-    /**
-     *
-     *
-     * 상대방 언 팔로우
-     */
-    // 팔로우
-    @DeleteMapping("/my-following/{following-uid}")
-    public ResponseEntity<?> removeFollowing(@PathVariable(name = "following-uid") Long followingUid) {
-
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    /**
-     *
-     * 나의 팔로우 리스트에서 나를 팔로우 하는 사용자를 강제 언팔
-     *
-     */
-    @DeleteMapping("/my-followers/{follower-uid}")
-    public ResponseEntity<?> removeFollowers(@PathVariable(name = "follower-uid") Long followerUid) {
-
-
-        return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    private void checkFollowingUid(boolean followingUid) {
-        if (followingUid) {
-            throw new IllegalArgumentException();
+    @PostMapping("/my-followings/{followingEmail}")
+    public ResponseEntity<CommonBaseResult> saveFollowing(@PathVariable(name = "followingEmail") String followingEmail)
+        throws IOException {
+        try {
+            userFollowService.addFollowing(followingEmail);
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+        } catch (IllegalArgumentException | ResourceNotFoundException e) {
+            return baseResponse.sendErrorResponse(400, e.getMessage());
         }
     }
 
+    /**
+     * 내가 팔로잉을 한 유저를 언팔로우
+     *
+     * @param followingEmail
+     *     팔로잉을 당한 유저
+     * @return
+     * @throws IOException
+     */
+    @DeleteMapping("/my-followings/{followingEmail}")
+    public ResponseEntity<CommonBaseResult> cancelFollowing(
+        @PathVariable(name = "followingEmail") String followingEmail) throws IOException {
+        try {
+            userFollowService.cancelFollow(followingEmail);
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+        } catch (IllegalArgumentException | ResourceNotFoundException e) {
+            return baseResponse.sendErrorResponse(400, e.getMessage());
+        }
+    }
 
-
+    /**
+     * 나의 팔로우 리스트에서 나를 팔로우 하는 사용자를 강제 언팔
+     *
+     * @param followerEmail
+     *         팔로워 리스트에서 삭제될 팔로워 유저
+     * @return
+     */
+    @DeleteMapping("/my-followers/{followerEmail}")
+    public ResponseEntity<CommonBaseResult> removeFollowers(
+        @PathVariable(name = "followerEmail") String followerEmail) throws IOException {
+        try {
+            userFollowService.forceUnfollow(followerEmail);
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+        } catch (IllegalArgumentException | ResourceNotFoundException e) {
+            return baseResponse.sendErrorResponse(400, e.getMessage());
+        }
+    }
 
 }
