@@ -56,7 +56,7 @@ public class PetService {
                 .user(user)
                 .build();
 
-        petRepository.save(pet);    // DB 저장 Todo 프로필 저장 확인
+        petRepository.save(pet);    // DB 저장
 
         return user;
     }
