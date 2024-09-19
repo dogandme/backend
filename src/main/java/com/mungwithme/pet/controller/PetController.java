@@ -1,5 +1,6 @@
 package com.mungwithme.pet.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
@@ -26,23 +27,24 @@ public class PetController {
 
     private final PetService petService;
     private final BaseResponse baseResponse;
-    private final UserService userService;
+    private final ObjectMapper objectMapper;
 
     /**
      * 회원가입 3단계 : [일반/소셜] 애완동물 정보 저장
      *
-     * @param petSignUpDto 애완동물정보
+     * @param petSignUpDtoJson 애완동물정보
      * @return
      */
     @PostMapping("")
     public ResponseEntity<CommonBaseResult> signUp3(
-            @RequestPart(name = "petSignUpDto") PetSignUpDto petSignUpDto,
-            @RequestPart(name = "images") List<MultipartFile> images) throws Exception {
+            @RequestPart(name = "petSignUpDto") String petSignUpDtoJson,
+            @RequestPart(name = "image") List<MultipartFile> image) throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
         try {
-            User user = petService.signUp3(petSignUpDto, images);                  // 강쥐 정보 저장
+            PetSignUpDto petSignUpDto = objectMapper.readValue(petSignUpDtoJson, PetSignUpDto.class);   // JSON 문자열을 DTO로 변환
+            User user = petService.signUp3(petSignUpDto, image);                                        // 강쥐 정보 저장
 
             userResponseDto.setRole(user.getRole().getKey());
 
