@@ -8,7 +8,7 @@ import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.service.MarkingService;
+import com.mungwithme.marking.service.marking.MarkingService;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -55,15 +55,16 @@ public class MarkingController {
      * @return
      */
     @PostMapping
-    public CommonBaseResult saveMarkingWithImages(
+    public ResponseEntity<CommonBaseResult> saveMarkingWithImages(
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
-        @RequestPart(name = "images") List<MultipartFile> images) {
+        @RequestPart(name = "images") List<MultipartFile> images) throws IOException {
         try {
             markingService.addMarking(markingAddDto, images, false);
+
+            return baseResponse.sendSuccessResponse(200, "ex) 마킹 저장에 성공하셨습니다.");
         } catch (Exception e) {
-            return baseResponse.getFailResult(400, e.getMessage());
+            return baseResponse.sendErrorResponse(400, e.getMessage());
         }
-        return baseResponse.getSuccessResult();
     }
 
     /**
@@ -74,34 +75,34 @@ public class MarkingController {
      * @return
      */
     @PutMapping
-    public CommonBaseResult modifyMarking(
+    public ResponseEntity<CommonBaseResult> modifyMarking(
         @Validated @RequestPart(name = "markingModifyDto") MarkingModifyDto markingModifyDto,
-        @RequestPart(name = "images", required = false) List<MultipartFile> images) {
+        @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException{
         try {
             // TODO postMan 테스트를 위해 임시
             if (images == null) {
-                log.info("images = {}", images);
                 images = new ArrayList<>();
-
             }
             markingService.patchMarking(markingModifyDto, images, false);
+            return baseResponse.sendSuccessResponse(200, "ex) 마킹 수정 완료되었습니다.");
         } catch (Exception e) {
-            return baseResponse.getFailResult(400, e.getMessage());
+            return baseResponse.sendErrorResponse(400, e.getMessage());
         }
-        return baseResponse.getSuccessResult();
+
     }
 
     /**
      * marking 삭제 API
      */
     @DeleteMapping
-    public CommonBaseResult removeMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto) {
+    public ResponseEntity<CommonBaseResult> removeMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto)
+        throws IOException {
         try {
             markingService.deleteMarking(markingRemoveDto, false);
+            return baseResponse.sendSuccessResponse(200, "ex) 마킹 수정 완료되었습니다.");
         } catch (Exception e) {
-            return baseResponse.getFailResult(400, e.getMessage());
+            return baseResponse.sendErrorResponse(400, e.getMessage());
         }
-        return baseResponse.getSuccessResult();
     }
 
 

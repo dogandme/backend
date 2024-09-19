@@ -1,4 +1,4 @@
-package com.mungwithme.marking.model;
+package com.mungwithme.marking.model.enums;
 
 
 import com.mungwithme.common.exception.ResourceNotFoundException;

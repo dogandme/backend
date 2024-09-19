@@ -1,9 +1,8 @@
 package com.mungwithme.marking.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.service.marking.MarkingQueryService;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
