@@ -61,7 +61,7 @@ public class MarkingService {
     @Transactional
     public void addMarking(MarkingAddDto markingAddDto, List<MultipartFile> images, boolean isTempSaved) {
         imageSizeCheck(images, isTempSaved);
-        User user = getUser();
+        User user = userService.getCurrentUser();
 
         Marking marking = Marking.create(markingAddDto, user);
 
@@ -93,7 +93,7 @@ public class MarkingService {
      */
     @Transactional
     public void deleteMarking(MarkingRemoveDto markingRemoveDto, boolean isTempSaved) {
-        User user = getUser();
+        User user = userService.getCurrentUser();
 
         // 마킹 query
         Marking marking = markingQueryService.findById(markingRemoveDto.getId(), false, isTempSaved);
@@ -136,7 +136,7 @@ public class MarkingService {
         // 마킹 query
         Marking marking = markingQueryService.findById(markingModifyDto.getId(), false, isTempSaved);
 
-        User user = getUser();
+        User user = userService.getCurrentUser();
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
@@ -226,7 +226,7 @@ public class MarkingService {
 
 
     public MarkingInfoResponseDto getMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        User user = getUser();
+        User user = userService.getCurrentUser();
 
         MarkingInfoResponseDto markingInfoResponseDto = markingQueryService.fetchMarkingInfoDto(user, id, isDeleted,
             isTempSaved);
@@ -238,16 +238,6 @@ public class MarkingService {
     }
 
 
-    private User getUser() {
-        //
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-        return userService.findByEmail(userDetails.getUsername()).orElse(null);
-
-//        return userService.findByEmail("lim642666@gmail.com").orElse(null);
-    }
 
 
     /**
