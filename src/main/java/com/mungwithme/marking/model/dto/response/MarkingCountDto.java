@@ -3,11 +3,9 @@ package com.mungwithme.marking.model.dto.response;
 
 
 
-public class MarkingSimpleInfoDto {
+public class MarkingCountDto {
 
-    /**
-     *
-     *
-     */
+    private Integer likedCount;
 
+    private Integer savedCount;
 }

@@ -1,8 +1,9 @@
 package com.mungwithme.marking.model.dto.response;
 
 
-import com.mungwithme.marking.model.Visibility;
+import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -15,15 +16,9 @@ import lombok.Setter;
 @Setter(AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MarkingInfoResponseDto {
-
     private Long id;
-
     private String region;
     private String content;
-
-    private Double lat;
-    private Double lng;
-
     private Visibility isVisible;
     private Date regDt;
 
@@ -34,6 +29,13 @@ public class MarkingInfoResponseDto {
     private Boolean isOwner;
 
     private Boolean isTempSaved;
+
+    private Double lat;
+    private Double lng;
+
+
+
+    private PetInfoResponseDto pet;
     private List<MarkImageResponseDto> images;
 
     public MarkingInfoResponseDto(Marking marking) {

@@ -1,4 +1,4 @@
-package com.mungwithme.marking.service;
+package com.mungwithme.marking.service.marking;
 
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.entity.Marking;
