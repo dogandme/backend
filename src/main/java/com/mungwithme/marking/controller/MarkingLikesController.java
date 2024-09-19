@@ -37,7 +37,7 @@ public class MarkingLikesController {
     public ResponseEntity<CommonBaseResult> saveLikes(@PathVariable(name = "content-id") Long contentId ) throws IOException {
         try {
             likesService.addLikes(contentId, ContentType.MARKING);
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"ex) 좋아요 추가 하셨습니다");
         } catch (IllegalArgumentException | ResourceNotFoundException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }
@@ -53,7 +53,7 @@ public class MarkingLikesController {
     public ResponseEntity<CommonBaseResult> removeLikes(@PathVariable(name = "content-id") Long contentId ) throws IOException {
         try {
             likesService.deleteLikes(contentId, ContentType.MARKING);
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"ex) 좋아요 취소 하셨습니다");
         } catch (IllegalArgumentException | ResourceNotFoundException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }

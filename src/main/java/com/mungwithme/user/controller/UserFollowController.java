@@ -38,7 +38,7 @@ public class UserFollowController {
         throws IOException {
         try {
             userFollowService.addFollowing(followingEmail);
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"ex) 팔로우를 하셨습니다");
         } catch (IllegalArgumentException | ResourceNotFoundException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }
@@ -57,7 +57,7 @@ public class UserFollowController {
         @PathVariable(name = "following-email") String followingEmail) throws IOException {
         try {
             userFollowService.cancelFollow(followingEmail);
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"ex) 언팔로우를 하셨습니다");
         } catch (IllegalArgumentException | ResourceNotFoundException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }
@@ -75,7 +75,7 @@ public class UserFollowController {
         @PathVariable(name = "follower-email") String followerEmail) throws IOException {
         try {
             userFollowService.forceUnfollow(followerEmail);
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
+            return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"ex) 언팔로우를 하셨습니다");
         } catch (IllegalArgumentException | ResourceNotFoundException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }

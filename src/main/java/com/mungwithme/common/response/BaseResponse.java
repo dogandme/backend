@@ -35,6 +35,14 @@ public class BaseResponse {
         return result;
     }
 
+    public CommonBaseResult getSuccessResult(String message) {
+        CommonBaseResult result = new CommonBaseResult();
+        result.setCode(200);
+        result.setMessage(message);
+        return result;
+    }
+
+
     public CommonBaseResult getFailResult(int code, String message) {
         CommonBaseResult result = new CommonBaseResult();
         result.setCode(code);
@@ -45,13 +53,25 @@ public class BaseResponse {
     /**
      * 정상 응답
      */
+    public ResponseEntity<CommonBaseResult> sendSuccessResponse(int statusCode, String message) throws IOException {
+        CommonBaseResult result = getSuccessResult(message);
+
+        return ResponseEntity
+            .status(statusCode)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result);
+    }
+
+    /**
+     * 정상 응답
+     */
     public ResponseEntity<CommonBaseResult> sendSuccessResponse(int statusCode) throws IOException {
         CommonBaseResult result = getSuccessResult();
 
         return ResponseEntity
-                .status(statusCode)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(result);
+            .status(statusCode)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result);
     }
 
     /**
@@ -61,9 +81,9 @@ public class BaseResponse {
         CommonBaseResult result = getContentResult(data);
 
         return ResponseEntity
-                .status(statusCode)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(result);
+            .status(statusCode)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result);
     }
 
     /**
@@ -73,9 +93,9 @@ public class BaseResponse {
         CommonBaseResult result = getFailResult(statusCode, message);
 
         return ResponseEntity
-                .status(statusCode)
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(result);
+            .status(statusCode)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result);
     }
 
     /**
