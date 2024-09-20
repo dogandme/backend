@@ -20,7 +20,7 @@ public class Pet {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "pet_id")                 // 컬럼명 : pet_id
+    @Column(name = "pet_id")                // 컬럼명 : pet_id
     private Long id;
 
     private String name;                    // 애완동물 이름
@@ -29,7 +29,7 @@ public class Pet {
     private String breed;                   // 강아지 종
 
     @Convert(converter = StringListConverter.class)
-    private List<String> personalities;// 성격
+    private List<String> personalities;     // 성격
 
     @CreationTimestamp
     private Date regDt;                     // 등록일
@@ -37,7 +37,7 @@ public class Pet {
     @UpdateTimestamp
     private Date modDt;                     // 수정일
 
-    @ManyToOne                              // One(User)-to-Many(Pet) Join
+    @ManyToOne(fetch = FetchType.LAZY)      // One(User)-to-Many(Pet) Join
     @JoinColumn(name = "user_id")           // 외래 키 설정
     private User user;
 }

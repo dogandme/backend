@@ -31,9 +31,6 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
     private final UserRepository userRepository;
     private final BaseResponse baseResponse;
 
-    @Value("${jwt.access.expiration}")
-    private String accessTokenExpiration;
-
 
     /**
      * 로그인 성공 시 호출
@@ -51,10 +48,9 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
         String email = extractUsername(authentication);             // 인증 정보에서 Username(email) 추출 (JwtAuthenticationProcessingFilter에서 생성했었음)
         List<String> roles = extractRoles(authentication);          // 인증 정보에서 역할(Role) 추출
 
-        // Role값 추가로 인한 createAccessToken 매개변수,메서드 변경
         String accessToken = jwtService.createAccessToken(email, roles.get(0));   // AccessToken 발급
-        String refreshToken = jwtService.createRefreshToken();                            // RefreshToken 발급
-        jwtService.setRefreshTokenCookie(response, refreshToken); // 응답 쿠키에 AccessToken, RefreshToken 담아 응답 Todo 수정 필요
+        String refreshToken = jwtService.createRefreshToken();                    // RefreshToken 발급
+        jwtService.setRefreshTokenCookie(response, refreshToken);                 // 쿠키에 RefreshToken 담기
 
         // 새로 발급된 refresh token 저장
         userRepository.findByEmail(email)
@@ -64,9 +60,11 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
                     userRepository.saveAndFlush(user);
                 });
 
+        // 응답 객체에 accessToken과 권한 담기
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(roles.get(0));
 
+        // return
         baseResponse.handleResponse(response, baseResponse.sendContentResponse(userResponseDto, 200));
     }
 
