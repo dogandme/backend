@@ -28,7 +28,7 @@ public class MarkingSavesController {
 
      /**
      *
-     * 마킹을 저장하는 API
+     * 마킹을 저장(즐겨찾기)하는 API
      * @param markingId
      * @return
      * @throws IOException

@@ -66,6 +66,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
+        log.info("request = {}", request.getRequestURL());
+
+
         // 사용자 요청 쿠키에서 accessToken 추출
         String accessToken = jwtService.extractAccessToken(request)
                 .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환

@@ -75,6 +75,8 @@ public class Marking {
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkImage> images;   // One(marking)-to-Many(images) Join
 
+    @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
+    private Set<MarkingSaves> saves;   // One(marking)-to-Many(images) Join
 
     public static Marking create(MarkingAddDto markingAddDto, User user) {
         return Marking.builder().content(markingAddDto.getContent())

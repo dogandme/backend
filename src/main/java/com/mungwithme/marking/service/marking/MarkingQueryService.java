@@ -1,10 +1,13 @@
 package com.mungwithme.marking.service.marking;
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
-import com.mungwithme.marking.repository.marking.MarkingRepository;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.service.UserService;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +21,8 @@ public class MarkingQueryService {
 
 
     private final MarkingQueryRepository markingQueryRepository;
+//    private final LikesService likesService;
+    private final UserService userService;
 
     /**
      * 마킹 상세 정보 검색 API
@@ -61,5 +66,69 @@ public class MarkingQueryService {
 
         return markingInfoResponseDto;
     }
+
+    /**
+     *
+     * 비공개
+     * 위 경도 계산
+     *
+     * likedCount
+     * savedCount
+     *
+     * 공개 범위 처리
+     *
+     * 위도와 경도
+     *
+     *
+     *
+     */
+
+    /**
+     * 주변 마킹 검색
+     * @return
+     */
+    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDTO locationBoundsDTO) {
+        boolean isMember = true;
+        User currentUser = null;
+        try {
+            currentUser = userService.getCurrentUser();
+        } catch (ResourceNotFoundException e) {
+            isMember = false;
+        }
+
+
+        if (isMember) {
+            markingQueryRepository.findNearbyMarkers(locationBoundsDTO.getSouthBottomLat(),
+                locationBoundsDTO.getNorthTopLat(), locationBoundsDTO.getSouthLeftLng(),
+                locationBoundsDTO.getNorthRightLng(), false, false, currentUser);
+        } else {
+            markingQueryRepository.findNearbyMarkersOnlyPublic(locationBoundsDTO.getSouthBottomLat(),
+                locationBoundsDTO.getNorthTopLat(), locationBoundsDTO.getSouthLeftLng(),
+                locationBoundsDTO.getNorthRightLng(), false, false);
+        }
+
+
+        return null;
+    }
+
+
+    /**
+     * 좌표값을 이용한 바운더리 계산
+     *
+     *
+     * @return
+     */
+    public List<Marking> findMarkingInBounds(
+        double southBottomLat,
+        double northTopLat,
+        double southLeftLng,
+        double northRightLng, boolean isDeleted, boolean isTempSaved) {
+        return markingQueryRepository.findMarkingInBounds(
+            southBottomLat, northTopLat, southLeftLng, northRightLng,
+            isDeleted, isTempSaved);
+    }
+
+
+
 
 }

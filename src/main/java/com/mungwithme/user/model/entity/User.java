@@ -57,8 +57,8 @@ public class User {
     @UpdateTimestamp
     private Date modDt;             // 수정일
 
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private Set<Pet> pets;          // One(User)-to-Many(Pet) Join
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Pet pet;          // One(User)-to-Many(Pet) Join
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
