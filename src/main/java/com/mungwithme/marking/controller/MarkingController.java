@@ -114,12 +114,12 @@ public class MarkingController {
      * @return
      */
     @GetMapping("/{id}")
-    public CommonBaseResult fetchMarkingById(@PathVariable(name = "id") Long id) {
+    public ResponseEntity<CommonBaseResult>fetchMarkingById(@PathVariable(name = "id") Long id) throws IOException {
         try {
             MarkingInfoResponseDto markingInfoResponseDto = markingService.fetchMarkingInfoResponseDto(id, false, false);
-            return baseResponse.getContentResult(markingInfoResponseDto);
+            return baseResponse.sendContentResponse(markingInfoResponseDto,200);
         } catch (Exception e) {
-            return baseResponse.getFailResult(400, e.getMessage());
+            return baseResponse.sendErrorResponse(400, e.getMessage());
         }
     }
 
