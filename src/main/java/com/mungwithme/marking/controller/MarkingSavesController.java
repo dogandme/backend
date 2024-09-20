@@ -3,8 +3,6 @@ package com.mungwithme.marking.controller;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.likes.model.enums.ContentType;
-import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/markings/saves")
-public class MarkingSaveController {
+public class MarkingSavesController {
 
 
     private final MarkingSavesService markingSavesService;
