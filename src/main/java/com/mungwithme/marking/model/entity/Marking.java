@@ -16,6 +16,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -73,10 +74,10 @@ public class Marking {
     private Date modDt;             // 수정일
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
-    private Set<MarkImage> images;   // One(marking)-to-Many(images) Join
+    private Set<MarkImage> images = new HashSet<>();   // One(marking)-to-Many(images) Join
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
-    private Set<MarkingSaves> saves;   // One(marking)-to-Many(images) Join
+    private Set<MarkingSaves> saves = new HashSet<>();   // One(marking)-to-Many(images) Join
 
     public static Marking create(MarkingAddDto markingAddDto, User user) {
         return Marking.builder().content(markingAddDto.getContent())

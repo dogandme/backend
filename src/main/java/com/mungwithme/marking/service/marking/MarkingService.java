@@ -1,13 +1,16 @@
 package com.mungwithme.marking.service.marking;
 
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
@@ -16,11 +19,13 @@ import com.mungwithme.marking.repository.impl.MarkImageRepositoryImpl;
 import com.mungwithme.marking.repository.marking.MarkingRepository;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
+import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -246,6 +251,7 @@ public class MarkingService {
         }
         return markingInfoResponseDto;
     }
+
 
 
 

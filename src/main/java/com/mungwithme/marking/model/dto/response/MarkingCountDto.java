@@ -8,14 +8,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter
+@Setter(AccessLevel.PRIVATE)
+
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MarkingCountDto {
 
-    private Integer likedCount;
+    private Long likedCount;
 
-    private Integer savedCount;
+    private Long savedCount;
+
+
+    public void updateLikedCount (long likedCount) {
+        this.likedCount = likedCount;
+    }
 
 
 }

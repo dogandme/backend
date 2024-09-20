@@ -2,10 +2,12 @@ package com.mungwithme.marking.repository.marking;
 
 import com.mungwithme.marking.model.dto.request.MarkingTestDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.user.model.entity.User;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -33,17 +35,18 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
+
     @Query(
-        "SELECT new com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto(m) FROM Marking m join fetch m.user "
-            + " left join fetch m.user.pet "
+        "SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p) FROM Marking m "
+            + " join fetch m.user "
+            + " join fetch Pet p on p.user = m.user "
             + " left join fetch m.images "
             + " left join fetch m.saves "
-            + " WHERE (m.lat "
-            + " BETWEEN :southBottomLat AND :northTopLat AND m.lng BETWEEN :southLeftLng AND :northRightLng "
+            + " WHERE ( m.lat BETWEEN :southBottomLat AND :northTopLat AND m.lng BETWEEN :southLeftLng AND :northRightLng "
             + " and m.isTempSaved =:isTempSaved "
-            + " and m.isDeleted =:isDeleted)"
-            + " and (m.isVisible = 'PUBLIC')")
-    List<Marking> findNearbyMarkersOnlyPublic(
+            + " and m.isDeleted =:isDeleted) "
+            + " and ( m.isVisible = 'PUBLIC') ")
+    Set<MarkingQueryDto> findNearbyMarkersOnlyPublic(
         @Param("southBottomLat") double southBottomLat,
         @Param("northTopLat") double northTopLat,
         @Param("southLeftLng") double southLeftLng,
@@ -82,10 +85,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
 
 
     @Query(
-        "SELECT new com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto(m,:user) FROM Marking m "
+        "SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p) FROM Marking m "
             + " join fetch m.user "
-            + " left join UserFollows f on f.followingUser = m.user "
-//            + "  join fetch m.user.pet.user  "
+            + " join fetch Pet p on p.user = m.user "
+            + " left join fetch UserFollows f on f.followingUser = m.user "
             + " left join fetch m.images "
             + " left join fetch m.saves "
             + " WHERE ( m.lat BETWEEN :southBottomLat AND :northTopLat AND m.lng BETWEEN :southLeftLng AND :northRightLng "
@@ -94,7 +97,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
             + " and ( (m.isVisible = 'PUBLIC') "
             + " or (m.user =:user and m.isVisible = 'PRIVATE' ) "
             + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) ")
-    List<MarkingInfoResponseDto> findNearbyMarkers(
+    Set<MarkingQueryDto> findNearbyMarkers(
         @Param("southBottomLat") double southBottomLat,
         @Param("northTopLat") double northTopLat,
         @Param("southLeftLng") double southLeftLng,

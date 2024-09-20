@@ -44,7 +44,7 @@ public class Pet {
     @UpdateTimestamp
     private Date modDt;                     // 수정일
 
-    @OneToOne(fetch = FetchType.EAGER)                              // One(User)-to-One(Pet) Join
+    @OneToOne(fetch = FetchType.LAZY)                              // One(User)-to-One(Pet) Join
     @JoinColumn(name = "user_id")           // 외래 키 설정
     private User user;
 }

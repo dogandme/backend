@@ -31,6 +31,6 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
     @Query("select new com.mungwithme.likes.model.dto.response.LikeCountResponseDto(l.contentId,l.contentType"
         + ",COALESCE(count(l.contentId),0)) from Likes l "
         + "where l.contentId in (:contentsIds) and l.contentType = :contentType group by l.contentId ")
-    List<LikeCountResponseDto> fetchLikeCounts(@Param("contentsIds")Set<Long> contentsIds,@Param("contentType") ContentType contentType);
+    Set<LikeCountResponseDto> fetchLikeCounts(@Param("contentsIds")Set<Long> contentsIds,@Param("contentType") ContentType contentType);
 
 }

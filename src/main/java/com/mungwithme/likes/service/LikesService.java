@@ -133,7 +133,7 @@ public class LikesService {
      *
      * @return
      */
-    public List<LikeCountResponseDto> fetchLikeCounts(Set<Long> contentIds, ContentType contentType) {
+    public Set<LikeCountResponseDto> fetchLikeCounts(Set<Long> contentIds, ContentType contentType) {
         return likesRepository.fetchLikeCounts(contentIds, contentType);
     }
 

@@ -1,6 +1,8 @@
 package com.mungwithme.marking.model.dto.response;
 
 
+import com.mungwithme.marking.model.entity.MarkImage;
+import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
@@ -9,6 +11,7 @@ import com.mungwithme.user.model.entity.User;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,10 +22,12 @@ import lombok.Setter;
 @Setter(AccessLevel.PRIVATE)
 @NoArgsConstructor
 public class MarkingInfoResponseDto {
+
     private Long id;
     private String region;
     private String content;
     private Visibility isVisible;
+
     private Date regDt;
 
     private Long userId;
@@ -41,14 +46,12 @@ public class MarkingInfoResponseDto {
 
     private PetInfoResponseDto pet;
 
-
     private List<MarkImageResponseDto> images;
 
+    /**
+     * 회원이 조회를 했을경우
+     */
     public MarkingInfoResponseDto(Marking marking) {
-        setData(marking);
-    }
-
-    public MarkingInfoResponseDto(Marking marking, Long userId) {
         setData(marking);
         this.isOwner = marking.getUser().getId().equals(userId);
     }
@@ -70,9 +73,7 @@ public class MarkingInfoResponseDto {
         imageDtos.sort(Comparator.comparing(MarkImageResponseDto::getLank));
         this.images = imageDtos;
 
-        Pet pet = marking.getUser().getPet();
-        this.pet = new PetInfoResponseDto(pet.getId(), pet.getName(), pet.getProfile());
-        this.countData = new MarkingCountDto(0, marking.getSaves().size());
+        this.countData = new MarkingCountDto(0L, (long) marking.getSaves().size());
 
         this.isOwner = false;
     }
@@ -80,5 +81,13 @@ public class MarkingInfoResponseDto {
     public void updateIsOwner(boolean isOwner) {
         this.isOwner = isOwner;
     }
+    public void updateLikeCount (long count) {
+        this.countData.updateLikedCount(count);
+    }
+
+    public void updatePet(Pet pet) {
+        this.pet = new PetInfoResponseDto(pet.getId(), pet.getName(), pet.getProfile());
+    }
+
 
 }

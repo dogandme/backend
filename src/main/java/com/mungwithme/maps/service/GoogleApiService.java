@@ -40,10 +40,7 @@ public class GoogleApiService {
     }
 
     public GeocodingResponseDto getReverseGeocoding(double lat, double lng) {
-        boolean withinKorea = GeoUtils.isWithinKorea(lat, lng);
-        if (!withinKorea) {
-            throw new IllegalArgumentException("ex) 위치가 정확하지 않습니다.");
-        }
+        GeoUtils.isWithinKorea(lat, lng);
 
         // Google Geocoding API URL 생성 (언어를 한국어로 설정)
         String geocodingUrl = GEOCODING_API_URL + "?latlng=" + lat + "," + lng + "&key=" + API_KEY + "&language=ko";
@@ -69,10 +66,7 @@ public class GoogleApiService {
     }
 
     public PlaceDetailsResponseDto getPlaceDetails(double lat, double lng) {
-        boolean withinKorea = GeoUtils.isWithinKorea(lat, lng);
-        if (!withinKorea) {
-            throw new IllegalArgumentException("ex) 위치가 정확하지 않습니다.");
-        }
+        GeoUtils.isWithinKorea(lat, lng);
 
         // Google Place API로 주변 장소 검색 (nearbysearch 사용)
         String placeUrl = "https://maps.googleapis.com/maps/api/place/nearbysearch/json?" +

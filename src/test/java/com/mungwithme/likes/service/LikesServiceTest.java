@@ -38,7 +38,7 @@ class LikesServiceTest {
         contentsIds.add(12L);
         contentsIds.add(13L);
         contentsIds.add(15L);
-        List<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.fetchLikeCounts(contentsIds,
+        Set<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.fetchLikeCounts(contentsIds,
             ContentType.MARKING);
 
         for (LikeCountResponseDto likeCountResponseDto : contentLikeCountResponseDtos) {

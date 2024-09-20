@@ -23,7 +23,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table( indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
+@Table(indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
 public class User {
 
     @Id
@@ -57,14 +57,14 @@ public class User {
     @UpdateTimestamp
     private Date modDt;             // 수정일
 
-    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
-    private Pet pet;          // One(User)-to-Many(Pet) Join
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private Pet pet;          // One(User)-to-Many(Pet) Join
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
-            name = "user_address",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "address_id")
+        name = "user_address",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "address_id")
     )
     private Set<Address> regions;
 
@@ -77,7 +77,9 @@ public class User {
 
     /**
      * 비밀번호 암호화 메소드
-     * @param passwordEncoder 비밀번호 인코더
+     *
+     * @param passwordEncoder
+     *     비밀번호 인코더
      */
     public void passwordEncode(PasswordEncoder passwordEncoder) {
         this.password = passwordEncoder.encode(this.password);
@@ -85,7 +87,9 @@ public class User {
 
     /**
      * 리프레시토큰 업데이트
-     * @param updateRefreshToken 신규 리프레시토큰
+     *
+     * @param updateRefreshToken
+     *     신규 리프레시토큰
      */
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;

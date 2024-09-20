@@ -2,10 +2,12 @@ package com.mungwithme.marking.service;
 
 import com.mungwithme.marking.model.dto.request.MarkingTestDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
+import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.util.List;
@@ -74,10 +76,6 @@ class MarkingQueryServiceTest {
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
 
-        User user = userService.findByEmail("lim642666@gmail.co").orElse(null);
-        List<MarkingInfoResponseDto> nearbyMarkers = markingQueryRepository.findNearbyMarkers(southBottomLat,
-            northTopLat,
-            southLeftLng, northRightLng, false, false, user);
 //        for (Marking marking : markingInBounds) {
 //            System.out.println(" ====================================== ");
 //            System.out.println("marking.getId() = " + marking.getId());
@@ -92,6 +90,12 @@ class MarkingQueryServiceTest {
 
     }
 
+    /**
+     * 위 예시들을 통해 정리해보면 연관관계의 주인이 호출할 때는 지연 로딩이 정상적으로 동작하지만,
+     * 연관관계의 주인이 아닌 곳에서 호출한다면 지연 로딩이 아닌 즉시 로딩으로 동작한다는 것을 알 수 있다.
+     *
+     *
+     */
     @Test
     public void findNearbyMarkers2() {
 
@@ -105,23 +109,27 @@ class MarkingQueryServiceTest {
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
         User user = userService.findByEmail("2221325@naver.com").orElse(null);
-        List<MarkingInfoResponseDto> nearbyMarkers = markingQueryRepository.findNearbyMarkers(southBottomLat,
+
+        System.out.println("체크!");
+
+        Set<MarkingQueryDto> nearbyMarkers = markingQueryRepository.findNearbyMarkers(southBottomLat,
             northTopLat,
             southLeftLng, northRightLng, false, false, user);
 
-        for (MarkingInfoResponseDto nearbyMarker : nearbyMarkers) {
+        for (MarkingQueryDto markingQueryDto : nearbyMarkers) {
 
+            Marking marking = markingQueryDto.getMarking();
+            Pet pet = markingQueryDto.getPet();
             System.out.println("=============================");
 
-            System.out.println("nearbyMarker.getId() = " + nearbyMarker.getId());
+            System.out.println("nearbyMarker.getId() = " + marking.getId());
 
-            System.out.println("nearbyMarker.getContent() = " + nearbyMarker.getContent());
+            System.out.println("nearbyMarker.getContent() = " + marking.getContent());
 
-            System.out.println("nearbyMarker.getNickName() = " + nearbyMarker.getNickName());
+            System.out.println("marking.getUser().getPet().getName() = " + pet.getName());
 
-            System.out.println("nearbyMarker.getIsOwner() = " + nearbyMarker.getIsOwner());
 
-            System.out.println("nearbyMarker.getCountData().getSavedCount() = " + nearbyMarker.getCountData().getSavedCount());
+            System.out.println("nearbyMarker.getCountData().getSavedCount() = " + marking.getSaves().size());
 
         }
 
