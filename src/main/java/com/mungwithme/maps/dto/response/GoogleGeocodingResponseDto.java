@@ -2,7 +2,10 @@ package com.mungwithme.maps.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
+import lombok.AccessLevel;
+import lombok.Setter;
 
+@Setter(value = AccessLevel.PRIVATE)
 public class GoogleGeocodingResponseDto {
 
     @JsonProperty("results")
@@ -10,10 +13,6 @@ public class GoogleGeocodingResponseDto {
 
     public List<Result> getResults() {
         return results;
-    }
-
-    public void setResults(List<Result> results) {
-        this.results = results;
     }
 
     public static class Result {

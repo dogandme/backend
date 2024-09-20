@@ -37,16 +37,16 @@ public class AddressController {
      * @param addressSearchDto
      * @return
      */
-    @GetMapping("")
-    public ResponseEntity fetchListBySubDist(@Validated @ModelAttribute AddressSearchDto addressSearchDto) throws IOException {
+    @GetMapping
+    public ResponseEntity<CommonBaseResult> fetchListBySubDist(@Validated @ModelAttribute AddressSearchDto addressSearchDto) throws IOException {
         try {
             return baseResponse.sendContentResponse(
                     addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7), 200);
         } catch (ResourceNotFoundException e) {
-            return baseResponse.sendErrorResponse(204, "입력하신 주소가 없습니다");
+            return baseResponse.sendErrorResponse(204, "ex) 입력하신 주소가 없습니다");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+            return baseResponse.sendErrorResponse(400, "ex) 예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 
@@ -62,10 +62,10 @@ public class AddressController {
         try {
             return baseResponse.sendContentResponse(addressSearchService.fetchListByLngLat(addressCoordinatesDto, 0, 7,10000), 200);
         } catch (ResourceNotFoundException e) {
-            return baseResponse.sendErrorResponse(204, "잘못된 위치 정보입니다.");
+            return baseResponse.sendErrorResponse(204, "ex) 잘못된 위치 정보입니다.");
         } catch (Exception e) {
             log.error(e.getMessage());
-            return baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+            return baseResponse.sendErrorResponse(400, "ex) 예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
         }
     }
 

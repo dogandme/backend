@@ -1,6 +1,7 @@
 package com.mungwithme.likes.service;
 
 
+import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
 import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.repository.LikesRepository;
@@ -10,6 +11,8 @@ import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
 import com.mungwithme.user.service.UserService;
+import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -123,6 +126,15 @@ public class LikesService {
      */
     public Likes fetchLikes(User user, ContentType contentType, long contentId) {
         return likesRepository.fetchLikes(user, contentType, contentId).orElse(null);
+    }
+
+    /**
+     * 좋아요 검색
+     *
+     * @return
+     */
+    public Set<LikeCountResponseDto> fetchLikeCounts(Set<Long> contentIds, ContentType contentType) {
+        return likesRepository.fetchLikeCounts(contentIds, contentType);
     }
 
     public boolean existsLikes(User user, ContentType contentType, long contentId) {

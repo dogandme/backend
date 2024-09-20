@@ -11,7 +11,7 @@ class ReverseGeocodingApiTest {
 
 /*
     @Autowired
-    GoogleReverseGeocodingApiService reverseGeocodingApi;
+    GoogleApiService reverseGeocodingApi;
     @Test
     void getReverseGeocoding() {
         Mono<String> mono = reverseGeocodingApi.getReverseGeocoding(35.60411, 129.3628);

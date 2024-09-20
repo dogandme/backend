@@ -57,4 +57,12 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
         @Param("lat") double lat,
         @Param("radius") double radius,Pageable pageable );
 
+    @Query("SELECT a FROM Address a WHERE a.lat BETWEEN :southBottomLat AND :northTopLat AND a.lng BETWEEN :southLeftLng AND :northRightLng")
+    List<Address> findAddressInBounds(
+        @Param("southBottomLat") double southBottomLat,
+        @Param("northTopLat") double northTopLat,
+        @Param("southLeftLng") double southLeftLng,
+        @Param("northRightLng") double northRightLng
+    );
+
 }

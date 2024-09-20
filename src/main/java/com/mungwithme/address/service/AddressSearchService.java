@@ -94,9 +94,7 @@ public class AddressSearchService {
         double lng = coordinatesDto.getLng();
 
         // 좌표 값 확인
-        if (!GeoUtils.isWithinKorea(lat,lng)) {
-            throw new IllegalArgumentException("ex) 좌표 값이 정확하지 않습니다.");
-        }
+        GeoUtils.isWithinKorea(lat,lng);
 
         PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
 

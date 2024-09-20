@@ -3,9 +3,7 @@ package com.mungwithme.maps.controller;
 
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.common.response.CommonResult;
-import com.mungwithme.maps.dto.response.GeocodingResponseDto;
-import com.mungwithme.maps.service.GoogleReverseGeocodingApiService;
+import com.mungwithme.maps.service.GoogleApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +21,7 @@ import java.io.IOException;
 @RequestMapping("/maps")
 public class MapsController {
 
-    private final GoogleReverseGeocodingApiService googleReverseGeocodingApiService;
+    private final GoogleApiService googleReverseGeocodingApiService;
     private final BaseResponse baseResponse;
 
     @GetMapping("/reverse-geocode")

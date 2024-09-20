@@ -2,6 +2,9 @@ package com.mungwithme.maps.repository;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
+import com.mungwithme.maps.dto.response.LocationBoundsDTO;
+import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +21,37 @@ class AddressRepositoryTest {
     @Autowired
     AddressRepository addressRepository;
 
+    @Autowired
+    MarkingSearchService markingSearchService;
+    @Test
+    void findNearbyMarkers() {
+
+        //현재 위도 좌표 (y 좌표)
+        double northTopLat = 35.545047500080756;
+        //현재 경도 좌표 (x 좌표)
+        double northRightLng = 129.3521825968079;
+
+        //현재 위도 좌표 (y 좌표)
+        double southBottomLat = 35.520204401760736;
+        //현재 경도 좌표 (x 좌표)
+        double southLeftLng = 129.32615169340926;
+
+        LocationBoundsDTO locationBoundsDTO = new LocationBoundsDTO(southBottomLat, northTopLat, southLeftLng,
+            northRightLng);
+
+        try {
+            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
+            System.out.println("nearbyMarkers.size() = " + nearbyMarkers.size());
+        }catch (Exception e) {
+
+            System.out.println("e.getMessage() = " + e.getMessage());
+        }
+
+
+
+
+
+    }
     /**
      * 일반 like 사용시
      * <p>
@@ -115,4 +149,41 @@ class AddressRepositoryTest {
         }
 
     }
+
+    @Test
+    void getDistance() {
+
+
+//        var southWest = bounds.getSouthWest();  // 남서쪽 (left, bottom)
+//        var northEast = bounds.getNorthEast();  // 북동쪽 (right, top)
+
+        //현재 위도 좌표 (y 좌표)
+        double northTopLat = 35.545047500080756;
+        //현재 경도 좌표 (x 좌표)
+        double northRightLng = 129.3521825968079;
+
+        //현재 위도 좌표 (y 좌표)
+        double southBottomLat = 35.520204401760736;
+        //현재 경도 좌표 (x 좌표)
+        double southLeftLng = 129.32615169340926;
+
+        List<Address> addressInBounds = addressRepository.findAddressInBounds(southBottomLat, northTopLat, southLeftLng, northRightLng);
+//        List<Address> addressInBounds = addressRepository.findAddressInBounds(topLat, bottomLat, rightLng, leftLng);
+
+        for (Address addressInBound : addressInBounds) {
+
+            System.out.println(" ============================================ ");
+            System.out.println("addressInBound.getId() = " + addressInBound.getId());
+            System.out.println("addressInBound.getCityCounty() = " + addressInBound.getCityCounty());
+            System.out.println("addressInBound.getDistrict() = " + addressInBound.getDistrict());
+            System.out.println("addressInBound.getSubDistrict() = " + addressInBound.getSubDistrict());
+            System.out.println("addressInBound.getLat() = " + addressInBound.getLat());
+            System.out.println("addressInBound.getLng() = " + addressInBound.getLng());
+            System.out.println(" ============================================ ");
+
+        }
+    }
+
+
+
 }
