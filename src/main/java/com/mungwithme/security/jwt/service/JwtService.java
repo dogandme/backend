@@ -51,12 +51,6 @@ public class JwtService {
      * @param email Claim 추가를 위함
      * @param role 토큰 role값 검증을 위함
      *
-     * @modification.author 전형근
-     * @modification.date 2024.8.8
-     * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
-     * ENUM 타입은 JWT토큰(String)에 순수하게 들어갈 수 없기때문에 String으로 변환해준다
-     * + 발행일자 추가 (withIssuedAt)
-     *
      * @modification.author 장수현
      * @modification.date 2024.8.14
      * @modification.details 토큰 앞에 "BEARER+" 추가
@@ -88,20 +82,7 @@ public class JwtService {
     }
 
     /**
-     * AccessToken 쿠키에 담아 보내기
-     * @param accessToken 쿠키에 담을 토큰
-     *
-     * @modification.author 장수현
-     * @modification.date 2024.8.8
-     * @modification.details 토큰 헤더 전송 -> 토큰 쿠키 전송
-     */
-    public void sendAccessToken(HttpServletResponse response, String accessToken) {
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.addCookie(createCookie(accessCookie, BEARER + accessToken, accessTokenExpirationPeriod, false));
-    }
-
-    /**
-     * 토큰에서 RefreshToken 추출
+     * 쿠키에서 RefreshToken 추출
      *
      * @modification.author 장수현
      * @modification.date 2024.8.8
@@ -118,7 +99,7 @@ public class JwtService {
     }
 
     /**
-     * 토큰에서 AccessToken 추출
+     * 헤더에서 AccessToken 추출
      *
      * @modification.author 장수현
      * @modification.date 2024.8.26
@@ -146,17 +127,6 @@ public class JwtService {
             log.error("액세스 토큰이 유효하지 않습니다.");
             return Optional.empty();
         }
-    }
-
-    /**
-     * AccessToken 쿠키 설정
-     *
-     * @modification.author 장수현
-     * @modification.date 2024.8.8
-     * @modification.details 토큰 헤더 저장 -> 토큰 쿠키 저장
-     */
-    public void setAccessTokenCookie(HttpServletResponse response, String accessToken) {
-        response.addCookie(createCookie(accessCookie, accessToken, accessTokenExpirationPeriod, false));
     }
 
     /**

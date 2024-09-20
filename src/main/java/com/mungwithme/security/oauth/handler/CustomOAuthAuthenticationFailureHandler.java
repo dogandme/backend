@@ -1,8 +1,10 @@
 package com.mungwithme.security.oauth.handler;
 
+import com.mungwithme.common.response.BaseResponse;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
@@ -15,10 +17,13 @@ import java.io.IOException;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class CustomOAuthAuthenticationFailureHandler implements AuthenticationFailureHandler {
+
+    private final BaseResponse baseResponse;
+
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response, AuthenticationException exception) throws IOException, ServletException {
-        response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-        response.getWriter().write("소셜 로그인 실패! 서버 로그를 확인해주세요.");
+        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(500, "예상치 못한 문제가 발생했습니다. 잠시 후 다시 시도해 주세요."));
     }
 }

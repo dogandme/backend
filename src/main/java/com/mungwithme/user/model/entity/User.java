@@ -46,7 +46,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     private SocialType socialType;  // 소셜 채널(Kakao, Google, Naver)
 
-    private String socialId;        // 로그인한 소셜 타입의 식별자 값(일반 로그인:null)
     private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
@@ -67,13 +66,6 @@ public class User {
         inverseJoinColumns = @JoinColumn(name = "address_id")
     )
     private Set<Address> regions;
-
-    /**
-     * 유저 권한 설정 메소드
-     */
-    public void authorizeUser() {
-        this.role = Role.USER;
-    }
 
     /**
      * 비밀번호 암호화 메소드
