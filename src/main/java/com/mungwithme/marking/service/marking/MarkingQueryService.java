@@ -73,8 +73,8 @@ public class MarkingQueryService {
 
 
     /**
-     *
      * 주변 마킹 검색  (회원 전용)
+     *
      * @param southBottomLat
      * @param northTopLat
      * @param southLeftLng
@@ -99,10 +99,15 @@ public class MarkingQueryService {
 
     /**
      * 주변마킹 검색 (비회원)
+     *
      * @param southBottomLat
+     *     남서쪽 위도
      * @param northTopLat
+     *     북동쪽 위도
      * @param southLeftLng
+     *     남서쪽 경도
      * @param northRightLng
+     *     북동쪽 경도
      * @param isDeleted
      * @param isTempSaved
      * @return
@@ -119,6 +124,24 @@ public class MarkingQueryService {
             northRightLng,
             isDeleted, isTempSaved);
     }
+
+
+    /**
+     * 내 마킹 정보
+     *
+     * @param isDeleted
+     * @param user
+     * @return
+     */
+    public Set<MarkingQueryDto> findAllMarkersByUser(
+        User user,
+        boolean isDeleted,
+        boolean isTempSaved
+
+    ) {
+        return markingQueryRepository.findAllMarkersByUser(isDeleted, isTempSaved, user.getId());
+    }
+
 
     /**
      * 좌표값을 이용한 바운더리 계산

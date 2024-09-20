@@ -19,7 +19,7 @@ spring:
         order_updates: true
         default_batch_fetch_size: 300
         jdbc:
-          batch_size: 100
+          batch_size: 10000
 #          배치처리
   profiles:
     include: db, jwt, oauth, google
@@ -34,6 +34,5 @@ com:
   example:
     ex8_fileupload:
       upload:
-#        path: \Users\장수현\Desktop\images
-        path: \Users\imhaneul\files\image
+        path: \Users\장수현\Desktop\images
 

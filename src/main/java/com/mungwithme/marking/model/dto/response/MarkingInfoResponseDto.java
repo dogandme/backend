@@ -20,7 +20,7 @@ import lombok.Setter;
 
 @Getter
 @Setter(AccessLevel.PRIVATE)
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MarkingInfoResponseDto {
 
     private Long id;

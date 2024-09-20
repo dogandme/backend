@@ -35,7 +35,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
     @Query(
         "SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p) FROM Marking m "
             + " join fetch m.user "
@@ -106,6 +105,18 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("isTempSaved") boolean isTempSaved,
         @Param("user") User user
     );
+
+
+    @Query("SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p)FROM Marking m "
+        + " join fetch m.user "
+        + " join fetch Pet p on p.user.id = :userId "
+        + " left join fetch m.images "
+        + " left join fetch m.saves "
+        + " WHERE m.isDeleted =:isDeleted and m.isTempSaved = :isTempSaved and m.user.id =:userId ")
+    Set<MarkingQueryDto> findAllMarkersByUser(
+        @Param("isDeleted") boolean isDeleted,
+        @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId);
 
 
 }

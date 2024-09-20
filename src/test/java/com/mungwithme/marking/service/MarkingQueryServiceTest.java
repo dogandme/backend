@@ -62,6 +62,15 @@ class MarkingQueryServiceTest {
 
     }
 
+    @Test
+    public void findAllMarkersByUser () {
+        User myUser = userService.findByEmail("lim642666@gmail.com").orElse(null);
+        User profileUser = userService.findByNickname("sky").orElse(null);
+
+        Set<MarkingQueryDto> allMarkersByUser = markingQueryService.findAllMarkersByUser(profileUser, false, false);
+
+        System.out.println(allMarkersByUser.size());
+    }
 
     @Test
     public void findNearbyMarkers() {

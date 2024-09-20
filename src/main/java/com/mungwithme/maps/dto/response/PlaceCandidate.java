@@ -1,10 +1,11 @@
 package com.mungwithme.maps.dto.response;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
-@Setter
+@Setter(value = AccessLevel.PRIVATE)
 public class PlaceCandidate {
     private String formattedAddress;
     private String name;
