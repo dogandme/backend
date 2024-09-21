@@ -3,6 +3,7 @@ package com.mungwithme.marking.model.dto.sql;
 
 import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
 import java.util.Objects;
 import lombok.AllArgsConstructor;
@@ -20,10 +21,19 @@ public class MarkingQueryDto {
 
     private Likes likes;
 
+    private MarkingSaves markingSaves;
+
 
     public MarkingQueryDto(Marking marking, Pet pet) {
         this.marking = marking;
         this.pet = pet;
+    }
+
+
+    public MarkingQueryDto(Marking marking, Pet pet, MarkingSaves markingSaves) {
+        this.marking = marking;
+        this.pet = pet;
+        this.markingSaves = markingSaves;
     }
 
     public MarkingQueryDto(Marking marking, Pet pet, Likes likes) {

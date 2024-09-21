@@ -1,6 +1,7 @@
 package com.mungwithme.marking.model.dto.response;
 
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.Visibility;
@@ -42,6 +43,14 @@ public class MarkingInfoResponseDto {
     private Double lat;
     private Double lng;
 
+    // 값이 널이면 json 객체에서 제외
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private MarkingLikedInfoResponseDto likedInfo;
+    // 값이 널이면 json 객체에서 제외
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private MarkingSavedInfoResponseDto savedInfo;
+
+
     private MarkingCountDto countData;
 
     private PetInfoResponseDto pet;
@@ -81,8 +90,16 @@ public class MarkingInfoResponseDto {
     public void updateIsOwner(boolean isOwner) {
         this.isOwner = isOwner;
     }
-    public void updateLikeCount (long count) {
+
+    public void updateLikeCount(long count) {
         this.countData.updateLikedCount(count);
+    }
+
+    public void updateLikedInfo(long likeId, Date regDt) {
+        this.likedInfo = new MarkingLikedInfoResponseDto(likeId, regDt);
+    }
+    public void updateSavedInfo(long savedId, Date regDt) {
+        this.savedInfo = new MarkingSavedInfoResponseDto(savedId, regDt);
     }
 
     public void updatePet(Pet pet) {

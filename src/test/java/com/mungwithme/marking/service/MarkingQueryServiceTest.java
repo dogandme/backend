@@ -196,4 +196,27 @@ class MarkingQueryServiceTest {
 
 
     }
+
+    @Test
+    public void findAllSavedMarkersByUser() {
+
+        // given
+        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+        // when
+
+        Set<MarkingQueryDto> allLikedMarkersByUser = markingQueryService.findAllSavedMarkersByUser(user, false, false);
+
+
+        // then
+        System.out.println("allLikedMarkersByUser.size() = " + allLikedMarkersByUser.size());
+
+        for (MarkingQueryDto markingQueryDto : allLikedMarkersByUser) {
+            System.out.println(" ==============================  ");
+            System.out.println("마킹saveId = " + markingQueryDto.getMarkingSaves().getId());
+            System.out.println("마킹아이디 = " + markingQueryDto.getMarkingSaves().getMarking().getId());
+            System.out.println("markingQueryDto.getMarking().getIsVisible() = " + markingQueryDto.getMarking().getIsVisible());
+            System.out.println("saveCount = " + markingQueryDto.getMarking().getSaves().size());
+
+        }
+    }
 }

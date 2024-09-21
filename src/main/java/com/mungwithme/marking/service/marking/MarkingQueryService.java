@@ -143,7 +143,7 @@ public class MarkingQueryService {
     }
 
     /**
-     * 내 마킹 정보
+     * 내가 좋아요한 마킹리스트
      *
      * @param isDeleted
      * @param user
@@ -156,6 +156,22 @@ public class MarkingQueryService {
 
     ) {
         return markingQueryRepository.findAllLikedMarkersByUser(isDeleted, isTempSaved, user.getId());
+    }
+
+
+    /**
+     * 내가 즐겨찾기 한  마킹리스트
+     *
+     * @param isDeleted
+     * @param user
+     * @return
+     */
+    public Set<MarkingQueryDto> findAllSavedMarkersByUser(
+        User user,
+        boolean isDeleted,
+        boolean isTempSaved
+    ) {
+        return markingQueryRepository.findAllSavedMarkersByUser(isDeleted, isTempSaved, user.getId());
     }
 
 
