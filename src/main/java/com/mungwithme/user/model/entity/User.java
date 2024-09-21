@@ -40,6 +40,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Gender gender;          // 성별
 
+    @Setter
     @Enumerated(EnumType.STRING)
     private Role role;              // 권한 (기본:GUEST, 선택정보입력시:USER, 관리자:ADMIN)
 
@@ -55,9 +56,6 @@ public class User {
 
     @UpdateTimestamp
     private Date modDt;             // 수정일
-
-//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-//    private Pet pet;          // One(User)-to-Many(Pet) Join
 
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
@@ -93,4 +91,5 @@ public class User {
     public void updatePersistLogin(Boolean persistLogin) {
         this.persistLogin = persistLogin;
     }
+
 }

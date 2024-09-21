@@ -29,6 +29,7 @@ import java.util.UUID;
 public class PetService {
 
     private final PetRepository petRepository;
+    private final UserRepository userRepository;
     private  final UserService userService;
     private final FileStore fileStore;
 
@@ -47,6 +48,7 @@ public class PetService {
         // 강쥐 프로필 이미지 업로드
         List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
 
+        // 강쥐 DB 저장
         Pet pet = Pet.builder()
                 .name(petSignUpDto.getName())
                 .description(petSignUpDto.getDescription())
@@ -55,8 +57,13 @@ public class PetService {
                 .breed(petSignUpDto.getBreed())
                 .user(user)
                 .build();
+        petRepository.save(pet);
 
-        petRepository.save(pet);    // DB 저장
+        // 기존에 USER 권한이 아니었을 경우 USER 권한으로 변경
+        if (!user.getRole().equals(Role.USER)) {
+            user.setRole(Role.USER);
+            userRepository.save(user);
+        }
 
         return user;
     }
