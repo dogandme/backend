@@ -7,11 +7,11 @@ import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.model.dto.response.MarkingInfoWithLikedResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.service.PetService;
 import com.mungwithme.user.model.entity.User;
@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -81,7 +82,7 @@ public class MarkingSearchService {
 
 
     /**
-     * 나의 좋아요 마킹 리스트 출력
+     * 나의 좋아요 마킹 리스트 출력 API
      *
      */
     public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
@@ -94,6 +95,22 @@ public class MarkingSearchService {
         return createdMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
     }
+
+    /**
+     * 나의 즐겨찾기 마킹 리스트 출력 API
+     *
+     */
+    public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
+        User myUser = userService.getCurrentUser();
+
+        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
+
+        markingQueryDtoSet.addAll(markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
+
+        return createdMarkingInfoResponseDtoList(true, myUser,
+            markingQueryDtoSet);
+    }
+
 
     /**
      * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
@@ -165,13 +182,7 @@ public class MarkingSearchService {
             // 한번에 모든 데이터를 설정하여 객체 초기화를 효율적으로 수행
             MarkingInfoResponseDto markingInfoResponseDto ;
 
-            //Likes 가 있는 경우 자식클래스로 업 캐스팅
-            if (entry.getValue().getLikes() != null) {
-                Likes likes = entry.getValue().getLikes();
-                markingInfoResponseDto = new MarkingInfoWithLikedResponseDto(marking,likes.getId(),likes.getRegDt());
-            } else {
-                markingInfoResponseDto = new MarkingInfoResponseDto(marking);
-            }
+            markingInfoResponseDto = getMarkingInfoResponseDto(entry, marking);
 
             // 작성자인지 확인
             if (isMember) {
@@ -190,6 +201,28 @@ public class MarkingSearchService {
             markingInfoList.add(markingInfoResponseDto);
         }
         return markingInfoList;
+    }
+
+    /**
+     * value 에 따른 업캐스팅 분류
+     * @param entry
+     * @param marking
+     * @return
+     */
+    private static MarkingInfoResponseDto getMarkingInfoResponseDto(Entry<Long, MarkingQueryDto> entry,
+        Marking marking) {
+        MarkingInfoResponseDto markingInfoResponseDto;
+        Likes likes = entry.getValue().getLikes();
+        MarkingSaves markingSaves = entry.getValue().getMarkingSaves();
+        markingInfoResponseDto = new MarkingInfoResponseDto(marking);
+
+        if (likes != null) {
+            markingInfoResponseDto.updateLikedInfo(likes.getId(), likes.getRegDt());
+        }
+        if (markingSaves != null) {
+            markingInfoResponseDto.updateSavedInfo(markingSaves.getId(), markingSaves.getRegDt());
+        }
+        return markingInfoResponseDto;
     }
 
 }

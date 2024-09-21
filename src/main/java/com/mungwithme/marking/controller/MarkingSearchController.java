@@ -93,7 +93,7 @@ public class MarkingSearchController {
      */
 
     /**
-     * 내 임시 마킹 리스트 출력
+     * 내가 좋아요한 마킹 리스트 불러오기
      *
      * @return
      */
@@ -108,5 +108,24 @@ public class MarkingSearchController {
         }
     }
 
+    /**
+     * 좋아요 날짜
+     */
+
+    /**
+     * 내가 즐겨 찾기 한 마킹 리스트 불러오기
+     *
+     * @return
+     */
+    @GetMapping("/saves")
+    public ResponseEntity<CommonBaseResult> fetchMySavedMarkingsByUser()
+        throws IOException {
+        try {
+            List<MarkingInfoResponseDto> savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser();
+            return baseResponse.sendContentResponse(savedMarkersByUser, 200);
+        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
+            return baseResponse.sendErrorResponse(400, e.getMessage());
+        }
+    }
 
 }
