@@ -38,3 +38,5 @@ out/
 
 application-db.yml
 application-jwt.yml
+application-oauth.yml
+application-google.yml
