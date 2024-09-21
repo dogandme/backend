@@ -1,6 +1,7 @@
 package com.mungwithme.marking.model.dto.sql;
 
 
+import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.pet.model.entity.Pet;
 import java.util.Objects;
@@ -11,13 +12,25 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor
 public class MarkingQueryDto {
     private Marking marking;
 
     private Pet pet;
 
+    private Likes likes;
+
+
+    public MarkingQueryDto(Marking marking, Pet pet) {
+        this.marking = marking;
+        this.pet = pet;
+    }
+
+    public MarkingQueryDto(Marking marking, Pet pet, Likes likes) {
+        this.marking = marking;
+        this.pet = pet;
+        this.likes = likes;
+    }
 
     /**
      * *equals**와 hashCode 메서드를 올바르게 구현하면, Set 자료구조에서 중복된 DTO 객체들이 제거됩니다.

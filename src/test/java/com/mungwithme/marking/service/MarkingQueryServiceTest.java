@@ -63,7 +63,7 @@ class MarkingQueryServiceTest {
     }
 
     @Test
-    public void findAllMarkersByUser () {
+    public void findAllMarkersByUser() {
         User myUser = userService.findByEmail("lim642666@gmail.com").orElse(null);
         User profileUser = userService.findByNickname("sky").orElse(null);
 
@@ -102,8 +102,6 @@ class MarkingQueryServiceTest {
     /**
      * 위 예시들을 통해 정리해보면 연관관계의 주인이 호출할 때는 지연 로딩이 정상적으로 동작하지만,
      * 연관관계의 주인이 아닌 곳에서 호출한다면 지연 로딩이 아닌 즉시 로딩으로 동작한다는 것을 알 수 있다.
-     *
-     *
      */
     @Test
     public void findNearbyMarkers2() {
@@ -137,7 +135,6 @@ class MarkingQueryServiceTest {
 
             System.out.println("marking.getUser().getPet().getName() = " + pet.getName());
 
-
             System.out.println("nearbyMarker.getCountData().getSavedCount() = " + marking.getSaves().size());
 
         }
@@ -147,7 +144,6 @@ class MarkingQueryServiceTest {
 
     @Test
     public void findNearbyMarkers3() {
-
 
 //        User user = userService.findByEmail("2221325@naver.com").orElse(null);
 //        List<MarkingTestDto> nearbyMarkers = markingQueryRepository.findNearbyMarkers(false, false, user);
@@ -172,12 +168,32 @@ class MarkingQueryServiceTest {
     }
 
 
-
     @Test
     public void findNearbyMarkers4() {
 //
 //        User user = userService.findByEmail("2221325@naver.com").orElse(null);
 //        markingQueryRepository.findNearbyMarkers(false, false, user);
+    }
+
+
+    @Test
+    public void findAllLikedMarkersByUser() {
+
+        // given
+        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+        // when
+
+        Set<MarkingQueryDto> allLikedMarkersByUser = markingQueryService.findAllLikedMarkersByUser(user, false, false);
+
+
+        // then
+        System.out.println("allLikedMarkersByUser.size() = " + allLikedMarkersByUser.size());
+
+        for (MarkingQueryDto markingQueryDto : allLikedMarkersByUser) {
+            System.out.println("markingQueryDto.getLikes().getId() = " + markingQueryDto.getLikes().getId());
+
+        }
+
 
     }
 }
