@@ -23,7 +23,7 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class MarkingInfoResponseDto {
 
-    private Long id;
+    private Long markingId;
     private String region;
     private String content;
     private Visibility isVisible;
@@ -57,7 +57,7 @@ public class MarkingInfoResponseDto {
     }
 
     private void setData(Marking marking) {
-        this.id = marking.getId();
+        this.markingId = marking.getId();
         this.region = marking.getRegion();
         this.userId = marking.getUser().getId();
         this.nickName = marking.getUser().getNickname();

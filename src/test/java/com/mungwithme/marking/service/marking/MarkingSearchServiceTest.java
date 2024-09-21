@@ -1,9 +1,8 @@
 package com.mungwithme.marking.service.marking;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingInfoWithLikedResponseDto;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +38,23 @@ class MarkingSearchServiceTest {
             System.out.println("e.getMessage() = " + e.getMessage());
         }
 
+
+    }
+
+    @Test
+    public void findAllLikedMarkersByUser() {
+
+        List<MarkingInfoResponseDto> allLikedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
+
+        for (MarkingInfoResponseDto markingInfoResponseDto : allLikedMarkersByUser) {
+            MarkingInfoWithLikedResponseDto markingInfoWithLikedResponseDto = (MarkingInfoWithLikedResponseDto) markingInfoResponseDto;
+            System.out.println(markingInfoWithLikedResponseDto.getMarkingId());
+
+            System.out.println("markingInfoWithLikedResponseDto.getLikedId() = " + markingInfoWithLikedResponseDto.getLikedId());
+
+            System.out.println("markingInfoWithLikedResponseDto.getRegDt() = " + markingInfoWithLikedResponseDto.getLikedRegDt());
+
+        }
 
 
 

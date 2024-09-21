@@ -88,6 +88,25 @@ public class MarkingSearchController {
         }
     }
 
+    /**
+     * 좋아요 날짜
+     */
+
+    /**
+     * 내 임시 마킹 리스트 출력
+     *
+     * @return
+     */
+    @GetMapping("/likes")
+    public ResponseEntity<CommonBaseResult> fetchMyLikedMarkingsByUser()
+        throws IOException {
+        try {
+            List<MarkingInfoResponseDto> likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
+            return baseResponse.sendContentResponse(likedMarkersByUser, 200);
+        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
+            return baseResponse.sendErrorResponse(400, e.getMessage());
+        }
+    }
 
 
 }

@@ -119,4 +119,22 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("userId") long userId);
 
 
+    @Query("SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p,l)FROM Marking m "
+        + " join fetch m.user "
+        + " join Likes l on l.contentId = m.id and l.user.id = :userId and l.contentType = 'MARKING'"
+        + " join fetch Pet p on p.user.id = :userId "
+        + " left join fetch UserFollows f on f.followingUser = m.user "
+        + " left join fetch m.images "
+        + " left join fetch m.saves "
+        + " WHERE m.isDeleted =:isDeleted "
+        + "and m.isTempSaved = :isTempSaved   "
+        + "and ((m.isVisible = 'PUBLIC') "
+        + " or (m.user.id =:userId and m.isVisible = 'PRIVATE' ) "
+        + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) ")
+    Set<MarkingQueryDto> findAllLikedMarkersByUser(
+        @Param("isDeleted") boolean isDeleted,
+        @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId);
+
+
 }

@@ -2,10 +2,12 @@ package com.mungwithme.marking.service.marking;
 
 import com.mungwithme.common.util.GeoUtils;
 import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
+import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingInfoWithLikedResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
@@ -79,6 +81,21 @@ public class MarkingSearchService {
 
 
     /**
+     * 나의 좋아요 마킹 리스트 출력
+     *
+     */
+    public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
+        User myUser = userService.getCurrentUser();
+
+        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
+
+        markingQueryDtoSet.addAll(markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
+
+        return createdMarkingInfoResponseDtoList(true, myUser,
+            markingQueryDtoSet);
+    }
+
+    /**
      * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
      *
      * @param nickname
@@ -128,9 +145,11 @@ public class MarkingSearchService {
     private List<MarkingInfoResponseDto> createdMarkingInfoResponseDtoList(boolean isMember, User currentUser,
         Set<MarkingQueryDto> nearbyMarkers) {
         List<MarkingInfoResponseDto> markingInfoList = new ArrayList<>();
+
         if (nearbyMarkers.isEmpty()) {
             return markingInfoList;
         }
+
         Map<Long, MarkingQueryDto> markingMap = nearbyMarkers.stream()
             .collect(Collectors.toMap(key -> key.getMarking().getId(), value -> value));
 
@@ -144,7 +163,15 @@ public class MarkingSearchService {
             Marking marking = nearbyMarker.getMarking();
             Pet pet = nearbyMarker.getPet();
             // 한번에 모든 데이터를 설정하여 객체 초기화를 효율적으로 수행
-            MarkingInfoResponseDto markingInfoResponseDto = new MarkingInfoResponseDto(marking);
+            MarkingInfoResponseDto markingInfoResponseDto ;
+
+            //Likes 가 있는 경우 자식클래스로 업 캐스팅
+            if (entry.getValue().getLikes() != null) {
+                Likes likes = entry.getValue().getLikes();
+                markingInfoResponseDto = new MarkingInfoWithLikedResponseDto(marking,likes.getId(),likes.getRegDt());
+            } else {
+                markingInfoResponseDto = new MarkingInfoResponseDto(marking);
+            }
 
             // 작성자인지 확인
             if (isMember) {

@@ -142,6 +142,23 @@ public class MarkingQueryService {
         return markingQueryRepository.findAllMarkersByUser(isDeleted, isTempSaved, user.getId());
     }
 
+    /**
+     * 내 마킹 정보
+     *
+     * @param isDeleted
+     * @param user
+     * @return
+     */
+    public Set<MarkingQueryDto> findAllLikedMarkersByUser(
+        User user,
+        boolean isDeleted,
+        boolean isTempSaved
+
+    ) {
+        return markingQueryRepository.findAllLikedMarkersByUser(isDeleted, isTempSaved, user.getId());
+    }
+
+
 
     /**
      * 좌표값을 이용한 바운더리 계산
@@ -157,6 +174,8 @@ public class MarkingQueryService {
             southBottomLat, northTopLat, southLeftLng, northRightLng,
             isDeleted, isTempSaved);
     }
+
+
 
 
 }
