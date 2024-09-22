@@ -1,7 +1,6 @@
 package com.mungwithme.marking.service.marking;
 
 import com.mungwithme.common.exception.ResourceNotFoundException;
-import com.mungwithme.maps.dto.response.LocationBoundsDTO;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
