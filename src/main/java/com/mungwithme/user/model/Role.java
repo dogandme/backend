@@ -1,5 +1,6 @@
 package com.mungwithme.user.model;
 
+import javax.naming.AuthenticationException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +15,24 @@ public enum Role {
 
     private final String key;
 
+
+    /**
+     * Key값으로 권한 찾기
+     * @param str
+     * @return
+     */
+    public static Role findByStr(String str) {
+        Role[] values = values();
+        for (Role value : values) {
+            if (value.key.equals(str)) {
+                return value;
+            }
+        }
+        return Role.NONE;
+    }
+
     public String getAuthority() {
         return "ROLE_" + this.name();
     }
+
 }

@@ -1,13 +1,14 @@
 package com.mungwithme.security.jwt.filter;
 
-import com.mungwithme.security.jwt.PasswordUtil;
+import com.auth0.jwt.interfaces.Claim;
 import com.mungwithme.security.jwt.service.JwtService;
-import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.Role;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -66,27 +67,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         // 사용자 요청 쿠키에서 accessToken 추출
-        String accessToken = jwtService.extractAccessToken(request)
-                .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
-                .orElse(null);                // 없으면 null 반환
+
 
         // accessToken이 유효하지 않으면 해당 상태코드 전송
-        if (accessToken == null) {
+//        if (accessToken == null) {
+//
+//            response.setCharacterEncoding("UTF-8");
+//            response.setContentType("application/json; charset=UTF-8");
+//            response.setStatus(HttpServletResponse.SC_OK);
+//
+//            // JSON 응답 본문 작성
+//            String jsonResponse = String.format("{\"code\": \"%d\", \"message\": \"%s\"}", 401, "AccessToken 검증 실패");
+//            response.getWriter().write(jsonResponse);
+//            response.getWriter().flush(); // 응답을 클라이언트에 전송
+//
+//            return; // 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
+//        }
 
-            response.setCharacterEncoding("UTF-8");
-            response.setContentType("application/json; charset=UTF-8");
-            response.setStatus(HttpServletResponse.SC_OK);
-
-            // JSON 응답 본문 작성
-            String jsonResponse = String.format("{\"code\": \"%d\", \"message\": \"%s\"}", 401, "AccessToken 검증 실패");
-            response.getWriter().write(jsonResponse);
-            response.getWriter().flush(); // 응답을 클라이언트에 전송
-
-            return; // 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
+        String accessToken = jwtService.extractAccessToken(request)
+            .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
+            .orElse(null);                // 없으면 null 반환
+        if (accessToken != null) {
+            // AccessToken이 유효하면 검증하여 인증처리
+            checkAccessTokenAndAuthentication(request, response, filterChain);
         }
+        filterChain.doFilter(request, response);
 
-        // AccessToken이 유효하면 검증하여 인증처리
-        checkAccessTokenAndAuthentication(request, response, filterChain);
     }
 
     /**
@@ -97,29 +103,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         jwtService.extractAccessToken(request)      // Access Token 추출
                 .filter(jwtService::isTokenValid)   // 검증
-                .ifPresent(accessToken -> jwtService.extractEmail(accessToken)  // 검증되면 Email(Claim) 추출
-                        .ifPresent(email -> userRepository.findByEmail(email)   // 추출된 이메일로 회원 찾기
-                                .ifPresent(this::saveAuthentication)));         // 찾은 회원에 인증 허가
+                .ifPresent(accessToken -> jwtService.getJwtClaim(accessToken)  // 검증되면 PayLoad 에 있는 값을 Map<String,Claim>으로 반환
+                                .ifPresent(this::saveAuthentication));         // 찾은 회원에 인증 허가
 
         filterChain.doFilter(request, response);    // 다음 인증 필터로 진행
     }
 
     /**
      * 인증 허가 메소드
-     * @param myUser
+     * @param payLoadMap
      */
-    public void saveAuthentication(User myUser) {
-        String password = myUser.getPassword(); // 회원 비밀번호
-        if (password == null) {                 // 비밀번호가 null(소셜회원일 경우)이면 임의 설정
-            password = PasswordUtil.generateRandomPassword();
-        }
+    public void saveAuthentication(Map<String, Claim> payLoadMap) {
+
+        String email = payLoadMap.get(JwtService.EMAIL_CLAIM).asString();
+        Role role = Role.findByStr(payLoadMap.get(JwtService.ROLE_CLAIM).asString());
 
         // 유저 정보
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
-                .username(myUser.getEmail())
-                .password(password)
-                .roles(myUser.getRole().name())
-                .build();
+            .username(email)
+            .roles("USER")
+            .password("")
+            .build();
 
         // 허가된 인증 정보
         // 파라미너 : 유저 정보, 비밀번호, 권한 목록
