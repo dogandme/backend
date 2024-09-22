@@ -5,7 +5,7 @@ import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
 import com.mungwithme.likes.model.entity.Likes;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
-import com.mungwithme.maps.dto.response.LocationBoundsDTO;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
@@ -44,17 +44,17 @@ public class MarkingSearchService {
      * 비회원 식별 후 검색 기능을 다르게
      * 보기 권한에 따른 쿼리
      *
-     * @param locationBoundsDTO
+     * @param locationBoundsDto
      * @return
      */
-    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDTO locationBoundsDTO) {
+    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDto locationBoundsDto) {
         boolean isMember = true;
         User currentUser = null;
 
-        GeoUtils.isWithinKorea(locationBoundsDTO.getNorthTopLat(),
-            locationBoundsDTO.getNorthRightLng());
-        GeoUtils.isWithinKorea(locationBoundsDTO.getSouthBottomLat(),
-            locationBoundsDTO.getSouthLeftLng());
+        GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
+            locationBoundsDto.getNorthRightLng());
+        GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
+            locationBoundsDto.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
         try {
@@ -64,14 +64,14 @@ public class MarkingSearchService {
         }
         if (isMember) {
             nearbyMarkers.addAll(markingQueryService.findNearbyMarkers(
-                locationBoundsDTO.getSouthBottomLat(),
-                locationBoundsDTO.getNorthTopLat(), locationBoundsDTO.getSouthLeftLng(),
-                locationBoundsDTO.getNorthRightLng(), false, false, currentUser));
+                locationBoundsDto.getSouthBottomLat(),
+                locationBoundsDto.getNorthTopLat(), locationBoundsDto.getSouthLeftLng(),
+                locationBoundsDto.getNorthRightLng(), false, false, currentUser));
         } else {
             nearbyMarkers.addAll(
-                markingQueryService.findNearbyMarkersOnlyPublic(locationBoundsDTO.getSouthBottomLat(),
-                    locationBoundsDTO.getNorthTopLat(), locationBoundsDTO.getSouthLeftLng(),
-                    locationBoundsDTO.getNorthRightLng(), false, false));
+                markingQueryService.findNearbyMarkersOnlyPublic(locationBoundsDto.getSouthBottomLat(),
+                    locationBoundsDto.getNorthTopLat(), locationBoundsDto.getSouthLeftLng(),
+                    locationBoundsDto.getNorthRightLng(), false, false));
         }
 
         if (nearbyMarkers.isEmpty()) {

@@ -2,7 +2,8 @@ package com.mungwithme.maps.repository;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
-import com.mungwithme.maps.dto.response.LocationBoundsDTO;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.util.List;
@@ -36,11 +37,11 @@ class AddressRepositoryTest {
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
 
-        LocationBoundsDTO locationBoundsDTO = new LocationBoundsDTO(southBottomLat, northTopLat, southLeftLng,
+        LocationBoundsDto locationBoundsDto = new LocationBoundsDto(southBottomLat, northTopLat, southLeftLng,
             northRightLng);
 
         try {
-            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
+            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);
             System.out.println("nearbyMarkers.size() = " + nearbyMarkers.size());
         }catch (Exception e) {
 

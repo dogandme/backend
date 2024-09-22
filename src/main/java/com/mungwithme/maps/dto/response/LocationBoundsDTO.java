@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter(value = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-public class LocationBoundsDTO {
+public class LocationBoundsDto {
 
     @NotNull
     private Double southBottomLat;

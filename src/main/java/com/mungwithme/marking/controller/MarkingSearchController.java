@@ -4,7 +4,7 @@ package com.mungwithme.marking.controller;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.maps.dto.response.LocationBoundsDTO;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
@@ -40,15 +40,15 @@ public class MarkingSearchController {
      * 비회원 식별 후 검색 기능을 다르게
      * 보기 권한에 따른 쿼리
      *
-     * @param locationBoundsDTO
+     * @param locationBoundsDto
      * @return
      */
     @GetMapping
     public ResponseEntity<CommonBaseResult> fetchMarkingsById(
-        @RequestBody @Validated LocationBoundsDTO locationBoundsDTO)
+        @RequestBody @Validated LocationBoundsDto locationBoundsDto)
         throws IOException {
         try {
-            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
+            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);
             return baseResponse.sendContentResponse(nearbyMarkers, 200);
         } catch ( ResourceNotFoundException | IllegalArgumentException e) {
             return baseResponse.sendErrorResponse(400, "ex) 잘못된 위치정보입니다.");
