@@ -1,9 +1,6 @@
 package com.mungwithme.marking.controller;
 
 
-import com.mungwithme.common.annotation.AdminAuthorize;
-import com.mungwithme.common.annotation.NoneAuthorize;
-import com.mungwithme.common.annotation.UserAuthorize;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
