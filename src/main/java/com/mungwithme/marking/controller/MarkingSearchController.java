@@ -1,6 +1,9 @@
 package com.mungwithme.marking.controller;
 
 
+import com.mungwithme.common.annotation.AdminAuthorize;
+import com.mungwithme.common.annotation.NoneAuthorize;
+import com.mungwithme.common.annotation.UserAuthorize;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
@@ -43,6 +46,7 @@ public class MarkingSearchController {
      * @param locationBoundsDTO
      * @return
      */
+//    @NoneAuthorize
     @GetMapping
     public ResponseEntity<CommonBaseResult> fetchMarkingsById(
         @RequestBody @Validated LocationBoundsDTO locationBoundsDTO)
@@ -51,6 +55,10 @@ public class MarkingSearchController {
             List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
             return baseResponse.sendContentResponse(nearbyMarkers, 200);
         } catch ( ResourceNotFoundException | IllegalArgumentException e) {
+            return baseResponse.sendErrorResponse(400, "ex) 잘못된 위치정보입니다.");
+        } catch (Exception e ){
+            log.info("e.getMessage() = {}", e.getMessage());
+
             return baseResponse.sendErrorResponse(400, "ex) 잘못된 위치정보입니다.");
         }
     }

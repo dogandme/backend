@@ -153,6 +153,7 @@ public class JwtService {
                 log.info("key = {}", s);
                 Claim claim = stringClaimMap.get(s);
                 System.out.println("claim.asString() = " + claim.asString());
+//                System.out.println("claim.asList() = " + claim.asList(String.class));
             }
             return claims;
         } catch (Exception e) {

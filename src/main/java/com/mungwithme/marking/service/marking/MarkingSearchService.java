@@ -37,19 +37,15 @@ public class MarkingSearchService {
     private final UserService userService;
     private final MarkingQueryService markingQueryService;
     private final LikesService likesService;
-    private final PetService petService;
 
     /**
      * 주변 마킹 검색 API
-     * 비회원 식별 후 검색 기능을 다르게
-     * 보기 권한에 따른 쿼리
+     * 보기 권한에 따른 쿼리 처리`
      *
      * @param locationBoundsDTO
      * @return
      */
     public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDTO locationBoundsDTO) {
-        boolean isMember = true;
-        User currentUser = null;
 
         GeoUtils.isWithinKorea(locationBoundsDTO.getNorthTopLat(),
             locationBoundsDTO.getNorthRightLng());
@@ -57,11 +53,10 @@ public class MarkingSearchService {
             locationBoundsDTO.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
-        try {
-            currentUser = userService.getCurrentUser();
-        } catch (Exception e) {
-            isMember = false;
-        }
+        User currentUser = userService.findCurrentUser();
+
+        boolean isMember = currentUser != null;
+
         if (isMember) {
             nearbyMarkers.addAll(markingQueryService.findNearbyMarkers(
                 locationBoundsDTO.getSouthBottomLat(),
@@ -77,6 +72,9 @@ public class MarkingSearchService {
         if (nearbyMarkers.isEmpty()) {
             throw new IllegalArgumentException("ex) 마킹 정보가 없습니다");
         }
+
+        log.info("nearbyMarkers.size() = {}", nearbyMarkers.size());
+
         return createdMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
     }
 

@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Role {
 
-    NONE("ROLE_NONE"), GUEST("ROLE_GUEST"), USER("ROLE_USER"), ADMIN("ROLE_ADMIN");
+
+    // 비회원인 경우 자동으로 ROLE_ANONYMOUS 추가
+    ANONYMOUS("ROLE_ANONYMOUS"),NONE("ROLE_NONE"), GUEST("ROLE_GUEST"), USER("ROLE_USER"), ADMIN("ROLE_ADMIN");
 
     private final String key;
 

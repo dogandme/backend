@@ -49,79 +49,61 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String NO_CHECK_URL_SWAGGER2 = "/v3/api-docs";
 
     private final JwtService jwtService;
-    private final UserRepository userRepository;
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        if (request.getRequestURI().startsWith(NO_CHECK_URL_LOGIN) ||
-                request.getRequestURI().equals(NO_CHECK_URL_SIGNUP) ||
-                request.getRequestURI().startsWith(NO_CHECK_URL_SIGNUP_EMAIL) ||
-                request.getRequestURI().equals(NO_CHECK_URL_NEW_PASSWORD) ||
-                request.getRequestURI().equals(NO_CHECK_URL_AWS) ||
-                request.getRequestURI().startsWith(NO_CHECK_URL_OAUTH2) ||
-                request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER1) ||
-                request.getRequestURI().startsWith(NO_CHECK_URL_SWAGGER2)) { // 로그인, 회원가입, AWS, SWAGGER는 JWT 필터 패스
-            filterChain.doFilter(request, response);
-            return;
-        }
+
+        log.info(" JwtAuthenticationFilter ");
+
         // 사용자 요청 쿠키에서 accessToken 추출
-
-
         // accessToken이 유효하지 않으면 해당 상태코드 전송
-//        if (accessToken == null) {
-//
-//            response.setCharacterEncoding("UTF-8");
-//            response.setContentType("application/json; charset=UTF-8");
-//            response.setStatus(HttpServletResponse.SC_OK);
-//
-//            // JSON 응답 본문 작성
-//            String jsonResponse = String.format("{\"code\": \"%d\", \"message\": \"%s\"}", 401, "AccessToken 검증 실패");
-//            response.getWriter().write(jsonResponse);
-//            response.getWriter().flush(); // 응답을 클라이언트에 전송
-//
-//            return; // 인증 처리는 하지 않게 하기위해 바로 return으로 필터 진행 막기
-//        }
-
         String accessToken = jwtService.extractAccessToken(request)
             .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
             .orElse(null);                // 없으면 null 반환
+
+        log.info("accessToken = {}", accessToken);
+
         if (accessToken != null) {
             // AccessToken이 유효하면 검증하여 인증처리
-            checkAccessTokenAndAuthentication(request, response, filterChain);
+            checkAccessTokenAndAuthentication(request);
         }
         filterChain.doFilter(request, response);
-
     }
 
     /**
      * Access Token 체크 & 인증 처리 메소드
      */
-    public void checkAccessTokenAndAuthentication(HttpServletRequest request, HttpServletResponse response,
-                                                  FilterChain filterChain) throws ServletException, IOException {
+    public void checkAccessTokenAndAuthentication(HttpServletRequest request){
 
+        // 검증
+        // 검증되면 PayLoad 에 있는 값을 Map<String,Claim>으로 반환
         jwtService.extractAccessToken(request)      // Access Token 추출
-                .filter(jwtService::isTokenValid)   // 검증
-                .ifPresent(accessToken -> jwtService.getJwtClaim(accessToken)  // 검증되면 PayLoad 에 있는 값을 Map<String,Claim>으로 반환
-                                .ifPresent(this::saveAuthentication));         // 찾은 회원에 인증 허가
-
-        filterChain.doFilter(request, response);    // 다음 인증 필터로 진행
+            .filter(jwtService::isTokenValid).flatMap(jwtService::getJwtClaim).ifPresent(claim ->
+                saveAuthentication(
+                    // email 추출
+                    claim.get(JwtService.EMAIL_CLAIM).asString(),
+                    // role 추출
+                    Role.findByStr(claim.get(JwtService.ROLE_CLAIM).asString()).name()
+                ));         // 찾은 회원에 인증 허가
     }
-
     /**
      * 인증 허가 메소드
-     * @param payLoadMap
+     * @param email
+     * @param role
      */
-    public void saveAuthentication(Map<String, Claim> payLoadMap) {
-
-        String email = payLoadMap.get(JwtService.EMAIL_CLAIM).asString();
-        Role role = Role.findByStr(payLoadMap.get(JwtService.ROLE_CLAIM).asString());
+    public void saveAuthentication(String email,String role) {
+        /**
+         * 이메일 및 사용권한
+         */
 
         // 유저 정보
+
+        log.info("role = {}", role);
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
             .username(email)
-            .roles("USER")
+            .roles(role)
             .password("")
             .build();
 

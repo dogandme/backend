@@ -11,6 +11,7 @@ import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationFailureHandler;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationSuccessHandler;
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
+import com.mungwithme.user.model.Role;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -35,6 +37,7 @@ import java.util.Collections;
 @RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity // PreAuthorize를 사용하기 위해서 true로 설정한다.
 public class SecurityConfig {
 
     private final UserDetailsServiceImpl userDetailsServiceImpl;
@@ -50,6 +53,7 @@ public class SecurityConfig {
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
     private final CustomLogoutHandler customLogoutHandler;
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -85,8 +89,12 @@ public class SecurityConfig {
                                         "/v3/api-docs/**",
                                         "/swagger-ui/**",
                                         "/swagger-ui.html",
+//                                        "/markings/search",
                                         "/health").permitAll()
-                                .anyRequest().authenticated())
+//                            .requestMatchers("/markings/search").hasAnyRole("NONE")
+
+                            .anyRequest()
+                    .authenticated())
                 .exceptionHandling(exceptionHandling -> exceptionHandling
                         .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
@@ -165,7 +173,6 @@ public class SecurityConfig {
      */
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationProcessingFilter() {
-        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(jwtService, userRepository);
-        return jwtAuthenticationFilter;
+        return new JwtAuthenticationFilter(jwtService);
     }
 }
