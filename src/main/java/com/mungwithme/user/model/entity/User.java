@@ -1,6 +1,7 @@
 package com.mungwithme.user.model.entity;
 
 import com.mungwithme.address.model.entity.Address;
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.Gender;
 import com.mungwithme.user.model.Role;
@@ -25,7 +26,7 @@ import java.util.Set;
 @Entity
 @Table(indexes = {@Index(name = "idx_user_email", columnList = "email", unique = true),
     @Index(name = "idx_user_id", columnList = "user_id"),@Index(name = "idx_user_token", columnList = "token", unique = true)})
-public class User {
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -55,13 +56,7 @@ public class User {
     private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
-
-    @CreationTimestamp
-    private Date regDt;             // 등록일
-
-    @UpdateTimestamp
-    private Date modDt;             // 수정일
-
+    
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_address",

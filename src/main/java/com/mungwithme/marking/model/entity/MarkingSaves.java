@@ -1,6 +1,7 @@
 package com.mungwithme.marking.model.entity;
 
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.Column;
@@ -29,7 +30,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @Builder
 @Entity
-public class MarkingSaves {
+public class MarkingSaves extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "saves_id")
@@ -43,8 +44,6 @@ public class MarkingSaves {
     @ManyToOne(fetch = FetchType.LAZY)
     private Marking marking;              // 마킹
 
-    @CreationTimestamp
-    private Date regDt;             // 등록일
 
     public static MarkingSaves create(User user,Marking marking) {
         return MarkingSaves.builder().user(user).marking(marking).build();

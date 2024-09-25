@@ -1,6 +1,7 @@
 package com.mungwithme.marking.model.entity;
 
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -32,7 +33,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @Builder
 @Entity
-public class MarkImage {
+public class MarkImage extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -48,8 +49,6 @@ public class MarkImage {
     @Column(nullable = false)
     private Integer lank;
 
-    @CreationTimestamp
-    private Date regDt;   // 등록일
 
 
     public static MarkImage create (Marking marking, String imageUrl,int order) {

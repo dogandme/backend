@@ -1,5 +1,6 @@
 package com.mungwithme.pet.model.entity;
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.common.converter.StringListConverter;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.*;
@@ -23,7 +24,7 @@ import java.util.List;
 @Builder
 @Entity
 @Table(uniqueConstraints ={@UniqueConstraint(columnNames = {"user_id"})} )
-public class Pet {
+public class Pet extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,12 +38,6 @@ public class Pet {
 
     @Convert(converter = StringListConverter.class)
     private List<String> personalities;     // 성격
-
-    @CreationTimestamp
-    private Date regDt;                     // 등록일
-
-    @UpdateTimestamp
-    private Date modDt;                     // 수정일
 
     @OneToOne(fetch = FetchType.LAZY)       // One(User)-to-One(Pet) Join
     @JoinColumn(name = "user_id")           // 외래 키 설정

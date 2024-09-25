@@ -78,7 +78,7 @@ public class UserController {
      * 회원가입 이메일 인증 코드 검증
      */
     @PostMapping("/auth/check")
-    public ResponseEntity<CommonBaseResult> mailAuth(@RequestBody @Valid EmailAuthRequestDto emailAuthRequestDto)
+    public ResponseEntity<CommonBaseResult> mailAuth(@RequestBody @Validated EmailAuthRequestDto emailAuthRequestDto)
         throws IOException {
         Boolean checked = emailService.checkAuthNum(emailAuthRequestDto);
         if (checked) {
@@ -117,7 +117,7 @@ public class UserController {
      *     수신 이메일
      */
     @PostMapping("/password")
-    public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Valid EmailRequestDto emailDto)
+    public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Validated EmailRequestDto emailDto)
         throws IOException {
 
         String email = emailDto.getEmail();

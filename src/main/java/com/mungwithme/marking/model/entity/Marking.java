@@ -1,5 +1,6 @@
 package com.mungwithme.marking.model.entity;
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
@@ -41,7 +42,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Entity
 @Table(indexes = {@Index(name = "idx_marking_id", columnList = "id", unique = true),
     @Index(name = "idx_marking_token", columnList = "token", unique = true)})
-public class Marking {
+public class Marking extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -75,11 +76,7 @@ public class Marking {
     @Enumerated(EnumType.STRING)
     private Visibility isVisible;   // 마킹 권한 보기 설정
 
-    @CreationTimestamp
-    private Date regDt;             // 등록일
 
-    @UpdateTimestamp
-    private Date modDt;             // 수정일
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkImage> images = new HashSet<>();   // One(marking)-to-Many(images) Join
