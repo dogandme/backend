@@ -53,6 +53,13 @@ public class GlobalExHandlers {
         return baseResponse.sendErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<CommonBaseResult> handleIllegalArgumentException(IllegalArgumentException e,
+        HttpServletRequest request) throws IOException {
+        String message = getMessage(e.getMessage(), null, request.getLocale());
+        return baseResponse.sendErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
+    }
+
     @ExceptionHandler(DuplicateResourceException.class)
     protected ResponseEntity<CommonBaseResult> handleDuplicateResourceException(DuplicateResourceException e,
         HttpServletRequest request) throws IOException {
@@ -68,25 +75,17 @@ public class GlobalExHandlers {
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    protected ResponseEntity<CommonBaseResult> handleDuplicateResourceException(ResourceNotFoundException e,
+    protected ResponseEntity<CommonBaseResult> handleResourceNotFoundException(ResourceNotFoundException e,
         HttpServletRequest request) throws IOException {
         String message = getMessage(e.getMessage(), null, request.getLocale());
         return baseResponse.sendErrorResponse(HttpStatus.NOT_FOUND.value(), message);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    protected ResponseEntity<CommonBaseResult> handleIllegalArgumentException(IllegalArgumentException e,
-        HttpServletRequest request) throws IOException {
-        String message = getMessage(e.getMessage(), null, request.getLocale());
-        return baseResponse.sendErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
-    }
-
-
 
 
 
     /**
-     * IllegalArgumentException handler
+     * Exception handler
      *
      * @param request
      * @return

@@ -138,7 +138,7 @@ public class JwtService {
     }
 
     /**
-     * AccessToken에서 Email 추출
+     * AccessToken 에서 claim 추출
      * @param accessToken
      */
     public Optional<Map<String,Claim>> getJwtClaim(String accessToken) {

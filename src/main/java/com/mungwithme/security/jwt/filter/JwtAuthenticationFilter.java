@@ -55,7 +55,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        log.info(" JwtAuthenticationFilter ");
+
 
         // 사용자 요청 쿠키에서 accessToken 추출
         // accessToken이 유효하지 않으면 해당 상태코드 전송
