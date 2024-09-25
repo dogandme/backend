@@ -1,6 +1,7 @@
 package com.mungwithme.likes.model.entity;
 
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.Column;
@@ -30,7 +31,7 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Likes {
+public class Likes extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -46,10 +47,7 @@ public class Likes {
     private ContentType contentType;   // 좋아요한 컨텐츠 타입 ) 마킹,댓글 등등
 
     private Long contentId;         // 좋아요한 콘텐츠 아이디
-
-    @CreationTimestamp
-    private Date regDt;             // 등록일
-
+    
     public static Likes create(User user,long contentId,ContentType contentType) {
         return Likes.builder().contentId(contentId).user(user).contentType(contentType).build();
     }

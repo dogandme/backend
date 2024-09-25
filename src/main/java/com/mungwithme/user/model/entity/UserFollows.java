@@ -4,6 +4,7 @@ import static jakarta.persistence.FetchType.LAZY;
 import static lombok.AccessLevel.PRIVATE;
 import static lombok.AccessLevel.PROTECTED;
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -24,7 +25,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Setter(PRIVATE)
 @NoArgsConstructor(access = PROTECTED)
 @Entity
-public class UserFollows {
+public class UserFollows extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,12 +40,6 @@ public class UserFollows {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "following_uid", nullable = false)
     private User followingUser;
-
-    @CreationTimestamp
-    private Date regDt;             // 등록일
-
-    @UpdateTimestamp
-    private Date modDt;             // 수정일
 
     public static UserFollows create(User followerUser, User followingUser) {
         UserFollows userFollows = new UserFollows();
