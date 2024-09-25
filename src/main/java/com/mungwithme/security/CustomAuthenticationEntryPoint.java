@@ -5,6 +5,7 @@ import com.mungwithme.common.response.BaseResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
@@ -21,6 +22,6 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
     public void commence(HttpServletRequest request,
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
-        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "인증 실패"));
+        baseResponse.handleResponse(response, baseResponse.sendErrorResponse(HttpStatus.UNAUTHORIZED.value(), "인증 실패"));
     }
 }

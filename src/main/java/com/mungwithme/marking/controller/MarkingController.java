@@ -62,7 +62,7 @@ public class MarkingController {
             markingService.addMarking(markingAddDto, images, false);
 
             return baseResponse.sendSuccessResponse(200, "ex) 마킹 저장에 성공하셨습니다.");
-        } catch (Exception e) {
+        } catch (IllegalStateException e) {
             return baseResponse.sendErrorResponse(400, e.getMessage());
         }
     }
