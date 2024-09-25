@@ -1,6 +1,7 @@
 package com.mungwithme.user.model.entity;
 
 import com.mungwithme.address.model.entity.Address;
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.Gender;
 import com.mungwithme.user.model.Role;
@@ -23,13 +24,17 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
-public class User {
+@Table(indexes = {@Index(name = "idx_user_email", columnList = "email", unique = true),@Index(name = "idx_user_token", columnList = "token", unique = true)})
+public class User extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")   // 컬럼명 : user_id
     private Long id;
+
+
+    @Column(nullable = false)
+    private String token;
 
     // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다.
     private String email;           // 이메일(ID)
@@ -50,13 +55,7 @@ public class User {
     private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
-
-    @CreationTimestamp
-    private Date regDt;             // 등록일
-
-    @UpdateTimestamp
-    private Date modDt;             // 수정일
-
+    
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_address",

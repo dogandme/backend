@@ -3,7 +3,6 @@ package com.mungwithme.likes.service;
 import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
 import com.mungwithme.likes.model.enums.ContentType;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,7 +37,7 @@ class LikesServiceTest {
         contentsIds.add(12L);
         contentsIds.add(13L);
         contentsIds.add(15L);
-        Set<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.fetchLikeCounts(contentsIds,
+        Set<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.findLikeCounts(contentsIds,
             ContentType.MARKING);
 
         for (LikeCountResponseDto likeCountResponseDto : contentLikeCountResponseDtos) {
@@ -58,7 +57,7 @@ class LikesServiceTest {
     public void removeLikes() {
 
         // given
-        likesService.deleteLikes(16L, ContentType.MARKING);
+        likesService.removeLikes(16L, ContentType.MARKING);
         // when
 
         // then

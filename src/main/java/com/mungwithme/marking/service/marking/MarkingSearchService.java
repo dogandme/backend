@@ -1,5 +1,6 @@
 package com.mungwithme.marking.service.marking;
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.util.GeoUtils;
 import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
 import com.mungwithme.likes.model.entity.Likes;
@@ -13,7 +14,6 @@ import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
-import com.mungwithme.pet.service.PetService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.util.ArrayList;
@@ -37,31 +37,26 @@ public class MarkingSearchService {
     private final UserService userService;
     private final MarkingQueryService markingQueryService;
     private final LikesService likesService;
-    private final PetService petService;
 
     /**
      * 주변 마킹 검색 API
-     * 비회원 식별 후 검색 기능을 다르게
-     * 보기 권한에 따른 쿼리
+     * 보기 권한에 따른 쿼리 처리`
      *
      * @param locationBoundsDto
      * @return
      */
-    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDto locationBoundsDto) {
-        boolean isMember = true;
-        User currentUser = null;
 
+    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDTO locationBoundsDTO) {
         GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
             locationBoundsDto.getNorthRightLng());
         GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
             locationBoundsDto.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
-        try {
-            currentUser = userService.getCurrentUser();
-        } catch (Exception e) {
-            isMember = false;
-        }
+        User currentUser = userService.findCurrentUser_v2();
+
+        boolean isMember = currentUser != null;
+
         if (isMember) {
             nearbyMarkers.addAll(markingQueryService.findNearbyMarkers(
                 locationBoundsDto.getSouthBottomLat(),
@@ -75,9 +70,12 @@ public class MarkingSearchService {
         }
 
         if (nearbyMarkers.isEmpty()) {
-            throw new IllegalArgumentException("ex) 마킹 정보가 없습니다");
+            throw new ResourceNotFoundException("error.notfound.markings");
         }
-        return createdMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
+
+        log.info("nearbyMarkers.size() = {}", nearbyMarkers.size());
+
+        return findMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
     }
 
 
@@ -86,13 +84,13 @@ public class MarkingSearchService {
      *
      */
     public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
-        User myUser = userService.getCurrentUser();
+        User myUser = userService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
 
         markingQueryDtoSet.addAll(markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
 
-        return createdMarkingInfoResponseDtoList(true, myUser,
+        return findMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
     }
 
@@ -101,13 +99,13 @@ public class MarkingSearchService {
      *
      */
     public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
-        User myUser = userService.getCurrentUser();
+        User myUser = userService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
 
         markingQueryDtoSet.addAll(markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
 
-        return createdMarkingInfoResponseDtoList(true, myUser,
+        return findMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
     }
 
@@ -119,10 +117,10 @@ public class MarkingSearchService {
      * @return
      */
     public MyMarkingsResponseDto findAllMarkersByUser(String nickname) {
-        User myUser = userService.getCurrentUser();
+        User myUser = userService.findCurrentUser();
         User profileUser = userService.findByNickname(nickname).orElse(null);
         if (profileUser == null) {
-            throw new IllegalArgumentException("ex) 해당 유저는 없는 유저입니다");
+            throw new ResourceNotFoundException("error.notfound.user");
         }
 
         boolean isMyProfile = myUser.getEmail().equals(profileUser.getEmail());
@@ -135,7 +133,7 @@ public class MarkingSearchService {
             markingQueryDtoSet.addAll(markingQueryService.findAllMarkersByUser(myUser, false, false));
         }
 
-        List<MarkingInfoResponseDto> markingInfoResponseDtos = createdMarkingInfoResponseDtoList(true, profileUser,
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = findMarkingInfoResponseDtoList(true, profileUser,
             markingQueryDtoSet);
 
         return new MyMarkingsResponseDto(isMyProfile, (long) tempMarkingList.size(),
@@ -148,18 +146,18 @@ public class MarkingSearchService {
      * @return
      */
     public MyTempMarkingsResponseDto findTempMarkersByUser() {
-        User myUser = userService.getCurrentUser();
+        User myUser = userService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
             markingQueryService.findAllMarkersByUser(myUser, false, true));
 
-        List<MarkingInfoResponseDto> markingInfoResponseDtos = createdMarkingInfoResponseDtoList(true, myUser,
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = findMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
 
         return new MyTempMarkingsResponseDto(markingInfoResponseDtos);
     }
 
-    private List<MarkingInfoResponseDto> createdMarkingInfoResponseDtoList(boolean isMember, User currentUser,
+    private List<MarkingInfoResponseDto> findMarkingInfoResponseDtoList(boolean isMember, User currentUser,
         Set<MarkingQueryDto> nearbyMarkers) {
         List<MarkingInfoResponseDto> markingInfoList = new ArrayList<>();
 
@@ -170,7 +168,7 @@ public class MarkingSearchService {
         Map<Long, MarkingQueryDto> markingMap = nearbyMarkers.stream()
             .collect(Collectors.toMap(key -> key.getMarking().getId(), value -> value));
 
-        Map<Long, LikeCountResponseDto> likeMap = likesService.fetchLikeCounts(markingMap.keySet(), ContentType.MARKING)
+        Map<Long, LikeCountResponseDto> likeMap = likesService.findLikeCounts(markingMap.keySet(), ContentType.MARKING)
             .stream()
             .collect(Collectors.toMap(LikeCountResponseDto::getContentId, value -> value));
 
@@ -182,7 +180,7 @@ public class MarkingSearchService {
             // 한번에 모든 데이터를 설정하여 객체 초기화를 효율적으로 수행
             MarkingInfoResponseDto markingInfoResponseDto ;
 
-            markingInfoResponseDto = getMarkingInfoResponseDto(entry, marking);
+            markingInfoResponseDto = findMarkingInfoResponseDto(entry, marking);
 
             // 작성자인지 확인
             if (isMember) {
@@ -209,7 +207,7 @@ public class MarkingSearchService {
      * @param marking
      * @return
      */
-    private static MarkingInfoResponseDto getMarkingInfoResponseDto(Entry<Long, MarkingQueryDto> entry,
+    private static MarkingInfoResponseDto findMarkingInfoResponseDto(Entry<Long, MarkingQueryDto> entry,
         Marking marking) {
         MarkingInfoResponseDto markingInfoResponseDto;
         Likes likes = entry.getValue().getLikes();

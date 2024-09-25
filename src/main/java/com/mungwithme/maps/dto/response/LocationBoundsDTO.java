@@ -9,18 +9,18 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter(value = AccessLevel.PRIVATE)
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationBoundsDto {
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double southBottomLat;
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double northTopLat;
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double southLeftLng;
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double northRightLng;
 
 }

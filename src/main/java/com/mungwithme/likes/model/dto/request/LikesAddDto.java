@@ -11,9 +11,9 @@ import lombok.Setter;
 @Setter
 public class LikesAddDto {
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     @Min(value = 1)
     private Long contentId;
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private ContentType contentType;
 }

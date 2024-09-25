@@ -8,11 +8,13 @@ import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.marking.MarkingTempService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -48,76 +50,66 @@ public class MarkingTempController {
      * @return
      */
     @PostMapping
-    public ResponseEntity<CommonBaseResult> saveTempMarkingWithImages(
+    public ResponseEntity<CommonBaseResult> createTempMarkingWithImages(
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
-        @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException {
-        try {
-            markingTempService.addTempMarking(markingAddDto, images);
-            return baseResponse.sendSuccessResponse(200, "ex) 마킹 임시 저장에 성공하셨습니다.");
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        @RequestPart(name = "images", required = false) List<MultipartFile> images, HttpServletRequest request)
+        throws IOException {
+        markingTempService.addTempMarking(markingAddDto, images);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.temp.save.success",
+            request.getLocale());
+
     }
 
 
     /**
      * 임시 저장 marking 수정 API
      *
-     *
-     *
      * @param markingModifyDto
      * @param images
      * @return
      */
     @PutMapping
-    public ResponseEntity<CommonBaseResult> modifyTempMarking(
+    public ResponseEntity<CommonBaseResult> updateTempMarking(
         @Validated @RequestPart(name = "markingModifyDto") MarkingModifyDto markingModifyDto,
-        @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException {
-        try {
-            // TODO postMan 테스트를 위해 임시
-            if (images == null) {
-                images = new ArrayList<>();
-            }
-            markingTempService.patchTempMarking(markingModifyDto, images);
-
-            String code = "ex) 최종 저장 하셨습니다";
-            if (markingModifyDto.getIsTempSaved()) {
-                code = "ex) 수정 완료 되었습니다";
-            }
-
-            return baseResponse.sendSuccessResponse(200, code);
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
+        @RequestPart(name = "images", required = false) List<MultipartFile> images, HttpServletRequest request)
+        throws IOException {
+        // TODO postMan 테스트를 위해 임시
+        if (images == null) {
+            images = new ArrayList<>();
         }
+        markingTempService.editTempMarking(markingModifyDto, images);
+
+        String code = "marking.save.success";
+        if (markingModifyDto.getIsTempSaved()) {
+            code = "modify.success";
+        }
+
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), code, request.getLocale());
+
     }
 
     /**
      * 임시저장 marking 삭제 API
      */
     @DeleteMapping
-    public ResponseEntity<CommonBaseResult> removeTempMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto)
+    public ResponseEntity<CommonBaseResult> deleteTempMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto,
+        HttpServletRequest request)
         throws IOException {
-        try {
-            markingTempService.deleteTempMarking(markingRemoveDto);
+        markingTempService.removeTempMarking(markingRemoveDto);
 
-            return baseResponse.sendSuccessResponse(200, "ex) 삭제 되었습니다.");
-        }  catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.remove.success", request.getLocale());
+
     }
 
 
     @GetMapping("/{id}")
     public ResponseEntity<CommonBaseResult> fetchTempMarkingById(@PathVariable(name = "id") Long id)
         throws IOException {
-        try {
-            MarkingInfoResponseDto tempMarkingInfoResponseDto = markingTempService.getTempMarkingInfoResponseDto(id,
-                false,
-                true);
-            return baseResponse.sendContentResponse(tempMarkingInfoResponseDto,200);
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        MarkingInfoResponseDto tempMarkingInfoResponseDto = markingTempService.findTempMarkingInfoResponseDto(id,
+            false,
+            true);
+        return baseResponse.sendContentResponse(tempMarkingInfoResponseDto, HttpStatus.OK.value());
+
     }
 
 

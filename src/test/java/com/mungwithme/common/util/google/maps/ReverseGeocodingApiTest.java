@@ -13,8 +13,8 @@ class ReverseGeocodingApiTest {
     @Autowired
     GoogleApiService reverseGeocodingApi;
     @Test
-    void getReverseGeocoding() {
-        Mono<String> mono = reverseGeocodingApi.getReverseGeocoding(35.60411, 129.3628);
+    void findReverseGeocoding() {
+        Mono<String> mono = reverseGeocodingApi.findReverseGeocoding(35.60411, 129.3628);
         // 결과를 block()으로 동기적으로 받아오기
         String result = mono.block();  // Mono의 결과를 기다림
         System.out.println("Result: " + result);

@@ -25,7 +25,7 @@ public enum Visibility {
                 return visibility;
             }
         }
-        throw new ResourceNotFoundException("해당 설명에 맞는 공개 범위가 없습니다: " + description);
+        throw new ResourceNotFoundException("error.notfound.visibility",description);
     }
 
 }

@@ -1,31 +1,25 @@
 package com.mungwithme.marking.service.marking;
 
 
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
-import com.mungwithme.maps.dto.response.LocationBoundsDto;
+
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
-import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.repository.markImge.MarkImageRepository;
 import com.mungwithme.marking.repository.impl.MarkImageRepositoryImpl;
 import com.mungwithme.marking.repository.marking.MarkingRepository;
-import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
-import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,6 +28,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -69,7 +64,7 @@ public class MarkingService {
     @Transactional
     public void addMarking(MarkingAddDto markingAddDto, List<MultipartFile> images, boolean isTempSaved) {
         imageSizeCheck(images, isTempSaved);
-        User user = userService.getCurrentUser();
+        User user = userService.findCurrentUser();
 
         Marking marking = Marking.create(markingAddDto, user);
 
@@ -100,8 +95,8 @@ public class MarkingService {
      *
      */
     @Transactional
-    public void deleteMarking(MarkingRemoveDto markingRemoveDto, boolean isTempSaved) {
-        User user = userService.getCurrentUser();
+    public void removeMarking(MarkingRemoveDto markingRemoveDto, boolean isTempSaved) {
+        User user = userService.findCurrentUser();
 
         // 마킹 query
         Marking marking = markingQueryService.findById(markingRemoveDto.getId(), false, isTempSaved);
@@ -110,7 +105,7 @@ public class MarkingService {
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
-            throw new IllegalArgumentException("ex) 삭제 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.remove");
         }
 
         Set<MarkImage> images = marking.getImages();
@@ -127,7 +122,7 @@ public class MarkingService {
         markImageRepository.deleteAllInBatch(images);
 
         // like 삭제
-        likesService.deleteAllLikes(marking.getId(),ContentType.MARKING);
+        likesService.removeAllLikes(marking.getId(),ContentType.MARKING);
 
         markingSavesService.deleteAllSaves(marking);
 
@@ -145,17 +140,17 @@ public class MarkingService {
      *     수정할 마킹이 임시저장인지 아닌지 여부
      */
     @Transactional
-    public void patchMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images, boolean isTempSaved) {
+    public void editMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images, boolean isTempSaved) {
 //        imageSizeCheck(images);
 
         // 마킹 query
         Marking marking = markingQueryService.findById(markingModifyDto.getId(), false, isTempSaved);
 
-        User user = userService.getCurrentUser();
+        User user = userService.findCurrentUser();
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
-            throw new IllegalArgumentException("ex) 수정 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.modify");
         }
 
         // 내용 업데이트
@@ -205,7 +200,7 @@ public class MarkingService {
         // 임시저장이 아니면서 allSize 가 0보다 작거나 같다면
         // 임시저장 여부 상관없이 총 이미지 파일 max 사이즈 보다 큰 경우
         if ((!isTempSaved && allSize <= 0) || MAX_IMAGE_UPLOAD_SIZE < allSize) {
-            throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
+            throw new IllegalArgumentException("error.arg.image.limit");
         }
 
         // markImage db 삭제
@@ -240,14 +235,14 @@ public class MarkingService {
     }
 
 
-    public MarkingInfoResponseDto fetchMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        User user = userService.getCurrentUser();
+    public MarkingInfoResponseDto findMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
+        User user = userService.findCurrentUser();
 
-        MarkingInfoResponseDto markingInfoResponseDto = markingQueryService.fetchMarkingInfoDto(user, id, isDeleted,
+        MarkingInfoResponseDto markingInfoResponseDto = markingQueryService.findMarkingInfoDto(user, id, isDeleted,
             isTempSaved);
 
         if (isTempSaved && !markingInfoResponseDto.getIsOwner()) {
-            throw new IllegalArgumentException("ex) 접근 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.remove");
         }
         return markingInfoResponseDto;
     }
@@ -272,7 +267,7 @@ public class MarkingService {
         }
 
         if (images.size() > MAX_IMAGE_UPLOAD_SIZE || (!isTempSaved && images.isEmpty())) {
-            throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
+            throw new IllegalArgumentException("error.arg.image.limit");
         }
     }
 }

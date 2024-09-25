@@ -2,6 +2,7 @@ package com.mungwithme.address.model.dto.request;
 
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,10 +20,10 @@ import lombok.Setter;
 public class AddressCoordinatesDto {
 
 
-    @NotBlank
+    @NotNull(message = "{error.NotNull}")
     private Double lat;
 
-    @NotBlank
+    @NotNull(message = "{error.NotNull}")
     private Double lng;
 
 

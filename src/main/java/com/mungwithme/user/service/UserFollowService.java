@@ -24,13 +24,13 @@ public class UserFollowService {
     public void addFollowing(String followingEmail) {
 
         // 요청 사용자
-        User followerUser = userService.getCurrentUser();
+        User followerUser = userService.findCurrentUser();
 
         User followingUser = userService.findByEmail(followingEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
 
         if (!existsFollowing(followerUser, followingUser)) {
-            throw new IllegalArgumentException("ex) 팔로잉을 이미 하셨습니다");
+            return;
         }
 
         UserFollows userFollows = UserFollows.create(followerUser, followingUser);
@@ -45,12 +45,12 @@ public class UserFollowService {
      * @param followingUser
      */
     @Transactional
-    public void deleteFollow(User followerUser, User followingUser) {
+    public void removeFollow(User followerUser, User followingUser) {
 
         UserFollows userFollows = findByFollowingUser(followerUser, followingUser);
 
         if (userFollows == null) {
-            throw new IllegalArgumentException("ex) 잘못된 요청입니다");
+            return;
         }
         // 추가
         userFollowRepository.delete(userFollows);
@@ -66,12 +66,12 @@ public class UserFollowService {
     @Transactional
     public void forceUnfollow(String followerEmail) {
         // 요청 사용자
-        User followingUser = userService.getCurrentUser();
+        User followingUser = userService.findCurrentUser();
 
 
         User followerUser = userService.findByEmail(followerEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
-        deleteFollow(followerUser, followingUser);
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+        removeFollow(followerUser, followingUser);
     }
 
 
@@ -82,13 +82,13 @@ public class UserFollowService {
      *
      */
     @Transactional
-    public void cancelFollow(String followingEmail) {
+    public void removeFollow(String followingEmail) {
         // 요청 사용자
-        User followerUser = userService.getCurrentUser();
+        User followerUser = userService.findCurrentUser();
 
         User followingUser = userService.findByEmail(followingEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
-        deleteFollow(followerUser, followingUser);
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+        removeFollow(followerUser, followingUser);
     }
     /**
      * 팔로잉 유무 확인

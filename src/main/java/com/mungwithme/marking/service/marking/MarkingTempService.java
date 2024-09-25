@@ -5,7 +5,6 @@ import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.service.marking.MarkingService;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -46,8 +45,8 @@ public class MarkingTempService {
      * @param images
      */
     @Transactional
-    public void patchTempMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images) {
-        markingService.patchMarking(markingModifyDto, images, true);
+    public void editTempMarking(MarkingModifyDto markingModifyDto, List<MultipartFile> images) {
+        markingService.editMarking(markingModifyDto, images, true);
     }
 
     /**
@@ -56,12 +55,12 @@ public class MarkingTempService {
      * @param markingRemoveDto
      */
     @Transactional
-    public void deleteTempMarking(MarkingRemoveDto markingRemoveDto) {
-        markingService.deleteMarking(markingRemoveDto, true);
+    public void removeTempMarking(MarkingRemoveDto markingRemoveDto) {
+        markingService.removeMarking(markingRemoveDto, true);
     }
 
-    public MarkingInfoResponseDto getTempMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        return markingService.fetchMarkingInfoResponseDto(
+    public MarkingInfoResponseDto findTempMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
+        return markingService.findMarkingInfoResponseDto(
             id, isDeleted,
             isTempSaved);
     }

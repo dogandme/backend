@@ -1,5 +1,7 @@
 package com.mungwithme.common.util;
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
+
 public class GeoUtils {
 
 
@@ -22,7 +24,7 @@ public class GeoUtils {
         boolean isKorea = lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
 
         if (!isKorea){
-            throw new IllegalArgumentException("ex) 잘못된 위치 정보입니다");
+            throw new ResourceNotFoundException("error.notfound.coordinates");
         }
     }
 }

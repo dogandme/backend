@@ -14,7 +14,7 @@ public class MarkingRemoveDto {
     /**
      * ex)
      */
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     @Min(value = 1)
     private Long id; // 마킹 아이디
 

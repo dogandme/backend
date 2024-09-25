@@ -3,6 +3,7 @@ package com.mungwithme.address.model.entity;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,7 +26,7 @@ import java.util.Set;
 
 // index 추가
 @Table(name = "address",indexes = @Index(name = "idx_address_pk_id",columnList = "id"))
-public class Address {
+public class Address extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

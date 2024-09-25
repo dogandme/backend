@@ -2,11 +2,15 @@ package com.mungwithme.security.jwt.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.Claim;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import java.util.Map.Entry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +45,11 @@ public class JwtService {
 
     private static final String ACCESS_TOKEN_SUBJECT = "AccessToken";
     private static final String REFRESH_TOKEN_SUBJECT = "RefreshToken";
-    private static final String EMAIL_CLAIM = "email";
+
+    //jwtFilter 사용을 위해 private -> public 변경
+    public static final String EMAIL_CLAIM = "email";
+    public static final String ROLE_CLAIM = "role";
+
     private static final String BEARER = "Bearer_";
 
     private final UserRepository userRepository;
@@ -130,6 +138,34 @@ public class JwtService {
     }
 
     /**
+     * AccessToken 에서 claim 추출
+     * @param accessToken
+     */
+    public Optional<Map<String,Claim>> getJwtClaim(String accessToken) {
+        try {
+            // accessToken을 검증하고 유효하지 않다면 예외 발생
+            // 토큰 검증기 생성
+            Optional<Map<String, Claim>> claims = Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
+                .build()
+                .verify(accessToken).getClaims());
+            Map<String, Claim> stringClaimMap = claims.get();
+
+            for (String s : stringClaimMap.keySet()) {
+                log.info("key = {}", s);
+                Claim claim = stringClaimMap.get(s);
+                System.out.println("claim.asString() = " + claim.asString());
+//                System.out.println("claim.asList() = " + claim.asList(String.class));
+            }
+            return claims;
+        } catch (Exception e) {
+            log.error("액세스 토큰이 유효하지 않습니다.");
+//            return Optional.empty();
+        }
+
+        return null;
+    }
+
+    /**
      * RefreshToken 쿠키 설정
      *
      * @modification.author 장수현
@@ -169,7 +205,7 @@ public class JwtService {
                             user.updateRefreshToken(refreshToken);  // 있으면 리프레시 토큰 업데이트
                             userRepository.saveAndFlush(user);      // 수정된 내용을 저장
                         },
-                        () -> new Exception("일치하는 회원이 없습니다.")     // 없으면 예외발생
+                        () -> new ResourceNotFoundException("error.notfound.user")     // 없으면 예외발생
                 );
     }
 
