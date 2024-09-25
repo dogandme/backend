@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -45,8 +46,7 @@ public class MarkingSearchController {
      */
 //    @NoneAuthorize
     @GetMapping
-    public ResponseEntity<CommonBaseResult> getMarkingsById(
-        @RequestBody @Validated LocationBoundsDTO locationBoundsDTO)
+    public ResponseEntity<CommonBaseResult> getMarkingsById(@ModelAttribute @Validated LocationBoundsDTO locationBoundsDTO)
         throws IOException {
         List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());

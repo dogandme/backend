@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter
-@Setter(value = AccessLevel.PRIVATE)
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationBoundsDTO {
