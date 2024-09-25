@@ -37,7 +37,7 @@ public class MarkingSavesController {
      * @throws IOException
      */
     @PostMapping("/{marking-id}")
-    public ResponseEntity<CommonBaseResult> saveSaves(@PathVariable(name = "marking-id") Long markingId,
+    public ResponseEntity<CommonBaseResult> createSaves(@PathVariable(name = "marking-id") Long markingId,
         HttpServletRequest request)
         throws IOException {
         markingSavesService.addSaves(markingId);
@@ -54,7 +54,7 @@ public class MarkingSavesController {
      * @throws IOException
      */
     @DeleteMapping("/{marking-id}")
-    public ResponseEntity<CommonBaseResult> removeSaves(@PathVariable(name = "marking-id") Long markingId,
+    public ResponseEntity<CommonBaseResult> deleteSaves(@PathVariable(name = "marking-id") Long markingId,
         HttpServletRequest request)
         throws IOException {
         markingSavesService.deleteSaves(markingId);

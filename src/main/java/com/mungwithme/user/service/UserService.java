@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -140,7 +139,7 @@ public class UserService {
      * @param password 신규 비밀번호
      */
     @Transactional
-    public void updatePasswordByEmail(String email, String password) {
+    public void editPasswordByEmail(String email, String password) {
         findByEmail(email) // 이메일을 이용하여 회원 조회
                 .map(user -> {
                     user.setPassword(password);
@@ -172,7 +171,7 @@ public class UserService {
      * SecurityContextHolder > UserDetails에서 User 조회
      * 비회원이라도 예외처리를 발생 시키지 않고 null 값을 반환한다.
      *
-     * 기존 getCurrentUser 는 unCheckedException 를 발생시켰는데
+     * 기존 findCurrentUser 는 unCheckedException 를 발생시켰는데
      * try-catch 문으로 예외처리를 하더라도 rollback 되버리는 현상이 발생한다
      * Transactional(readOnly = true) 해도 마찬가지이다.
      * 그리고 데이터를 받을 수 없게 된다
@@ -182,7 +181,7 @@ public class UserService {
      *
      * @return
      */
-    public User findCurrentUser() {
+    public User findCurrentUser_v2() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         String role = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority
         ).findFirst().orElse(null);
@@ -201,7 +200,7 @@ public class UserService {
      * SecurityContextHolder > UserDetails에서 User 조회
      * @return
      */
-    public User getCurrentUser() {
+    public User findCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
         Object principal = authentication.getPrincipal();

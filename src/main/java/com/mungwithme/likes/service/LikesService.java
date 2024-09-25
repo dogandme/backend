@@ -11,7 +11,6 @@ import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
 import com.mungwithme.user.service.UserService;
-import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -41,7 +40,7 @@ public class LikesService {
      */
     @Transactional
     public void addLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.getCurrentUser();
+        User currentUser = userService.findCurrentUser();
 
         User postUser = null;
         boolean isOwner = false;
@@ -91,10 +90,10 @@ public class LikesService {
      *     contentType
      */
     @Transactional
-    public void deleteLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.getCurrentUser();
+    public void removeLikes(long contentId, ContentType contentType) {
+        User currentUser = userService.findCurrentUser();
 
-        Likes likes = fetchLikes(currentUser, contentType, contentId);
+        Likes likes = findLikes(currentUser, contentType, contentId);
 
         if (likes == null) {
             return;
@@ -111,7 +110,7 @@ public class LikesService {
      * @param contentType
      */
     @Transactional
-    public void deleteAllLikes(long contentId, ContentType contentType) {
+    public void removeAllLikes(long contentId, ContentType contentType) {
         likesRepository.deleteAllByContentId(contentId, contentType);
     }
 
@@ -124,7 +123,7 @@ public class LikesService {
      * @param contentId
      * @return
      */
-    public Likes fetchLikes(User user, ContentType contentType, long contentId) {
+    public Likes findLikes(User user, ContentType contentType, long contentId) {
         return likesRepository.fetchLikes(user, contentType, contentId).orElse(null);
     }
 
@@ -133,12 +132,12 @@ public class LikesService {
      *
      * @return
      */
-    public Set<LikeCountResponseDto> fetchLikeCounts(Set<Long> contentIds, ContentType contentType) {
+    public Set<LikeCountResponseDto> findLikeCounts(Set<Long> contentIds, ContentType contentType) {
         return likesRepository.fetchLikeCounts(contentIds, contentType);
     }
 
     public boolean existsLikes(User user, ContentType contentType, long contentId) {
-        Likes likes = fetchLikes(user, contentType, contentId);
+        Likes likes = findLikes(user, contentType, contentId);
         return likes != null;
     }
 

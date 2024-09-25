@@ -5,18 +5,13 @@ import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
-import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.service.UserService;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @Slf4j
 @Service
@@ -59,7 +54,7 @@ public class MarkingQueryService {
      *     임시저장 여부
      * @return
      */
-    public MarkingInfoResponseDto fetchMarkingInfoDto(User user, long id, boolean isDeleted, boolean isTempSaved) {
+    public MarkingInfoResponseDto findMarkingInfoDto(User user, long id, boolean isDeleted, boolean isTempSaved) {
 
         Marking findMarking = findById(id, isDeleted, isTempSaved);
 

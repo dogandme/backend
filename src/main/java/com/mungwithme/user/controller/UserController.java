@@ -1,6 +1,5 @@
 package com.mungwithme.user.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.email.EmailAuthRequestDto;
 import com.mungwithme.common.email.EmailRequestDto;
 import com.mungwithme.common.email.EmailService;
@@ -15,7 +14,6 @@ import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -24,7 +22,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Optional;
 
 @Slf4j
@@ -46,7 +43,7 @@ public class UserController {
      * @return 공통 응답 메세지
      */
     @PostMapping("")
-    public ResponseEntity<CommonBaseResult> signUp(@RequestBody UserSignUpDto userSignUpDto,
+    public ResponseEntity<CommonBaseResult> createUserSingUp(@RequestBody UserSignUpDto userSignUpDto,
         HttpServletResponse response) throws Exception {
         String email = userSignUpDto.getEmail();
         String password = userSignUpDto.getPassword();
@@ -96,11 +93,11 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> signUp2(@RequestBody UserSignUpDto userSignUpDto) throws Exception {
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto) throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
-        userSignUpDto.setUserId(userService.getCurrentUser().getId());  // UserDetails에서 유저 정보 조회
+        userSignUpDto.setUserId(userService.findCurrentUser().getId());  // UserDetails에서 유저 정보 조회
         User user = userService.signUp2(userSignUpDto);                 // 추가 정보 저장
 
         userResponseDto.setRole(user.getRole().getKey());
@@ -135,7 +132,7 @@ public class UserController {
         log.info("temporaryPassword : {}", temporaryPassword);
 
         // 4. 임시 비밀번호 DB 업데이트
-        userService.updatePasswordByEmail(email, temporaryPassword);
+        userService.editPasswordByEmail(email, temporaryPassword);
 
         // 5. 임시 비밀번호 이메일 전송
         emailService.temporaryPasswordEmail(email, temporaryPassword);

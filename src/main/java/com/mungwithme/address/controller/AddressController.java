@@ -4,10 +4,8 @@ package com.mungwithme.address.controller;
 import com.mungwithme.address.model.dto.request.AddressCoordinatesDto;
 import com.mungwithme.address.model.dto.request.AddressSearchDto;
 import com.mungwithme.address.service.AddressSearchService;
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -38,10 +36,10 @@ public class AddressController {
      * @return
      */
     @GetMapping
-    public ResponseEntity<CommonBaseResult> fetchListBySubDist(
+    public ResponseEntity<CommonBaseResult> getListBySubDist(
         @Validated @ModelAttribute AddressSearchDto addressSearchDto) throws IOException {
         return baseResponse.sendContentResponse(
-            addressSearchService.fetchListBySubDist(addressSearchDto, 0, 7), HttpStatus.OK.value());
+            addressSearchService.findListBySubDist(addressSearchDto, 0, 7), HttpStatus.OK.value());
 
     }
 
@@ -53,10 +51,10 @@ public class AddressController {
      * @return
      */
     @GetMapping("/search-by-location")
-    public ResponseEntity<CommonBaseResult> fetchListByLocation(
+    public ResponseEntity<CommonBaseResult> getListByLocation(
         @ModelAttribute AddressCoordinatesDto addressCoordinatesDto) throws IOException {
         return baseResponse.sendContentResponse(
-            addressSearchService.fetchListByLngLat(addressCoordinatesDto, 0, 7, 10000),  HttpStatus.OK.value());
+            addressSearchService.findListByLngLat(addressCoordinatesDto, 0, 7, 10000),  HttpStatus.OK.value());
 
     }
 

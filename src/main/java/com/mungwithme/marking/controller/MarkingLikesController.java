@@ -1,6 +1,5 @@
 package com.mungwithme.marking.controller;
 
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.likes.model.enums.ContentType;
@@ -9,7 +8,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,7 +35,7 @@ public class MarkingLikesController {
      * @throws IOException
      */
     @PostMapping("/{content-id}")
-    public ResponseEntity<CommonBaseResult> saveLikes(@PathVariable(name = "content-id") Long contentId,
+    public ResponseEntity<CommonBaseResult> createLikes(@PathVariable(name = "content-id") Long contentId,
         HttpServletRequest request)
         throws IOException {
         likesService.addLikes(contentId, ContentType.MARKING);
@@ -52,10 +50,10 @@ public class MarkingLikesController {
      * @throws IOException
      */
     @DeleteMapping("/{content-id}")
-    public ResponseEntity<CommonBaseResult> removeLikes(@PathVariable(name = "content-id") Long contentId,
+    public ResponseEntity<CommonBaseResult> deleteLikes(@PathVariable(name = "content-id") Long contentId,
         HttpServletRequest request)
         throws IOException {
-        likesService.deleteLikes(contentId, ContentType.MARKING);
+        likesService.removeLikes(contentId, ContentType.MARKING);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "like.remove.success", request.getLocale());
     }
 

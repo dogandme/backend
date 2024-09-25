@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -58,7 +57,7 @@ public class MarkingController {
      * @return
      */
     @PostMapping
-    public ResponseEntity<CommonBaseResult> saveMarkingWithImages(
+    public ResponseEntity<CommonBaseResult> createMarkingWithImages(
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
         @RequestPart(name = "images") List<MultipartFile> images, HttpServletRequest request) throws IOException {
         markingService.addMarking(markingAddDto, images, false);
@@ -75,7 +74,7 @@ public class MarkingController {
      * @return
      */
     @PutMapping
-    public ResponseEntity<CommonBaseResult> modifyMarking(
+    public ResponseEntity<CommonBaseResult> updateMarking(
         @Validated @RequestPart(name = "markingModifyDto") MarkingModifyDto markingModifyDto,
         @RequestPart(name = "images", required = false) List<MultipartFile> images, HttpServletRequest request)
         throws IOException {
@@ -83,7 +82,7 @@ public class MarkingController {
         if (images == null) {
             images = new ArrayList<>();
         }
-        markingService.patchMarking(markingModifyDto, images, false);
+        markingService.editMarking(markingModifyDto, images, false);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "modify.success", request.getLocale());
 
 
@@ -93,10 +92,10 @@ public class MarkingController {
      * marking 삭제 API
      */
     @DeleteMapping
-    public ResponseEntity<CommonBaseResult> removeMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto,
+    public ResponseEntity<CommonBaseResult> deleteMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto,
         HttpServletRequest request)
         throws IOException {
-        markingService.deleteMarking(markingRemoveDto, false);
+        markingService.removeMarking(markingRemoveDto, false);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.remove.success", request.getLocale());
     }
 
@@ -109,8 +108,8 @@ public class MarkingController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CommonBaseResult> fetchMarkingById(@PathVariable(name = "id") Long id) throws IOException {
-        MarkingInfoResponseDto markingInfoResponseDto = markingService.fetchMarkingInfoResponseDto(id, false,
+    public ResponseEntity<CommonBaseResult> getMarkingById(@PathVariable(name = "id") Long id) throws IOException {
+        MarkingInfoResponseDto markingInfoResponseDto = markingService.findMarkingInfoResponseDto(id, false,
             false);
         return baseResponse.sendContentResponse(markingInfoResponseDto, HttpStatus.OK.value());
 
@@ -126,7 +125,7 @@ public class MarkingController {
      * @throws IOException
      */
     @GetMapping("/image/{fileName}")
-    public ResponseEntity<UrlResource> fetchMarkingImage(@PathVariable(name = "fileName") String fileName) {
+    public ResponseEntity<UrlResource> getMarkingImage(@PathVariable(name = "fileName") String fileName) {
         // file MediaType 확인 후 header 에 저장
         MediaType mediaType = null;
         UrlResource pictureImage = null;

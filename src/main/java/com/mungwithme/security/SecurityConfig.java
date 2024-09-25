@@ -59,63 +59,81 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
         http
-                .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
+            .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
 
-                    @Override
-                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
-                        CorsConfiguration configuration = new CorsConfiguration();
-                        configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
-                        configuration.setAllowedMethods(Collections.singletonList("*"));
-                        configuration.setAllowCredentials(true);
-                        configuration.setAllowedHeaders(Collections.singletonList("*"));
-                        configuration.setMaxAge(3600L);
-                        configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-                        return configuration;
-                    }
-                }));
+                @Override
+                public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                    CorsConfiguration configuration = new CorsConfiguration();
+                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                    configuration.setAllowedMethods(Collections.singletonList("*"));
+                    configuration.setAllowCredentials(true);
+                    configuration.setAllowedHeaders(Collections.singletonList("*"));
+                    configuration.setMaxAge(3600L);
+                    configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
+                    return configuration;
+                }
+            }));
 
         http
-                .csrf(AbstractHttpConfigurer::disable)      // 없으면 API 테스트 불가. Cross-Site Request Forgery 보호 기능을 비활성화, REST API는 CSRF 공격에 대한 보호가 필요 없음. 대신 JWT/OAuth2와 같은 다른 인증 방법 사용. Todo REST API는 왜 필요없는지 더 자세한 공부 필요
-                .formLogin(AbstractHttpConfigurer::disable) // FormLogin 사용 X
-                .httpBasic(AbstractHttpConfigurer::disable) // httpBasic 인증(이름과 비밀번호를 Base64로 인코딩하여 HTTP 헤더에 포함시켜 서버에 전달하는 인증 방식) 사용 X
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않으므로 STATELESS로 설정
-                .authorizeHttpRequests(authorizeRequests ->
-                        authorizeRequests
-                                .requestMatchers("/",
-                                        "/users",
-                                        "/users/auth/**",
-                                        "/users/password",
-                                        "/oauth2/**",
-                                        "/v3/api-docs/**",
-                                        "/swagger-ui/**",
-                                        "/swagger-ui.html",
-//                                        "/markings/search",
-                                        "/health").permitAll()
-//                            .requestMatchers("/markings/search").hasAnyRole("NONE")
+            .csrf(
+                AbstractHttpConfigurer::disable)      // 없으면 API 테스트 불가. Cross-Site Request Forgery 보호 기능을 비활성화, REST API는 CSRF 공격에 대한 보호가 필요 없음. 대신 JWT/OAuth2와 같은 다른 인증 방법 사용. Todo REST API는 왜 필요없는지 더 자세한 공부 필요
+            .formLogin(AbstractHttpConfigurer::disable) // FormLogin 사용 X
+            .httpBasic(
+                AbstractHttpConfigurer::disable) // httpBasic 인증(이름과 비밀번호를 Base64로 인코딩하여 HTTP 헤더에 포함시켜 서버에 전달하는 인증 방식) 사용 X
+            .sessionManagement(
+                session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션 사용하지 않으므로 STATELESS로 설정
+            .authorizeHttpRequests(authorizeRequests ->
+                authorizeRequests
+                    .requestMatchers(
+                        "/", "/auth", "/users", "/users/auth/**", "/users/password",
+                        "/oauth2/**", "/v3/api-docs/**", "/swagger-ui/**",
+                        "/swagger-ui.html", "/markings/search", "/health"
+                    ).permitAll()
 
-                            .anyRequest()
+                    .requestMatchers(
+                        "/users/nickname", "/users/additional-info",
+                        "/addresses", "/addresses/**"
+                    ).hasAnyRole(
+                        Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                    )
+
+                    .requestMatchers("/users/pets")
+                    .hasAnyRole(
+                        Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                    )
+
+                    .requestMatchers(
+                        "/markings", "/maps/**", "/users/follows",
+                        "/users/follows/**", "/markings/**"
+                    ).hasAnyRole(
+                        Role.USER.name(), Role.ADMIN.name()
+                    )
+
+                    .anyRequest()
                     .authenticated())
-                .exceptionHandling(exceptionHandling -> exceptionHandling
-                        .authenticationEntryPoint(customAuthenticationEntryPoint)
-                        .accessDeniedHandler(customAccessDeniedHandler)
-                )
-                .logout(logout -> logout
-                        .logoutUrl("/logout")
-                        .addLogoutHandler(customLogoutHandler)  // 커스텀 핸들러 추가
-                        .logoutSuccessHandler(customLogoutSuccessHandler) // 커스텀 성공 핸들러 추가
-                );
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                .accessDeniedHandler(customAccessDeniedHandler)
+            )
+            .logout(logout -> logout
+                .logoutUrl("/logout")
+                .addLogoutHandler(customLogoutHandler)  // 커스텀 핸들러 추가
+                .logoutSuccessHandler(customLogoutSuccessHandler) // 커스텀 성공 핸들러 추가
+            );
 
         //oauth2
         http
-                .oauth2Login((oauth2) -> oauth2
-                        .successHandler(customOAuthAuthenticationSuccessHandler)
-                        .failureHandler(customOAuthAuthenticationFailureHandler)
-                        .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                            .userService(customOAuth2UserService)))
-                ;
+            .oauth2Login((oauth2) -> oauth2
+                .successHandler(customOAuthAuthenticationSuccessHandler)
+                .failureHandler(customOAuthAuthenticationFailureHandler)
+                .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
+                    .userService(customOAuth2UserService)))
+        ;
 
-        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(), LogoutFilter.class);                              // json 로그인 필터
-        http.addFilterBefore(jwtAuthenticationProcessingFilter(), CustomJsonUsernamePasswordAuthenticationFilter.class);        // jwt 인증/인가 필터
+        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(),
+            LogoutFilter.class);                              // json 로그인 필터
+        http.addFilterBefore(jwtAuthenticationProcessingFilter(),
+            CustomJsonUsernamePasswordAuthenticationFilter.class);        // jwt 인증/인가 필터
 
         return http.build();
     }
@@ -124,7 +142,7 @@ public class SecurityConfig {
      * PasswordEncoder를 자동으로 주입하기 위해 빈으로 등록
      */
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -161,10 +179,13 @@ public class SecurityConfig {
     @Bean
     public CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter() {
         CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordLoginFilter
-                = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper, userRepository);
-        customJsonUsernamePasswordLoginFilter.setAuthenticationManager(authenticationManager());        // 위에서 등록한 AuthenticationManager(ProviderManager) 설정
-        customJsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(loginSuccessHandler());   // 로그인 성공 시 호출할 handler
-        customJsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(loginFailureHandler());   // 실패 시 호출할 handler
+            = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper, userRepository);
+        customJsonUsernamePasswordLoginFilter.setAuthenticationManager(
+            authenticationManager());        // 위에서 등록한 AuthenticationManager(ProviderManager) 설정
+        customJsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(
+            loginSuccessHandler());   // 로그인 성공 시 호출할 handler
+        customJsonUsernamePasswordLoginFilter.setAuthenticationFailureHandler(
+            loginFailureHandler());   // 실패 시 호출할 handler
         return customJsonUsernamePasswordLoginFilter;
     }
 

@@ -83,7 +83,7 @@ class MarkingServiceTest {
         MarkingRemoveDto markingRemoveDto = new MarkingRemoveDto();
 
         markingRemoveDto.setId(10L);
-        markingService.deleteMarking(markingRemoveDto,false);
+        markingService.removeMarking(markingRemoveDto,false);
     }
 
 
@@ -111,7 +111,7 @@ class MarkingServiceTest {
         markingModifyDto.setId(15L);
 
         // when
-        markingService.patchMarking(markingModifyDto, images,false);
+        markingService.editMarking(markingModifyDto, images,false);
 
         // then
 

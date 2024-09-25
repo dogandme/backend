@@ -1,6 +1,5 @@
 package com.mungwithme.pet.service;
 
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
@@ -40,10 +39,10 @@ public class PetService {
      * 애완동물 정보 저장 및 USER권한 토큰 발행
      * @param petSignUpDto 애완동물정보
      */
-    public User signUp3(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
+    public User addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
 
         // UserDetails에서 user 엔터티 조회
-        User user = userService.getCurrentUser();
+        User user = userService.findCurrentUser();
 
         // 강쥐 프로필 이미지 업로드
         List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
@@ -72,7 +71,7 @@ public class PetService {
      * 강쥐 프로필 이미지 업로드
      * @param profile 업로드 할 파일
      */
-    private String uploadFile(MultipartFile profile) throws IOException {
+    private String editFile(MultipartFile profile) throws IOException {
 
         // 이미지 파일만 업로드
         if (!Objects.requireNonNull(profile.getContentType()).startsWith("image")) {

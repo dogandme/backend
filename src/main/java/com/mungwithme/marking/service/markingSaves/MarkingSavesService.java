@@ -1,8 +1,6 @@
 package com.mungwithme.marking.service.markingSaves;
 
 
-import com.mungwithme.likes.model.entity.Likes;
-import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.Visibility;
@@ -35,7 +33,7 @@ public class MarkingSavesService {
      */
     @Transactional
     public void addSaves(long markingId) {
-        User currentUser = userService.getCurrentUser();
+        User currentUser = userService.findCurrentUser();
         User postUser = null;
         boolean isOwner = false;
         Marking marking = markingQueryService.findById(markingId, false, false);
@@ -71,7 +69,7 @@ public class MarkingSavesService {
      */
     @Transactional
     public void deleteSaves(long markingId) {
-        User currentUser = userService.getCurrentUser();
+        User currentUser = userService.findCurrentUser();
         MarkingSaves markingSaves = fetchSaves(currentUser, markingId);
         if (markingSaves == null) {
             return;
