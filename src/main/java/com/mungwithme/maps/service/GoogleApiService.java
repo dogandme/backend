@@ -5,7 +5,6 @@ import com.mungwithme.maps.dto.response.GeocodingResponseDto;
 import com.mungwithme.maps.dto.response.GoogleGeocodingResponseDto;
 import com.mungwithme.maps.dto.response.GoogleGeocodingResponseDto.Result;
 import com.mungwithme.maps.dto.response.GooglePlaceResponseDto;
-import com.mungwithme.maps.dto.response.PlaceCandidate;
 import com.mungwithme.maps.dto.response.PlaceDetailsResponseDto;
 import com.mungwithme.maps.dto.response.PlaceResult;
 import java.util.List;
@@ -39,7 +38,7 @@ public class GoogleApiService {
         this.restTemplate = new RestTemplate();
     }
 
-    public GeocodingResponseDto getReverseGeocoding(double lat, double lng) {
+    public GeocodingResponseDto findReverseGeocoding(double lat, double lng) {
         GeoUtils.isWithinKorea(lat, lng);
 
         // Google Geocoding API URL 생성 (언어를 한국어로 설정)
@@ -65,7 +64,7 @@ public class GoogleApiService {
         return null;
     }
 
-    public PlaceDetailsResponseDto getPlaceDetails(double lat, double lng) {
+    public PlaceDetailsResponseDto findPlaceDetails(double lat, double lng) {
         GeoUtils.isWithinKorea(lat, lng);
 
         // Google Place API로 주변 장소 검색 (nearbysearch 사용)

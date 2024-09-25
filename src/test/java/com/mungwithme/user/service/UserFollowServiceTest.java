@@ -1,7 +1,5 @@
 package com.mungwithme.user.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -30,7 +28,7 @@ class UserFollowServiceTest {
     @Test
     public void cancelFollow() {
         // given
-        userFollowService.cancelFollow("2221325@naver.com");
+        userFollowService.removeFollow("2221325@naver.com");
         // when
         // then
     }

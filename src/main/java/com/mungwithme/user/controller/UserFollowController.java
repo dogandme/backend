@@ -1,7 +1,6 @@
 package com.mungwithme.user.controller;
 
 
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.user.service.UserFollowService;
@@ -36,7 +35,7 @@ public class UserFollowController {
      * @return
      */
     @PostMapping("/my-followings/{following-email}")
-    public ResponseEntity<CommonBaseResult> saveFollowing(@PathVariable(name = "following-email") String followingEmail,
+    public ResponseEntity<CommonBaseResult> createFollowing(@PathVariable(name = "following-email") String followingEmail,
         HttpServletRequest request)
         throws IOException {
         userFollowService.addFollowing(followingEmail);
@@ -53,9 +52,9 @@ public class UserFollowController {
      * @throws IOException
      */
     @DeleteMapping("/my-followings/{following-email}")
-    public ResponseEntity<CommonBaseResult> cancelFollowing(
+    public ResponseEntity<CommonBaseResult> deleteFollowing(
         @PathVariable(name = "following-email") String followingEmail, HttpServletRequest request) throws IOException {
-        userFollowService.cancelFollow(followingEmail);
+        userFollowService.removeFollow(followingEmail);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "follow.remove.success",
             request.getLocale());
 
@@ -69,7 +68,7 @@ public class UserFollowController {
      * @return
      */
     @DeleteMapping("/my-followers/{follower-email}")
-    public ResponseEntity<CommonBaseResult> removeFollowers(
+    public ResponseEntity<CommonBaseResult> deleteFollowers(
         @PathVariable(name = "follower-email") String followerEmail, HttpServletRequest request) throws IOException {
         userFollowService.forceUnfollow(followerEmail);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "follow.unfollow.success",

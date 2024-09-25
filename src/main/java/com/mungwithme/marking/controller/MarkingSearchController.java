@@ -45,7 +45,7 @@ public class MarkingSearchController {
      */
 //    @NoneAuthorize
     @GetMapping
-    public ResponseEntity<CommonBaseResult> fetchMarkingsById(
+    public ResponseEntity<CommonBaseResult> getMarkingsById(
         @RequestBody @Validated LocationBoundsDTO locationBoundsDTO)
         throws IOException {
         List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
@@ -60,7 +60,7 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/{nickname}")
-    public ResponseEntity<CommonBaseResult> fetchMyMarkingsByUser(@PathVariable(name = "nickname") String nickname)
+    public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname)
         throws IOException {
         MyMarkingsResponseDto markingsResponseDto = markingSearchService.findAllMarkersByUser(nickname);
         return baseResponse.sendContentResponse(markingsResponseDto, HttpStatus.OK.value());
@@ -73,7 +73,7 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/temp")
-    public ResponseEntity<CommonBaseResult> fetchMyTempMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMyTempMarkingsByUser()
         throws IOException {
         MyTempMarkingsResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser();
         return baseResponse.sendContentResponse(tempMarkersByUser, HttpStatus.OK.value());
@@ -90,7 +90,7 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/likes")
-    public ResponseEntity<CommonBaseResult> fetchMyLikedMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMyLikedMarkingsByUser()
         throws IOException {
         List<MarkingInfoResponseDto> likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
         return baseResponse.sendContentResponse(likedMarkersByUser, HttpStatus.OK.value());
@@ -107,7 +107,7 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/saves")
-    public ResponseEntity<CommonBaseResult> fetchMySavedMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMySavedMarkingsByUser()
         throws IOException {
         List<MarkingInfoResponseDto> savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser();
         return baseResponse.sendContentResponse(savedMarkersByUser, HttpStatus.OK.value());

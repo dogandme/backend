@@ -29,7 +29,7 @@ public class MapsController {
     public ResponseEntity<CommonBaseResult> reverseGeocode(@RequestParam(name = "lat") double lat, @RequestParam(name = "lng") double lng) throws IOException {
 
 
-      return baseResponse.sendContentResponse(googleReverseGeocodingApiService.getReverseGeocoding(lat, lng),
+      return baseResponse.sendContentResponse(googleReverseGeocodingApiService.findReverseGeocoding(lat, lng),
           HttpStatus.OK.value());
     }
 

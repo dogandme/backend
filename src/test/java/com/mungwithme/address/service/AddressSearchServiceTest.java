@@ -1,11 +1,8 @@
 package com.mungwithme.address.service;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import com.mungwithme.address.model.dto.request.AddressCoordinatesDto;
 import com.mungwithme.address.model.dto.request.AddressSearchDto;
 import com.mungwithme.address.model.dto.response.AddressResponseDto;
-import com.mungwithme.address.model.entity.Address;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +19,7 @@ class AddressSearchServiceTest {
     void fetchListBySubDist() {
 
         AddressSearchDto searchDto = new AddressSearchDto("영등");
-        List<AddressResponseDto> addressResponseDtoList = addressSearchService.fetchListBySubDist(searchDto, 0, 7);
+        List<AddressResponseDto> addressResponseDtoList = addressSearchService.findListBySubDist(searchDto, 0, 7);
 
         for (AddressResponseDto addressResponseDto : addressResponseDtoList) {
 
@@ -47,7 +44,7 @@ class AddressSearchServiceTest {
         AddressCoordinatesDto addressCoordinatesDto = new AddressCoordinatesDto(lat, lng);
 
         // when
-        List<AddressResponseDto> addressResponseDtoList = addressSearchService.fetchListByLngLat(addressCoordinatesDto,
+        List<AddressResponseDto> addressResponseDtoList = addressSearchService.findListByLngLat(addressCoordinatesDto,
             0, 7, radius);
         // then
         for (AddressResponseDto addressResponseDto : addressResponseDtoList) {

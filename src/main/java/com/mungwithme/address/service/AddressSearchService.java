@@ -45,7 +45,7 @@ public class AddressSearchService {
      *     데이터 size
      * @return
      */
-    public List<AddressResponseDto> fetchListBySubDist(AddressSearchDto addressSearchDto, int pageNumber,
+    public List<AddressResponseDto> findListBySubDist(AddressSearchDto addressSearchDto, int pageNumber,
         int pageSize) {
         String keyword = addressSearchDto.getKeyword();
         if (!StringUtils.hasText(keyword)) {
@@ -87,7 +87,7 @@ public class AddressSearchService {
      *     m (1000m -> 1km)
      * @return
      */
-    public List<AddressResponseDto> fetchListByLngLat(AddressCoordinatesDto coordinatesDto, int pageNumber,
+    public List<AddressResponseDto> findListByLngLat(AddressCoordinatesDto coordinatesDto, int pageNumber,
         int pageSize, int radius) {
 
         double lat = coordinatesDto.getLat();

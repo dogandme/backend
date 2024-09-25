@@ -11,7 +11,7 @@ class UserServiceTest {
     UserService userService;
     @Test
     void getCurrentUser_V2() {
-        userService.findCurrentUser();
+        userService.findCurrentUser_v2();
 
     }
 }
