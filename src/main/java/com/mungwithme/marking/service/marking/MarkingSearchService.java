@@ -1,5 +1,6 @@
 package com.mungwithme.marking.service.marking;
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.util.GeoUtils;
 import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
 import com.mungwithme.likes.model.entity.Likes;
@@ -70,7 +71,7 @@ public class MarkingSearchService {
         }
 
         if (nearbyMarkers.isEmpty()) {
-            throw new IllegalArgumentException("ex) 마킹 정보가 없습니다");
+            throw new ResourceNotFoundException("error.notfound.markings");
         }
 
         log.info("nearbyMarkers.size() = {}", nearbyMarkers.size());
@@ -120,7 +121,7 @@ public class MarkingSearchService {
         User myUser = userService.getCurrentUser();
         User profileUser = userService.findByNickname(nickname).orElse(null);
         if (profileUser == null) {
-            throw new IllegalArgumentException("ex) 해당 유저는 없는 유저입니다");
+            throw new ResourceNotFoundException("error.notfound.user");
         }
 
         boolean isMyProfile = myUser.getEmail().equals(profileUser.getEmail());

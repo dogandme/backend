@@ -6,6 +6,7 @@ import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.service.GoogleApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +29,8 @@ public class MapsController {
     public ResponseEntity<CommonBaseResult> reverseGeocode(@RequestParam(name = "lat") double lat, @RequestParam(name = "lng") double lng) throws IOException {
 
 
-      return baseResponse.sendContentResponse(googleReverseGeocodingApiService.getReverseGeocoding(lat, lng), 200);
+      return baseResponse.sendContentResponse(googleReverseGeocodingApiService.getReverseGeocoding(lat, lng),
+          HttpStatus.OK.value());
     }
 
 }

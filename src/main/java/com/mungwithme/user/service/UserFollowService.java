@@ -27,10 +27,10 @@ public class UserFollowService {
         User followerUser = userService.getCurrentUser();
 
         User followingUser = userService.findByEmail(followingEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
 
         if (!existsFollowing(followerUser, followingUser)) {
-            throw new IllegalArgumentException("ex) 팔로잉을 이미 하셨습니다");
+            return;
         }
 
         UserFollows userFollows = UserFollows.create(followerUser, followingUser);
@@ -50,7 +50,7 @@ public class UserFollowService {
         UserFollows userFollows = findByFollowingUser(followerUser, followingUser);
 
         if (userFollows == null) {
-            throw new IllegalArgumentException("ex) 잘못된 요청입니다");
+            return;
         }
         // 추가
         userFollowRepository.delete(userFollows);
@@ -70,7 +70,7 @@ public class UserFollowService {
 
 
         User followerUser = userService.findByEmail(followerEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         deleteFollow(followerUser, followingUser);
     }
 
@@ -87,7 +87,7 @@ public class UserFollowService {
         User followerUser = userService.getCurrentUser();
 
         User followingUser = userService.findByEmail(followingEmail)
-            .orElseThrow(() -> new ResourceNotFoundException("ex) 사용자를 찾을수가 없습니다"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         deleteFollow(followerUser, followingUser);
     }
     /**

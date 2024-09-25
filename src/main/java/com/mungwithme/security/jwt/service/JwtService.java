@@ -3,6 +3,7 @@ package com.mungwithme.security.jwt.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -204,7 +205,7 @@ public class JwtService {
                             user.updateRefreshToken(refreshToken);  // 있으면 리프레시 토큰 업데이트
                             userRepository.saveAndFlush(user);      // 수정된 내용을 저장
                         },
-                        () -> new Exception("일치하는 회원이 없습니다.")     // 없으면 예외발생
+                        () -> new ResourceNotFoundException("error.notfound.user")     // 없으면 예외발생
                 );
     }
 

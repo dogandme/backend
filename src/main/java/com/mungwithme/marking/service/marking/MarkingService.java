@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -110,7 +111,7 @@ public class MarkingService {
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
-            throw new IllegalArgumentException("ex) 삭제 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.remove");
         }
 
         Set<MarkImage> images = marking.getImages();
@@ -155,7 +156,7 @@ public class MarkingService {
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
-            throw new IllegalArgumentException("ex) 수정 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.modify");
         }
 
         // 내용 업데이트
@@ -205,7 +206,7 @@ public class MarkingService {
         // 임시저장이 아니면서 allSize 가 0보다 작거나 같다면
         // 임시저장 여부 상관없이 총 이미지 파일 max 사이즈 보다 큰 경우
         if ((!isTempSaved && allSize <= 0) || MAX_IMAGE_UPLOAD_SIZE < allSize) {
-            throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
+            throw new IllegalArgumentException("error.arg.image.limit");
         }
 
         // markImage db 삭제
@@ -247,7 +248,7 @@ public class MarkingService {
             isTempSaved);
 
         if (isTempSaved && !markingInfoResponseDto.getIsOwner()) {
-            throw new IllegalArgumentException("ex) 접근 권한이 없습니다.");
+            throw new AccessDeniedException("error.forbidden.remove");
         }
         return markingInfoResponseDto;
     }
@@ -272,7 +273,7 @@ public class MarkingService {
         }
 
         if (images.size() > MAX_IMAGE_UPLOAD_SIZE || (!isTempSaved && images.isEmpty())) {
-            throw new IllegalArgumentException("ex) 이미지 파일을 다시 확인 해주세요");
+            throw new IllegalArgumentException("error.arg.image.limit");
         }
     }
 }

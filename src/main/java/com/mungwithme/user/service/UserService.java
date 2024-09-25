@@ -52,7 +52,7 @@ public class UserService {
         // 이메일 중복 확인
         userRepository.findByEmail(userSignUpDto.getEmail())
                 .ifPresent(user -> {
-                    throw new DuplicateResourceException("이메일 중복");
+                    throw new DuplicateResourceException("error.duplicate.email");
                 });
 
         User newUser = User.builder()
@@ -95,7 +95,7 @@ public class UserService {
         // 닉네임 중복 확인
         userRepository.findByNickname(userSignUpDto.getNickname())
                 .ifPresent(user -> {
-                    throw new DuplicateResourceException("닉네임 중복");
+                    throw new DuplicateResourceException("error.duplicate.nickname");
                 });
 
         // 추가 정보 저장
@@ -107,7 +107,7 @@ public class UserService {
                     // region ID를 기반으로 Address 엔터티 조회
                     Set<Address> addresses = regionIds.stream()
                             .map(addressId -> addressRepository.findById(addressId)
-                                    .orElseThrow(() -> new ResourceNotFoundException("주소가 없습니다.")))
+                                    .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
                             .collect(Collectors.toSet());
 
                     user.setRole(Role.GUEST);
@@ -119,7 +119,7 @@ public class UserService {
 
                     return userRepository.save(user);
                 })
-                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
     }
 
     /**
@@ -212,9 +212,9 @@ public class UserService {
 
         if (email != null) {
             return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("회원 조회 실패"));
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         } else {
-            throw new ResourceNotFoundException("회원 조회 실패");
+            throw new ResourceNotFoundException("error.notfound.user");
         }
     }
 

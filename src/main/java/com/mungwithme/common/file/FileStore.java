@@ -1,6 +1,7 @@
 package com.mungwithme.common.file;
 
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -95,13 +96,6 @@ public class FileStore {
      * @return
      */
     public String makeFolder(String path) {
-//        String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-
-//        String folderPath = str.replace("/", File.separator);
-
-//        String fullRoot = uploadPath + File.separator + path + folderPath;
-//        Path directoryPath = Paths.get(fullRoot);
-
         String folderPath = getFolderPath(path);
         Path directoryPath = Paths.get(folderPath);
         try {
@@ -110,7 +104,7 @@ public class FileStore {
                 Files.createDirectories(directoryPath);
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("ex) ");
+            throw new RuntimeException("error.internal");
         }
         return folderPath;
     }
@@ -133,7 +127,7 @@ public class FileStore {
                 Files.delete(filePath);
             }
         } catch (IOException e) {
-            throw new IllegalArgumentException("ex) ");
+            throw new RuntimeException("error.internal");
         }
     }
 
@@ -151,7 +145,7 @@ public class FileStore {
         try {
             resource = new UrlResource("file:" + uploadPath + File.separator + dirPath + File.separator + fileName);
         } catch (MalformedURLException e) {
-            throw new RuntimeException("file.error.notFind");
+            throw new ResourceNotFoundException("error.notfound.image");
         }
         return resource;
     }

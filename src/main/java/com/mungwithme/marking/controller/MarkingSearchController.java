@@ -1,7 +1,6 @@
 package com.mungwithme.marking.controller;
 
 
-import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.dto.response.LocationBoundsDTO;
@@ -13,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -48,35 +48,25 @@ public class MarkingSearchController {
     public ResponseEntity<CommonBaseResult> fetchMarkingsById(
         @RequestBody @Validated LocationBoundsDTO locationBoundsDTO)
         throws IOException {
-        try {
-            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
-            return baseResponse.sendContentResponse(nearbyMarkers, 200);
-        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
-            return baseResponse.sendErrorResponse(400, "ex) 잘못된 위치정보입니다.");
-        } catch (Exception e ){
-            log.info("e.getMessage() = {}", e.getMessage());
-
-            return baseResponse.sendErrorResponse(400, "ex) 잘못된 위치정보입니다.");
-        }
+        List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
+        return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
 
     /**
      * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
      *
      * @param nickname
-     *         닉네임으로 검색 추후 변경할수도 있음
+     *     닉네임으로 검색 추후 변경할수도 있음
      * @return
      */
     @GetMapping("/{nickname}")
     public ResponseEntity<CommonBaseResult> fetchMyMarkingsByUser(@PathVariable(name = "nickname") String nickname)
         throws IOException {
-        try {
-            MyMarkingsResponseDto markingsResponseDto = markingSearchService.findAllMarkersByUser(nickname);
-            return baseResponse.sendContentResponse(markingsResponseDto, 200);
-        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        MyMarkingsResponseDto markingsResponseDto = markingSearchService.findAllMarkersByUser(nickname);
+        return baseResponse.sendContentResponse(markingsResponseDto, HttpStatus.OK.value());
+
     }
+
     /**
      * 내 임시 마킹 리스트 출력
      *
@@ -85,12 +75,9 @@ public class MarkingSearchController {
     @GetMapping("/temp")
     public ResponseEntity<CommonBaseResult> fetchMyTempMarkingsByUser()
         throws IOException {
-        try {
-            MyTempMarkingsResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser();
-            return baseResponse.sendContentResponse(tempMarkersByUser, 200);
-        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        MyTempMarkingsResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser();
+        return baseResponse.sendContentResponse(tempMarkersByUser, HttpStatus.OK.value());
+
     }
 
     /**
@@ -105,12 +92,9 @@ public class MarkingSearchController {
     @GetMapping("/likes")
     public ResponseEntity<CommonBaseResult> fetchMyLikedMarkingsByUser()
         throws IOException {
-        try {
-            List<MarkingInfoResponseDto> likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
-            return baseResponse.sendContentResponse(likedMarkersByUser, 200);
-        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        List<MarkingInfoResponseDto> likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
+        return baseResponse.sendContentResponse(likedMarkersByUser, HttpStatus.OK.value());
+
     }
 
     /**
@@ -125,12 +109,8 @@ public class MarkingSearchController {
     @GetMapping("/saves")
     public ResponseEntity<CommonBaseResult> fetchMySavedMarkingsByUser()
         throws IOException {
-        try {
-            List<MarkingInfoResponseDto> savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser();
-            return baseResponse.sendContentResponse(savedMarkersByUser, 200);
-        } catch ( ResourceNotFoundException | IllegalArgumentException e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        List<MarkingInfoResponseDto> savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser();
+        return baseResponse.sendContentResponse(savedMarkersByUser, HttpStatus.OK.value());
     }
 
 }

@@ -41,7 +41,7 @@ public class MarkingSavesService {
         Marking marking = markingQueryService.findById(markingId, false, false);
         // 이미 즐겨찾기를 하였는지 확인
         if (existsSaves(currentUser, marking)) {
-            throw new IllegalArgumentException("ex) 이미 저장을 한 컨텐츠입니다.");
+            throw new IllegalArgumentException("error.arg.exists.saves");
         }
         postUser = marking.getUser();
         isOwner = postUser.getEmail().equals(currentUser.getEmail());
@@ -50,10 +50,10 @@ public class MarkingSavesService {
         if (!isOwner) {
             switch (visibility) {
                 case PRIVATE:
-                    throw new IllegalArgumentException("ex) 비공개 마킹은 저장을 할수가 없습니다.");
+                    throw new IllegalArgumentException("error.arg.visible.save");
                 case FOLLOWERS_ONLY:
                     if (userFollowService.existsFollowing(currentUser, postUser)) {
-                        throw new IllegalArgumentException("ex) 팔로우만 저장을 누를 수 있습니다.");
+                        throw new IllegalArgumentException("error.arg.visible.save");
                     }
                     break;
                 default:
@@ -74,7 +74,7 @@ public class MarkingSavesService {
         User currentUser = userService.getCurrentUser();
         MarkingSaves markingSaves = fetchSaves(currentUser, markingId);
         if (markingSaves == null) {
-            throw new IllegalArgumentException("ex) 잘못된 요청 입니다");
+            return;
         }
         markingSavesRepository.delete(markingSaves);
     }

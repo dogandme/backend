@@ -2,6 +2,7 @@ package com.mungwithme.common.response;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Locale;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -61,6 +62,16 @@ public class BaseResponse {
             .contentType(MediaType.APPLICATION_JSON)
             .body(result);
     }
+
+    /**
+     * 정상 응답
+     */
+    public ResponseEntity<CommonBaseResult> sendSuccessResponse(int statusCode, String code, Locale locale,
+        String... args) throws IOException {
+        String message = messageSource.getMessage(code, args, locale);
+        return sendSuccessResponse(statusCode, message);
+    }
+
 
     /**
      * 정상 응답

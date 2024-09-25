@@ -71,6 +71,10 @@ public class GlobalExHandlers {
         return baseResponse.sendErrorResponse(HttpStatus.BAD_REQUEST.value(), message);
     }
 
+
+
+
+
     /**
      * IllegalArgumentException handler
      *
@@ -81,9 +85,7 @@ public class GlobalExHandlers {
     @ExceptionHandler({Exception.class})
     protected ResponseEntity<CommonBaseResult> handleGeneralException(Exception e,
         HttpServletRequest request) throws IOException {
-
         String message = getMessage("error.internal", null, request.getLocale());
-
         return baseResponse.sendErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), message);
     }
 
@@ -99,7 +101,7 @@ public class GlobalExHandlers {
         try {
             return ms.getMessage(code, args, locale);
         } catch (NoSuchMessageException ex) {
-            return ms.getMessage("error", null, locale);
+            return ms.getMessage("error.internal", null, locale);
         }
     }
 

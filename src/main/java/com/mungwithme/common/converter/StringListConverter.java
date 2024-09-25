@@ -6,10 +6,12 @@ import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Entity 하나의 컬럼에 List를 저장할 때 사용할 컨버터
  */
+@Slf4j
 @Converter
 public class StringListConverter  implements AttributeConverter<List<String>, String> {
 
@@ -20,6 +22,7 @@ public class StringListConverter  implements AttributeConverter<List<String>, St
         try {
             return mapper.writeValueAsString(dataList);
         } catch (JsonProcessingException e) {
+            log.info("e.getMessage() = {}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

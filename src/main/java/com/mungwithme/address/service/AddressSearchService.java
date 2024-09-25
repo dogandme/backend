@@ -49,7 +49,7 @@ public class AddressSearchService {
         int pageSize) {
         String keyword = addressSearchDto.getKeyword();
         if (!StringUtils.hasText(keyword)) {
-            throw new IllegalArgumentException("keyword 는 필수입니다.");
+            throw new IllegalArgumentException("error.arg.keyword");
         }
         String district = addressSearchDto.getKeyword() + "*";
 
@@ -61,7 +61,7 @@ public class AddressSearchService {
         List<Address> addressList = addressRepository.findAllBySubDist(district, pageRequest);
 
         if (addressList.isEmpty()) {
-            throw new ResourceNotFoundException("주소가 없습니다.");
+            throw new ResourceNotFoundException("error.notfound.keyword");
         }
         return addressList.stream().map(address ->
             AddressResponseDto.builder().id(address.getId()).cityCounty(address.getCityCounty())
@@ -101,7 +101,7 @@ public class AddressSearchService {
         List<Address> addressList = addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
 
         if (addressList.isEmpty()) {
-            throw new ResourceNotFoundException("잘못된 위치 정보입니다.");
+            throw new ResourceNotFoundException("error.notfound.coordinates");
         }
 
         return addressList.stream().map(address ->

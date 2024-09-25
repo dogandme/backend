@@ -1,6 +1,7 @@
 package com.mungwithme.marking.controller;
 
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
@@ -9,6 +10,7 @@ import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.marking.MarkingService;
+import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.MessageSource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -57,14 +60,11 @@ public class MarkingController {
     @PostMapping
     public ResponseEntity<CommonBaseResult> saveMarkingWithImages(
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
-        @RequestPart(name = "images") List<MultipartFile> images) throws IOException {
-        try {
-            markingService.addMarking(markingAddDto, images, false);
+        @RequestPart(name = "images") List<MultipartFile> images, HttpServletRequest request) throws IOException {
+        markingService.addMarking(markingAddDto, images, false);
 
-            return baseResponse.sendSuccessResponse(200, "ex) 마킹 저장에 성공하셨습니다.");
-        } catch (IllegalStateException e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.save.success", request.getLocale());
+
     }
 
     /**
@@ -77,17 +77,15 @@ public class MarkingController {
     @PutMapping
     public ResponseEntity<CommonBaseResult> modifyMarking(
         @Validated @RequestPart(name = "markingModifyDto") MarkingModifyDto markingModifyDto,
-        @RequestPart(name = "images", required = false) List<MultipartFile> images) throws IOException{
-        try {
-            // TODO postMan 테스트를 위해 임시
-            if (images == null) {
-                images = new ArrayList<>();
-            }
-            markingService.patchMarking(markingModifyDto, images, false);
-            return baseResponse.sendSuccessResponse(200, "ex) 마킹 수정 완료되었습니다.");
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
+        @RequestPart(name = "images", required = false) List<MultipartFile> images, HttpServletRequest request)
+        throws IOException {
+        // TODO postMan 테스트를 위해 임시
+        if (images == null) {
+            images = new ArrayList<>();
         }
+        markingService.patchMarking(markingModifyDto, images, false);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "modify.success", request.getLocale());
+
 
     }
 
@@ -95,14 +93,11 @@ public class MarkingController {
      * marking 삭제 API
      */
     @DeleteMapping
-    public ResponseEntity<CommonBaseResult> removeMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto)
+    public ResponseEntity<CommonBaseResult> removeMarking(@Validated @RequestBody MarkingRemoveDto markingRemoveDto,
+        HttpServletRequest request)
         throws IOException {
-        try {
-            markingService.deleteMarking(markingRemoveDto, false);
-            return baseResponse.sendSuccessResponse(200, "ex) 마킹 수정 완료되었습니다.");
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
+        markingService.deleteMarking(markingRemoveDto, false);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.remove.success", request.getLocale());
     }
 
 
@@ -114,15 +109,12 @@ public class MarkingController {
      * @return
      */
     @GetMapping("/{id}")
-    public ResponseEntity<CommonBaseResult>fetchMarkingById(@PathVariable(name = "id") Long id) throws IOException {
-        try {
-            MarkingInfoResponseDto markingInfoResponseDto = markingService.fetchMarkingInfoResponseDto(id, false, false);
-            return baseResponse.sendContentResponse(markingInfoResponseDto,200);
-        } catch (Exception e) {
-            return baseResponse.sendErrorResponse(400, e.getMessage());
-        }
-    }
+    public ResponseEntity<CommonBaseResult> fetchMarkingById(@PathVariable(name = "id") Long id) throws IOException {
+        MarkingInfoResponseDto markingInfoResponseDto = markingService.fetchMarkingInfoResponseDto(id, false,
+            false);
+        return baseResponse.sendContentResponse(markingInfoResponseDto, HttpStatus.OK.value());
 
+    }
 
 
     /**
@@ -144,7 +136,7 @@ public class MarkingController {
                 pictureImage = fileStore.getUrlResource(fileName, FileStore.MARKING_DIR);
             }
         } catch (Exception e) {
-            return new ResponseEntity(HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("error.notfound.image");
         }
         return ResponseEntity.ok()
             .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
