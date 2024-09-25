@@ -17,6 +17,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -34,6 +35,8 @@ public class GlobalExHandlers {
 
     /**
      *
+     *
+     * validation: MethodArgumentNotValidException
      * 400 CustomIllegalArgumentException
      * 404 ResourceNotFoundException
      * 409 DuplicateResourceException
@@ -55,6 +58,13 @@ public class GlobalExHandlers {
         HttpServletRequest request) throws IOException {
         String message = getMessage(e.getMessage(), null, request.getLocale());
         return baseResponse.sendErrorResponse(HttpStatus.CONFLICT.value(), message);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    protected ResponseEntity<CommonBaseResult> processValidationError(MethodArgumentNotValidException ex,HttpServletRequest request)
+        throws IOException {
+        return baseResponse.sendErrorResponse(HttpStatus.BAD_REQUEST.value(),
+            ex.getBindingResult().getAllErrors().get(0).getDefaultMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)

@@ -13,20 +13,20 @@ import lombok.Setter;
 @Setter
 public class MarkingAddDto {
 
-    @NotBlank
+    @NotBlank(message = "{error.NotBlank}")
     private String region;
 
-    @Size(max = 150)
-    @NotBlank
+    @Size(max = 150,message = "{error.size.content}")
+    @NotBlank(message = "{error.NotBlank}")
     private String content;
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double lat;
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Double lng;
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Visibility isVisible;
 
 }

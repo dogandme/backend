@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -61,7 +62,7 @@ public class UserController {
      * 회원가입 이메일 인증 코드 전송
      */
     @PostMapping("/auth")
-    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Valid EmailRequestDto emailDto) throws IOException {
+    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Validated EmailRequestDto emailDto) throws IOException {
         // 이메일 중복
         Optional<User> user = userService.findByEmail(emailDto.getEmail());
         if (user.isPresent()) {

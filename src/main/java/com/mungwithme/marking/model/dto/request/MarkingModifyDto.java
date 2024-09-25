@@ -16,24 +16,24 @@ import lombok.Setter;
 public class MarkingModifyDto {
 
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     @Min(value = 1)
     private Long id; // 마킹 아이디
 
-    @NotBlank
-    @Size(max = 150)
+    @NotBlank(message = "{error.NotBlank}")
+    @Size(max = 150,message = "{error.size.content}")
     private String content;
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Visibility isVisible;
 
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Set<Long> removeIds;
 
     // 임시 저장 여부
     // true 일 경우 임시 저장
     // false 일 경우 임시 저장 X
-    @NotNull
+    @NotNull(message = "{error.NotNull}")
     private Boolean isTempSaved;
 
 
