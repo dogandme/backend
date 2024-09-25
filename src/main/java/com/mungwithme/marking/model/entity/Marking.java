@@ -1,5 +1,6 @@
 package com.mungwithme.marking.model.entity;
 
+import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.user.model.entity.User;
@@ -12,9 +13,11 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,6 +39,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @AllArgsConstructor
 @Builder
 @Entity
+@Table(indexes = {@Index(name = "idx_marking_id", columnList = "id", unique = true),
+    @Index(name = "idx_marking_token", columnList = "token", unique = true)})
 public class Marking {
 
     @Id
@@ -45,6 +50,9 @@ public class Marking {
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;              // 작성자
+
+    @Column(nullable = false,unique = true)
+    private String token;
 
     @Column(nullable = false)
     private String region; // 지역
@@ -85,6 +93,7 @@ public class Marking {
             .lat(markingAddDto.getLat())
             .lng(markingAddDto.getLng())
             .isDeleted(false)
+            .token(TokenUtils.getToken())
             .isVisible(markingAddDto.getIsVisible())
             .user(user).build();
     }

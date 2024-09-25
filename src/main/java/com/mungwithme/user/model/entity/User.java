@@ -23,13 +23,18 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(indexes = @Index(name = "idx_user_email", columnList = "email", unique = true))
+@Table(indexes = {@Index(name = "idx_user_email", columnList = "email", unique = true),
+    @Index(name = "idx_user_id", columnList = "user_id"),@Index(name = "idx_user_token", columnList = "token", unique = true)})
 public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")   // 컬럼명 : user_id
     private Long id;
+
+
+    @Column(nullable = false, unique = true)
+    private String token;
 
     // @Column 어노테이션을 명시적으로 지정하지 않아도, JPA는 엔티티 클래스의 필드를 기본적으로 데이터베이스 테이블의 컬럼으로 매핑합니다.
     private String email;           // 이메일(ID)

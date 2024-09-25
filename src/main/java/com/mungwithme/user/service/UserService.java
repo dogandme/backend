@@ -4,6 +4,7 @@ import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
 import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
@@ -56,6 +57,7 @@ public class UserService {
                 });
 
         User newUser = User.builder()
+                .token(TokenUtils.getToken())
                 .email(userSignUpDto.getEmail())
                 .password(userSignUpDto.getPassword())
                 .role(Role.NONE)
