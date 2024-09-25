@@ -15,6 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.util.HashMap;
 
+/**
+ *
+ *질문) 비회원도 접근 가능?
+ */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
