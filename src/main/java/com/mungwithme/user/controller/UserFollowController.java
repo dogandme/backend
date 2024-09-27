@@ -30,15 +30,15 @@ public class UserFollowController {
     /**
      * 유저 이메일을 이용하여 유저 팔로잉
      *
-     * @param followingEmail
+     * @param followingNickname
      *     팔로잉을 당할 유저
      * @return
      */
-    @PostMapping("/my-followings/{following-email}")
-    public ResponseEntity<CommonBaseResult> createFollowing(@PathVariable(name = "following-email") String followingEmail,
+    @PostMapping("/my-followings/{following-nickname}")
+    public ResponseEntity<CommonBaseResult> createFollowing(@PathVariable(name = "following-nickname") String followingNickname,
         HttpServletRequest request)
         throws IOException {
-        userFollowService.addFollowing(followingEmail);
+        userFollowService.addFollowing(followingNickname);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "follow.save.success", request.getLocale());
 
     }
@@ -46,15 +46,15 @@ public class UserFollowController {
     /**
      * 내가 팔로잉을 한 유저를 언팔로우
      *
-     * @param followingEmail
+     * @param followingNickname
      *     팔로잉을 당한 유저
      * @return
      * @throws IOException
      */
-    @DeleteMapping("/my-followings/{following-email}")
+    @DeleteMapping("/my-followings/{following-nickname}")
     public ResponseEntity<CommonBaseResult> deleteFollowing(
-        @PathVariable(name = "following-email") String followingEmail, HttpServletRequest request) throws IOException {
-        userFollowService.removeFollow(followingEmail);
+        @PathVariable(name = "following-nickname") String followingNickname, HttpServletRequest request) throws IOException {
+        userFollowService.removeFollow(followingNickname);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "follow.remove.success",
             request.getLocale());
 
@@ -63,14 +63,14 @@ public class UserFollowController {
     /**
      * 나의 팔로우 리스트에서 나를 팔로우 하는 사용자를 강제 언팔
      *
-     * @param followerEmail
+     * @param followerNickname
      *     팔로워 리스트에서 삭제될 팔로워 유저
      * @return
      */
-    @DeleteMapping("/my-followers/{follower-email}")
+    @DeleteMapping("/my-followers/{follower-nickname}")
     public ResponseEntity<CommonBaseResult> deleteFollowers(
-        @PathVariable(name = "follower-email") String followerEmail, HttpServletRequest request) throws IOException {
-        userFollowService.forceUnfollow(followerEmail);
+        @PathVariable(name = "follower-nickname") String followerNickname, HttpServletRequest request) throws IOException {
+        userFollowService.forceUnfollow(followerNickname);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "follow.unfollow.success",
             request.getLocale());
 
