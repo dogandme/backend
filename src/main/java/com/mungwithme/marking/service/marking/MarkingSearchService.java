@@ -46,7 +46,7 @@ public class MarkingSearchService {
      * @return
      */
 
-    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDTO locationBoundsDTO) {
+    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDto locationBoundsDto) {
         GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
             locationBoundsDto.getNorthRightLng());
         GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),

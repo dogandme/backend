@@ -47,9 +47,9 @@ public class MarkingSearchController {
 //    @NoneAuthorize
     @GetMapping
 
-    public ResponseEntity<CommonBaseResult> getMarkingsById(@ModelAttribute @Validated LocationBoundsDTO locationBoundsDTO)
+    public ResponseEntity<CommonBaseResult> getMarkingsById(@ModelAttribute @Validated LocationBoundsDto locationBoundsDto)
         throws IOException {
-        List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDTO);
+        List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
 
