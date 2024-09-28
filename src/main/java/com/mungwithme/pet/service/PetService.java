@@ -7,10 +7,12 @@ import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -25,11 +27,11 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class PetService {
 
     private final PetRepository petRepository;
-    private final UserRepository userRepository;
-    private  final UserService userService;
+    private  final UserQueryService userQueryService;
     private final FileStore fileStore;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
@@ -39,11 +41,10 @@ public class PetService {
      * 애완동물 정보 저장 및 USER권한 토큰 발행
      * @param petSignUpDto 애완동물정보
      */
+    @Transactional
     public User addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
-
         // UserDetails에서 user 엔터티 조회
-        User user = userService.findCurrentUser();
-
+        User user = userQueryService.findCurrentUser();
         // 강쥐 프로필 이미지 업로드
         List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
 
@@ -61,7 +62,6 @@ public class PetService {
         // 기존에 USER 권한이 아니었을 경우 USER 권한으로 변경
         if (!user.getRole().equals(Role.USER)) {
             user.setRole(Role.USER);
-            userRepository.save(user);
         }
 
         return user;
@@ -89,6 +89,7 @@ public class PetService {
 
         return saveName;
     }
+
 
     /**
      * 날짜 폴더 생성

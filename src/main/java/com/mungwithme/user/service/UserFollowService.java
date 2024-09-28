@@ -18,7 +18,7 @@ public class UserFollowService {
 
 
     private final UserFollowRepository userFollowRepository;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     /**
      * 팔로우 추가
@@ -28,9 +28,9 @@ public class UserFollowService {
     public void addFollowing(String followingNickname) {
 
         // 요청 사용자
-        User followerUser = userService.findCurrentUser();
+        User followerUser = userQueryService.findCurrentUser();
 
-        User followingUser = userService.findByNickname(followingNickname)
+        User followingUser = userQueryService.findByNickname(followingNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
 
 
@@ -75,9 +75,9 @@ public class UserFollowService {
     @Transactional
     public void forceUnfollow(String followerNickname) {
         // 요청 사용자
-        User followingUser = userService.findCurrentUser();
+        User followingUser = userQueryService.findCurrentUser();
 
-        User followerUser = userService.findByNickname(followerNickname)
+        User followerUser = userQueryService.findByNickname(followerNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         removeFollow(followerUser, followingUser);
     }
@@ -92,9 +92,9 @@ public class UserFollowService {
     @Transactional
     public void removeFollow(String followingNickname) {
         // 요청 사용자
-        User followerUser = userService.findCurrentUser();
+        User followerUser = userQueryService.findCurrentUser();
 
-        User followingUser = userService.findByNickname(followingNickname)
+        User followingUser = userQueryService.findByNickname(followingNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         removeFollow(followerUser, followingUser);
     }

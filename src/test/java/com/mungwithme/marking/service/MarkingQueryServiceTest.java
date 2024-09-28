@@ -1,7 +1,5 @@
 package com.mungwithme.marking.service;
 
-import com.mungwithme.marking.model.dto.request.MarkingTestDto;
-import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
@@ -9,7 +7,7 @@ import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.service.UserService;
+import com.mungwithme.user.service.UserQueryService;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -24,7 +22,7 @@ class MarkingQueryServiceTest {
     @Autowired
     MarkingQueryRepository markingQueryRepository;
     @Autowired
-    UserService userService;
+    UserQueryService userQueryService;
 
     @Test
     void findById() {
@@ -64,8 +62,8 @@ class MarkingQueryServiceTest {
 
     @Test
     public void findAllMarkersByUser() {
-        User myUser = userService.findByEmail("lim642666@gmail.com").orElse(null);
-        User profileUser = userService.findByNickname("sky").orElse(null);
+        User myUser = userQueryService.findByEmail("lim642666@gmail.com").orElse(null);
+        User profileUser = userQueryService.findByNickname("sky").orElse(null);
 
         Set<MarkingQueryDto> allMarkersByUser = markingQueryService.findAllMarkersByUser(profileUser, false, false);
 
@@ -115,7 +113,7 @@ class MarkingQueryServiceTest {
         double southBottomLat = 35.520204401760736;
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
-        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
 
         System.out.println("체크!");
 
@@ -145,7 +143,7 @@ class MarkingQueryServiceTest {
     @Test
     public void findNearbyMarkers3() {
 
-//        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+//        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
 //        List<MarkingTestDto> nearbyMarkers = markingQueryRepository.findNearbyMarkers(false, false, user);
 //        for (MarkingTestDto dto  : nearbyMarkers) {
 //            Marking marking = dto.getMarking();
@@ -171,7 +169,7 @@ class MarkingQueryServiceTest {
     @Test
     public void findNearbyMarkers4() {
 //
-//        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+//        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
 //        markingQueryRepository.findNearbyMarkers(false, false, user);
     }
 
@@ -180,7 +178,7 @@ class MarkingQueryServiceTest {
     public void findAllLikedMarkersByUser() {
 
         // given
-        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
 
         Set<MarkingQueryDto> allLikedMarkersByUser = markingQueryService.findAllLikedMarkersByUser(user, false, false);
@@ -201,7 +199,7 @@ class MarkingQueryServiceTest {
     public void findAllSavedMarkersByUser() {
 
         // given
-        User user = userService.findByEmail("2221325@naver.com").orElse(null);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
 
         Set<MarkingQueryDto> allLikedMarkersByUser = markingQueryService.findAllSavedMarkersByUser(user, false, false);

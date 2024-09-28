@@ -1,15 +1,25 @@
 package com.mungwithme.user.service;
 
 
+import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.repository.UserQueryRepository;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ *
+ * user select 문을 모아 놓은 service
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -17,22 +27,100 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserQueryService {
 
 
-/*
-    public User findOne() {
-        Authentication authentication = getAuthentication();
+    private final UserQueryRepository userQueryRepository;
+
+    /**
+     * SecurityContextHolder > UserDetails에서 User 조회
+     * 비회원이라도 예외처리를 발생 시키지 않고 null 값을 반환한다.
+     *
+     * 기존 findCurrentUser 는 unCheckedException 를 발생시켰는데
+     * try-catch 문으로 예외처리를 하더라도 rollback 되버리는 현상이 발생한다
+     * Transactional(readOnly = true) 해도 마찬가지이다.
+     * 그리고 데이터를 받을 수 없게 된다
+     *
+     * 비회원이 접근 할 수 있는 API 에서는 null 값으로 처리 하여서
+     * 회원인지 비회원인지 구분하자
+     *
+     * @return
+     */
+    public User findCurrentUser_v2() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String role = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority
+        ).findFirst().orElse(null);
+
+        if (role == null || role.equals(Role.ANONYMOUS.getAuthority())) {
+            return null;
+        }
+
         UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-
-
-        return
+        String email = userDetails.getUsername();
+        return findByEmail(email).orElse(null);
     }
 
-    private static Authentication getAuthentication() {
+
+    /**
+     * SecurityContextHolder > UserDetails에서 User 조회
+     * @return
+     */
+    public User findCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String authorities = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority
-        ).findFirst().orElse(null);
-        if (authorities == null) {
-            throw new IllegalArgumentException("ex) user notFind");
+
+        Object principal = authentication.getPrincipal();
+        String email = null;
+        if (principal instanceof UserDetails) {
+            email = ((UserDetails) principal).getUsername();
+        } else {
+            email = principal.toString();
         }
-        return authentication;
-    }*/
+
+        if (email != null) {
+            return userQueryRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+        } else {
+            throw new ResourceNotFoundException("error.notfound.user");
+        }
+    }
+
+
+    /**
+     * 이메일을 이용하여 회원 조회
+     *
+     * @param id id
+     * @return 조회된 회원
+     */
+    public Optional<User> findById(long id) {
+        return userQueryRepository.findById(id);
+    }
+
+    /**
+     * 이메일을 이용하여 회원 조회
+     *
+     * @param email 이메일
+     * @return 조회된 회원
+     */
+    public Optional<User> findByEmail(String email) {
+        return userQueryRepository.findByEmail(email);
+    }
+
+
+    /**
+     * 이메일을 이용하여 일반 회원 조회
+     * @param email 이메일
+     * @return 조회된 회원
+     */
+    public Optional<User> findByEmailAndSocialTypeIsNull(String email) {
+        return userQueryRepository.findByEmailAndSocialTypeIsNull(email);
+    }
+
+    /**
+     * 닉네임을 이용하여 회원 조회
+     * @param nickname 닉네임
+     * @return 조회된 회원
+     */
+    public Optional<User> findByNickname(String nickname) {
+        return userQueryRepository.findByNickname(nickname);
+    }
+
+
+
 }

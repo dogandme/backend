@@ -9,21 +9,17 @@ import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
+import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -35,6 +31,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserQueryService userQueryService;
     private final JwtService jwtService;
     private final AddressRepository addressRepository;
 
@@ -50,7 +47,7 @@ public class UserService {
         UserResponseDto userResponseDto = new UserResponseDto();
 
         // 이메일 중복 확인
-        userRepository.findByEmail(userSignUpDto.getEmail())
+        userQueryService.findByEmail(userSignUpDto.getEmail())
                 .ifPresent(user -> {
                     throw new DuplicateResourceException("error.duplicate.email");
                 });
@@ -74,7 +71,7 @@ public class UserService {
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
 
-        userRepository.findByEmail(email)
+        userQueryService.findByEmail(email)
                 .ifPresent(user -> {
                     user.updateRefreshToken(refreshToken);
                     userRepository.saveAndFlush(user);
@@ -100,7 +97,7 @@ public class UserService {
                 });
 
         // 추가 정보 저장
-        return userRepository.findById(userSignUpDto.getUserId())
+        return userQueryService.findById(userSignUpDto.getUserId())
                 .map(user -> {
                     // 요청 데이터에서 region ID 리스트를 가져옴
                     List<Long> regionIds = userSignUpDto.getRegion();
@@ -123,15 +120,8 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
     }
 
-    /**
-     * 이메일을 이용하여 회원 조회
-     *
-     * @param email 이메일
-     * @return 조회된 회원
-     */
-    public Optional<User> findByEmail(String email) {
-         return userRepository.findByEmail(email);
-    }
+
+
 
     /**
      * 이메일을 이용하여 비밀번호 업데이트
@@ -140,83 +130,60 @@ public class UserService {
      */
     @Transactional
     public void editPasswordByEmail(String email, String password) {
-        findByEmail(email) // 이메일을 이용하여 회원 조회
-                .map(user -> {
-                    user.setPassword(password);
-                    user.passwordEncode(passwordEncoder);
-                    return userRepository.save(user);   // 비밀번호 업데이트
-                });
+        userQueryService.findByEmail(email) // 이메일을 이용하여 회원 조회
+            .ifPresent(user -> user.updatePw(password, passwordEncoder));
     }
 
     /**
-     * 이메일을 이용하여 일반 회원 조회
-     * @param email 이메일
-     * @return 조회된 회원
-     */
-    public Optional<User> findByEmailAndSocialTypeIsNull(String email) {
-        return userRepository.findByEmailAndSocialTypeIsNull(email);
-    }
-
-    /**
-     * 닉네임을 이용하여 회원 조회
-     * @param nickname 닉네임
-     * @return 조회된 회원
-     */
-    public Optional<User> findByNickname(String nickname) {
-        return userRepository.findByNickname(nickname);
-    }
-
-
-    /**
-     * SecurityContextHolder > UserDetails에서 User 조회
-     * 비회원이라도 예외처리를 발생 시키지 않고 null 값을 반환한다.
+     * 비밀번호 변경 API
      *
-     * 기존 findCurrentUser 는 unCheckedException 를 발생시켰는데
-     * try-catch 문으로 예외처리를 하더라도 rollback 되버리는 현상이 발생한다
-     * Transactional(readOnly = true) 해도 마찬가지이다.
-     * 그리고 데이터를 받을 수 없게 된다
      *
-     * 비회원이 접근 할 수 있는 API 에서는 null 값으로 처리 하여서
-     * 회원인지 비회원인지 구분하자
-     *
-     * @return
+     * @param userPwUpdateDto
      */
-    public User findCurrentUser_v2() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        String role = authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority
-        ).findFirst().orElse(null);
-
-        if (role == null || role.equals(Role.ANONYMOUS.getAuthority())) {
-            return null;
+    @Transactional
+    public void editPassword(UserPwUpdateDto userPwUpdateDto) {
+        User currentUser = userQueryService.findCurrentUser();
+        if (currentUser.getSocialType() != null) {
+            throw new IllegalArgumentException("error.arg.social.pw");
         }
 
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        String email = userDetails.getUsername();
-        return findByEmail(email).orElse(null);
+        String password = userPwUpdateDto.getPassword();
+
+        String newPw = userPwUpdateDto.getNewPw();
+        String newPwChk = userPwUpdateDto.getNewPwChk();
+
+        boolean matches = passwordEncoder.matches(password, currentUser.getPassword());
+
+        // 현재 비밀번호와 변경하려는 비밀번호가 같은 경우
+        // 비밀번호가 일치하지 않는 경우
+        // 변경 비밀번호와 변경확인 비밀번호 입력값이 다른 경우
+        if (!newPw.equals(newPwChk) || !matches || newPw.equals(password)) {
+            throw new IllegalArgumentException("error.arg.change.pw");
+        }
+
+        // 비밀번호 업데이트
+        currentUser.updatePw(newPw,passwordEncoder);
     }
 
-
     /**
-     * SecurityContextHolder > UserDetails에서 User 조회
-     * @return
+     * 유저 탈퇴 API
+     *
+     *
+     * 펫 삭제
+     *
+     * address 삭제
+     * 마킹 삭제
+     * 저장 삭제
+     * 좋아요 삭제
+     *
      */
-    public User findCurrentUser() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    @Transactional
+    public void removeUsers() {
+        User currentUser = userQueryService.findCurrentUser();
 
-        Object principal = authentication.getPrincipal();
-        String email = null;
-        if (principal instanceof UserDetails) {
-            email = ((UserDetails) principal).getUsername();
-        } else {
-            email = principal.toString();
-        }
 
-        if (email != null) {
-            return userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
-        } else {
-            throw new ResourceNotFoundException("error.notfound.user");
-        }
+
+
     }
 
 

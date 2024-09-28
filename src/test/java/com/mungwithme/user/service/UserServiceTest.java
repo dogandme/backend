@@ -8,10 +8,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 class UserServiceTest {
 
     @Autowired
-    UserService userService;
+    UserQueryService userQueryService;
     @Test
     void getCurrentUser_V2() {
-        userService.findCurrentUser_v2();
+        userQueryService.findCurrentUser_v2();
 
     }
 }

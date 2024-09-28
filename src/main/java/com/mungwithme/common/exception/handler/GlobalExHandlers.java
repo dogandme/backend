@@ -17,6 +17,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -81,6 +82,14 @@ public class GlobalExHandlers {
         return baseResponse.sendErrorResponse(HttpStatus.NOT_FOUND.value(), message);
     }
 
+
+
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    protected ResponseEntity<CommonBaseResult> handleAuthorizationDeniedException(AuthorizationDeniedException e,
+        HttpServletRequest request) throws IOException {
+        String message = getMessage("error.forbidden", null, request.getLocale());
+        return baseResponse.sendErrorResponse(HttpStatus.FORBIDDEN.value(), message);
+    }
 
 
 

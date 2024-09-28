@@ -74,6 +74,19 @@ public class User extends BaseTimeEntity {
         this.password = passwordEncoder.encode(this.password);
     }
 
+
+    /**
+     * 비밀번호 업데이트
+     *
+     * @param user
+     * @param password
+     * @param passwordEncoder
+     * @return
+     */
+    public void updatePw( String password, PasswordEncoder passwordEncoder) {
+        this.setPassword(passwordEncoder.encode(password));
+    }
+
     /**
      * 리프레시토큰 업데이트
      *

@@ -145,18 +145,9 @@ public class JwtService {
         try {
             // accessToken을 검증하고 유효하지 않다면 예외 발생
             // 토큰 검증기 생성
-            Optional<Map<String, Claim>> claims = Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
+            return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                 .build()
                 .verify(accessToken).getClaims());
-            Map<String, Claim> stringClaimMap = claims.get();
-
-            for (String s : stringClaimMap.keySet()) {
-                log.info("key = {}", s);
-                Claim claim = stringClaimMap.get(s);
-                System.out.println("claim.asString() = " + claim.asString());
-//                System.out.println("claim.asList() = " + claim.asList(String.class));
-            }
-            return claims;
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
 //            return Optional.empty();

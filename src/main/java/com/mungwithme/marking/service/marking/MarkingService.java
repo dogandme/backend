@@ -16,6 +16,7 @@ import com.mungwithme.marking.repository.impl.MarkImageRepositoryImpl;
 import com.mungwithme.marking.repository.marking.MarkingRepository;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -41,7 +42,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class MarkingService {
 
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
 
     private final MarkingQueryService markingQueryService;
     private final FileStore fileStore;
@@ -64,7 +65,7 @@ public class MarkingService {
     @Transactional
     public void addMarking(MarkingAddDto markingAddDto, List<MultipartFile> images, boolean isTempSaved) {
         imageSizeCheck(images, isTempSaved);
-        User user = userService.findCurrentUser();
+        User user = userQueryService.findCurrentUser();
 
         Marking marking = Marking.create(markingAddDto, user);
 
@@ -96,7 +97,7 @@ public class MarkingService {
      */
     @Transactional
     public void removeMarking(MarkingRemoveDto markingRemoveDto, boolean isTempSaved) {
-        User user = userService.findCurrentUser();
+        User user = userQueryService.findCurrentUser();
 
         // 마킹 query
         Marking marking = markingQueryService.findById(markingRemoveDto.getId(), false, isTempSaved);
@@ -146,7 +147,7 @@ public class MarkingService {
         // 마킹 query
         Marking marking = markingQueryService.findById(markingModifyDto.getId(), false, isTempSaved);
 
-        User user = userService.findCurrentUser();
+        User user = userQueryService.findCurrentUser();
 
         // Email 비교 값으로 권한 확인
         if (!user.getEmail().equals(marking.getUser().getEmail())) {
@@ -236,7 +237,7 @@ public class MarkingService {
 
 
     public MarkingInfoResponseDto findMarkingInfoResponseDto(Long id, boolean isDeleted, boolean isTempSaved) {
-        User user = userService.findCurrentUser();
+        User user = userQueryService.findCurrentUser();
 
         MarkingInfoResponseDto markingInfoResponseDto = markingQueryService.findMarkingInfoDto(user, id, isDeleted,
             isTempSaved);

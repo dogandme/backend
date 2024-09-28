@@ -10,7 +10,7 @@ import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
-import com.mungwithme.user.service.UserService;
+import com.mungwithme.user.service.UserQueryService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class LikesService {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
     private final UserFollowService userFollowService;
     private final LikesRepository likesRepository;
@@ -40,7 +40,7 @@ public class LikesService {
      */
     @Transactional
     public void addLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
 
         User postUser = null;
         boolean isOwner = false;
@@ -91,7 +91,7 @@ public class LikesService {
      */
     @Transactional
     public void removeLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
 
         Likes likes = findLikes(currentUser, contentType, contentId);
 
