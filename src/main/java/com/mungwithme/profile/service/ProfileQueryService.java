@@ -5,6 +5,7 @@ import com.mungwithme.likes.service.LikesQueryService;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.marking.MarkingTempService;
+import com.mungwithme.marking.service.markingSaves.MarkingSavesQueryService;
 import com.mungwithme.pet.service.PetQueryService;
 import com.mungwithme.profile.model.dto.response.ProfileResponseDto;
 import com.mungwithme.user.model.entity.User;
@@ -13,10 +14,7 @@ import com.mungwithme.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +26,7 @@ public class ProfileQueryService {
     private final UserFollowsQueryService userFollowsQueryService;
     private final LikesQueryService likesQueryService;
     private final MarkingQueryService markingQueryService;
+    private final MarkingSavesQueryService markingSavesQueryService;
 
     /**
      * 프로필 대시보드 조회
@@ -51,6 +50,7 @@ public class ProfileQueryService {
             profileResponseDto.setSocialType(user.getSocialType());           // 소셜 로그인 타입
             profileResponseDto.setTempCnt(
                     markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
+            profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
         }
 
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
@@ -61,11 +61,13 @@ public class ProfileQueryService {
 
         // 마킹 목록
         Set<MarkingQueryDto> markingQueryDtos = markingQueryService.findAllMarkersByUser(user, false, false);
-        List<Map<String, Object>> markings = markingQueryDtos.stream()
+        List<Map<String, Object>> markings = Optional.ofNullable(markingQueryDtos)
+                .orElseGet(Collections::emptySet)
+                .stream()
                 .map(dto -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", dto.getMarking().getId());
-                    map.put("images", dto.getMarking().getImages());
+                    map.put("images", dto.getMarking().getImages().isEmpty() ? null : dto.getMarking().getImages().iterator().next()); // 가장 최근에 등록된 이미지 불러오기
                     return map;
                 })
                 .toList();

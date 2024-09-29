@@ -13,6 +13,6 @@ public interface LikesQueryRepository extends JpaRepository<Likes, Long> {
     @Query("SELECT distinct l.contentId FROM Likes l "
             + "where l.contentType = :contentType "
             + "and l.user.id = :userId")
-    List<Long> findByUserIdAndContentType(@Param("contentType") Long userId,
+    List<Long> findAllByUserIdAndContentType(@Param("contentType") Long userId,
                                           @Param("userId") ContentType contentType);
 }
