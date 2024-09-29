@@ -14,7 +14,7 @@ class AddressSearchServiceTest {
 
 
     @Autowired
-    AddressSearchService addressSearchService;
+    AddressQueryService addressSearchService;
     @Test
     void fetchListBySubDist() {
 

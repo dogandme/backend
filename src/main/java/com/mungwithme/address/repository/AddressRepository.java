@@ -2,6 +2,7 @@ package com.mungwithme.address.repository;
 
 import com.mungwithme.address.model.entity.Address;
 import java.util.List;
+import java.util.Set;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 //    @Query(value = "select a from Address a where a.subDistrict like :subDistrict ")
 //    Page<Address> findAllBySubDist(@Param("subDistrict") String subDistrict, Pageable pageable);
 
+    List<Address> findAllByIdIn(Set<Long> ids);
 
     //
     //    문자열을 단어 단위로 분리한 후 검색 규칙을 붙여서 검색을 할 수 있습니다. 행을 정렬하지 않습니다. 조건을 만족하면 반환하는 식입니다.

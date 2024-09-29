@@ -3,6 +3,8 @@ package com.mungwithme.user.repository;
 import com.mungwithme.user.model.entity.User;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface UserQueryRepository extends JpaRepository<User, Long> {
 
@@ -15,7 +17,17 @@ public interface UserQueryRepository extends JpaRepository<User, Long> {
      * @param email
      * @return
      */
-    Optional<User> findByEmail(String email);
+    /**
+     *
+     * 유저정보를 갖고올때 Address 도 같이 갖고옴
+     * @param email
+     * @return
+     */
+    Optional<User> findByEmail( String email);
+
+
+    @Query("select u from User u join fetch u.regions where u.email =:email")
+    Optional<User> findByEmailWithAddress(@Param("email") String email);
 
     Optional<User> findByRefreshToken(String refreshToken);
 

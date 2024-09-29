@@ -3,7 +3,7 @@ package com.mungwithme.address.controller;
 
 import com.mungwithme.address.model.dto.request.AddressCoordinatesDto;
 import com.mungwithme.address.model.dto.request.AddressSearchDto;
-import com.mungwithme.address.service.AddressSearchService;
+import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +25,7 @@ import java.io.IOException;
 public class AddressController {
 
 
-    private final AddressSearchService addressSearchService;
+    private final AddressQueryService addressSearchService;
     private final BaseResponse baseResponse;
 
 

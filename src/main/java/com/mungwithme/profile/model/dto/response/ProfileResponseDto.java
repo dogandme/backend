@@ -1,8 +1,7 @@
 package com.mungwithme.profile.model.dto.response;
 
-import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
-import com.mungwithme.user.model.SocialType;
+import com.mungwithme.user.model.enums.SocialType;
 import lombok.Data;
 
 import java.util.List;

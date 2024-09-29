@@ -5,13 +5,10 @@ import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.security.jwt.service.JwtService;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserQueryService;
-import com.mungwithme.user.service.UserService;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,15 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 @Slf4j
 @RequiredArgsConstructor

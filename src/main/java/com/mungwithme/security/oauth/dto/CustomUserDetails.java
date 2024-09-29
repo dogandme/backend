@@ -1,6 +1,6 @@
 package com.mungwithme.security.oauth.dto;
 
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;

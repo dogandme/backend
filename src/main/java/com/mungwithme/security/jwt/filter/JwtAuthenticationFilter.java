@@ -1,14 +1,11 @@
 package com.mungwithme.security.jwt.filter;
 
-import com.auth0.jwt.interfaces.Claim;
 import com.mungwithme.security.jwt.service.JwtService;
-import com.mungwithme.user.model.Role;
-import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.model.enums.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

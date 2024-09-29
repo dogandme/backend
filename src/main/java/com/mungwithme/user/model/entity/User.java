@@ -2,17 +2,15 @@ package com.mungwithme.user.model.entity;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.base.BaseTimeEntity;
-import com.mungwithme.pet.model.entity.Pet;
-import com.mungwithme.user.model.Gender;
-import com.mungwithme.user.model.Role;
-import com.mungwithme.user.model.SocialType;
+import com.mungwithme.user.model.enums.AgeGroup;
+import com.mungwithme.user.model.enums.Gender;
+import com.mungwithme.user.model.enums.Role;
+import com.mungwithme.user.model.enums.SocialType;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.Date;
 import java.util.Set;
 
 /**
@@ -24,7 +22,8 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(indexes = {@Index(name = "idx_user_email", columnList = "email", unique = true),@Index(name = "idx_user_token", columnList = "token", unique = true)})
+@Table(indexes = {@Index(name = "idx_user_email", columnList = "email", unique = true),
+    @Index(name = "idx_user_token", columnList = "token", unique = true)})
 public class User extends BaseTimeEntity {
 
     @Id
@@ -59,10 +58,15 @@ public class User extends BaseTimeEntity {
     // oAuth에서 제공해주는 refreshToken 기한 1년
     private String oAuthRefreshToken;
 
+
+    // 닉네임 변경시 한달 후의 날짜를 저장
+    private LocalDateTime nickExModDt;
+
+
     private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
-    
+
     @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
         name = "user_address",
@@ -89,7 +93,7 @@ public class User extends BaseTimeEntity {
      * @param passwordEncoder
      * @return
      */
-    public void updatePw( String password, PasswordEncoder passwordEncoder) {
+    public void updatePw(String password, PasswordEncoder passwordEncoder) {
         this.setPassword(passwordEncoder.encode(password));
     }
 
@@ -128,6 +132,36 @@ public class User extends BaseTimeEntity {
      */
     public void updatePersistLogin(Boolean persistLogin) {
         this.persistLogin = persistLogin;
+    }
+
+    public void addAllRegions(Set<Address> regions) {
+        this.regions.addAll(regions);
+    }
+    public void removeAllRegions(Set<Address> regions) {
+        this.regions.removeAll(regions);
+    }
+
+    /**
+     * oAuth 리프레시토큰 업데이트
+     *
+     * @param nickname
+     *     신규 리프레시토큰
+     */
+    public void updateNickname(String nickname) {
+        this.nickname = nickname;
+    }
+
+
+    public void updateNickModDt(LocalDateTime nickExModDt) {
+        this.nickExModDt = nickExModDt;
+    }
+
+    public void updateGender(Gender gender) {
+        this.gender = gender;
+    }
+
+    public void updateAge(AgeGroup age) {
+        this.age = age.getAge();
     }
 
 }
