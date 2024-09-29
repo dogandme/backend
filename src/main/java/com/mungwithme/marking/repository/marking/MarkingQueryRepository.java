@@ -155,5 +155,5 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("userId") long userId);
 
 
-
+    int countByUserId(Long userId);
 }

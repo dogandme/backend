@@ -185,7 +185,13 @@ public class MarkingQueryService {
             isDeleted, isTempSaved);
     }
 
-
-
+    /**
+     * 유저의 마킹 수 조회
+     * @param userId 유저PK
+     * @return 마킹 수
+     */
+    public int countMarkingByUserId(Long userId) {
+        return markingQueryRepository.countByUserId(userId);
+    }
 
 }

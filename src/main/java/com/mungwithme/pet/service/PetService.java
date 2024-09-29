@@ -66,45 +66,4 @@ public class PetService {
 
         return user;
     }
-
-    /**
-     * 강쥐 프로필 이미지 업로드
-     * @param profile 업로드 할 파일
-     */
-    private String editFile(MultipartFile profile) throws IOException {
-
-        // 이미지 파일만 업로드
-        if (!Objects.requireNonNull(profile.getContentType()).startsWith("image")) {
-            // Todo 예외처리 필요
-        }
-
-        String folderPath = makeFolder();           // 날짜 폴더 생성
-        String uuid = UUID.randomUUID().toString(); // UUID 생성
-
-        String saveName = uploadPath + File.separator + folderPath + File.separator + uuid + "_" + profile.getName();
-        Path savePath = Paths.get(saveName);
-
-        // 실제 파일 저장
-        profile.transferTo(savePath);
-
-        return saveName;
-    }
-
-
-    /**
-     * 날짜 폴더 생성
-     * @return 폴더 경로
-     */
-    private String makeFolder() {
-        String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        String folderPath = str.replace("/", File.separator);
-
-        File uploadPathFolder = new File(uploadPath, folderPath);
-
-        if (!uploadPathFolder.exists()) {
-            boolean mkdirs = uploadPathFolder.mkdirs();
-        }
-
-        return folderPath;
-    }
 }
