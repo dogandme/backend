@@ -103,7 +103,11 @@ public class MarkingInfoResponseDto {
     }
 
     public void updatePet(Pet pet) {
-        this.pet = new PetInfoResponseDto(pet.getId(), pet.getName(), pet.getProfile());
+        this.pet = PetInfoResponseDto.builder()
+                .petId(pet.getId())
+                .name(pet.getName())
+                .profile(pet.getProfile())
+                .build();
     }
 
 

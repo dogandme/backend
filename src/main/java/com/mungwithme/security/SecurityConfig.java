@@ -99,7 +99,7 @@ public class SecurityConfig {
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
-                    .requestMatchers("/users/pets")
+                    .requestMatchers("/users/pets", "/profile")
                     .hasAnyRole(
                         Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )

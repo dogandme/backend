@@ -49,8 +49,6 @@ public class UserController {
     private final UserQueryService userQueryService;
     private final BaseResponse baseResponse;
     private final EmailService emailService;
-    private final RestTemplate restTemplate;
-    private final JwtService jwtService;
 
     /**
      * 회원가입 1단계 : [일반] 이메일/비밀번호 저장

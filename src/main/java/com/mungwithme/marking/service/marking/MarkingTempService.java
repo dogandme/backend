@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class MarkingTempService {
 
     private final MarkingService markingService;
+    private final MarkingQueryService markingQueryService;
 
     /**
      * 유저가 작성한 마킹 임시 저장
@@ -63,5 +64,14 @@ public class MarkingTempService {
         return markingService.findMarkingInfoResponseDto(
             id, isDeleted,
             isTempSaved);
+    }
+
+    /**
+     * 유저의 임시 저장 마킹 수 조회
+     * @param userId 유저PK
+     * @return 임시 저장 마킹 수
+     */
+    public int countTempMarkingByUserId(Long userId) {
+        return markingQueryService.countMarkingByUserId(userId);
     }
 }
