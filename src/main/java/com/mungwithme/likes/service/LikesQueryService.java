@@ -19,6 +19,6 @@ public class LikesQueryService {
      * @return 좋아요 마킹 id 목록
      */
     public List<Long> findAllLikesIdsByUserId(Long userId) {
-        return likesQueryRepository.findByUserIdAndContentType(userId, ContentType.MARKING);
+        return likesQueryRepository.findAllByUserIdAndContentType(userId, ContentType.MARKING);
     }
 }

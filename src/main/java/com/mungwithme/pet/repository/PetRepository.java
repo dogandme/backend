@@ -8,9 +8,4 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 public interface PetRepository extends JpaRepository<Pet, Long> {
-
-
-    @Query("select p from Pet p where p.user.id=:userId")
-    Optional<Pet> findByUser(@Param("userId") long userId);
-
 }

@@ -36,6 +36,7 @@ public class PetService {
     private final PetRepository petRepository;
     private  final UserQueryService userQueryService;
     private final FileStore fileStore;
+    private final PetQueryService petQueryService;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
@@ -79,7 +80,7 @@ public class PetService {
      */
     @Transactional
     public void deletePet(User user) {
-        Pet pet = findByUser(user).orElse(null);
+        Pet pet = petQueryService.findByUser(user).orElse(null);
 
         if (pet != null) {
 
@@ -89,9 +90,5 @@ public class PetService {
             fileStore.deleteFile(FileStore.PET_DIR,profile);
 
         }
-    }
-
-    public Optional<Pet> findByUser(User user) {
-        return petRepository.findByUser(user.getId());
     }
 }
