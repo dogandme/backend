@@ -114,7 +114,7 @@ public class MarkingService {
             throw new AccessDeniedException("error.forbidden.remove");
         }
 
-        Set<MarkImage> images = marking.getImages();
+        List<MarkImage> images = marking.getImages();
 
         fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
 

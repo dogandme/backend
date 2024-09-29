@@ -29,7 +29,7 @@ class MarkingQueryServiceTest {
 
         Marking byId = markingQueryService.findById(21, false, true);
 
-        Set<MarkImage> images = byId.getImages();
+        Set<MarkImage> images = (Set<MarkImage>) byId.getImages();
 
         for (MarkImage image : images) {
             System.out.println("image = " + image.getImageUrl());
