@@ -4,7 +4,9 @@ import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
 import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.util.RegexPatterns;
 import com.mungwithme.common.util.TokenUtils;
+import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
 import com.mungwithme.security.jwt.service.JwtService;
@@ -14,6 +16,7 @@ import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.SocialType;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
+import com.mungwithme.user.model.dto.request.UserDeleteDto;
 import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
@@ -21,6 +24,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.util.Optional;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +34,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -43,6 +48,8 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
     private final MarkingService markingService;
+    private final LikesService likesService;
+
 
     private final PetService petService;
     private final JwtService jwtService;
@@ -200,7 +207,7 @@ public class UserService {
      * 주소 삭제
      */
     @Transactional
-    public void removeUser() {
+    public void removeUser(UserDeleteDto userDeleteDto) {
 
         // 탈퇴 할 유저
         User currentUser = userQueryService.findCurrentUser();
@@ -209,10 +216,27 @@ public class UserService {
         // 연동 해제
         if (currentUser.getSocialType() != null) {
             oAuth2Service.disconnectOAuth2Account(currentUser.getSocialType(), currentUser.getOAuthRefreshToken());
+        } else {
+
+            String password = userDeleteDto.getPassword();
+            // 빈값인지 확인
+            if (!StringUtils.hasText(password)) {
+                throw new IllegalArgumentException("error.arg.pw");
+            }
+
+            boolean matches = passwordEncoder.matches(password, currentUser.getPassword());
+            // 일치하지 않으면 예외 발생
+            if (!matches) {
+                throw new IllegalArgumentException("error.arg.auth.pw");
+            }
+
         }
 
         // marking 에 관련된 모든걸 삭제
         markingService.removeAllMarkingsByUser(currentUser);
+
+        // 좋아요 전부 삭제
+        likesService.removeAllByUser(currentUser);
 
         // 팔로우 삭제
         userFollowService.removeAllByUser(currentUser);
@@ -257,8 +281,6 @@ public class UserService {
 
     @Transactional
     public void removeUser(User user) {
-        //pet 삭제
-
         userRepository.delete(user);
     }
 

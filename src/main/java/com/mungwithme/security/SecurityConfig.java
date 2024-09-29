@@ -89,12 +89,12 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/", "/auth", "/users", "/users/auth/**", "/users/password",
                         "/oauth2/**", "/v3/api-docs/**", "/swagger-ui/**",
-                        "/swagger-ui.html", "/markings/search", "/health"
+                        "/swagger-ui.html", "/markings/search", "/health","/markings/image/**"
                     ).permitAll()
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**","/users/me"
+                        "/addresses", "/addresses/**","/users/me","/users/profile/password"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )

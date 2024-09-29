@@ -83,7 +83,6 @@ public class PetService {
 
         if (pet != null) {
 
-            log.info("pet.getName() = {}", pet.getName());
             String profile = pet.getProfile();
 //            petRepository.delete(pet);
             // Pet 이미지 삭제
@@ -93,6 +92,6 @@ public class PetService {
     }
 
     public Optional<Pet> findByUser(User user) {
-        return petRepository.findByUser(user);
+        return petRepository.findByUser(user.getId());
     }
 }

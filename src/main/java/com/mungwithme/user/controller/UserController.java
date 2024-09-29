@@ -12,6 +12,7 @@ import com.mungwithme.security.jwt.PasswordUtil;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
+import com.mungwithme.user.model.dto.request.UserDeleteDto;
 import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
@@ -74,7 +75,8 @@ public class UserController {
      * 회원가입 이메일 인증 코드 전송
      */
     @PostMapping("/auth")
-    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Validated EmailRequestDto emailDto) throws IOException {
+    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Validated EmailRequestDto emailDto)
+        throws IOException {
         // 이메일 중복
         Optional<User> user = userQueryService.findByEmail(emailDto.getEmail());
         if (user.isPresent()) {
@@ -108,7 +110,8 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto) throws Exception {
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
+        throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -174,10 +177,9 @@ public class UserController {
     }
 
 
-
     /**
      * 유저 탈퇴 API
-     *
+     * <p>
      * 소셜 회원일 경우
      * 이메일 회원일 경우
      * 마킹 삭제
@@ -185,18 +187,14 @@ public class UserController {
      * Address 삭제
      * likes 삭제
      * image 삭제
-     *
      */
     @DeleteMapping("/me")
-    public ResponseEntity<CommonBaseResult> deleteUsers(HttpServletRequest request)
+    public ResponseEntity<CommonBaseResult> deleteUsers(@RequestBody UserDeleteDto userDeleteDto,
+        HttpServletRequest request)
         throws IOException {
-
-        userService.removeUser();
-        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"user.delete.success",request.getLocale());
+        userService.removeUser(userDeleteDto);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "user.delete.success", request.getLocale());
     }
-
-
-
 
 
 }
