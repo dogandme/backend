@@ -38,12 +38,9 @@ public class PetController {
         @RequestPart(name = "petSignUpDto") String petSignUpDtoJson,
         @RequestPart(name = "image") List<MultipartFile> image) throws Exception {
 
-        UserResponseDto userResponseDto = new UserResponseDto();
-
         PetSignUpDto petSignUpDto = objectMapper.readValue(petSignUpDtoJson, PetSignUpDto.class);   // JSON 문자열을 DTO로 변환
-        User user = petService.addPet(petSignUpDto, image);                                        // 강쥐 정보 저장
 
-        userResponseDto.setRole(user.getRole().getKey());
+        UserResponseDto userResponseDto = petService.addPet(petSignUpDto, image);
 
         return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
 

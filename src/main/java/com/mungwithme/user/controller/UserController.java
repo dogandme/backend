@@ -113,15 +113,10 @@ public class UserController {
     public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
         throws Exception {
 
-        UserResponseDto userResponseDto = new UserResponseDto();
 
-        userSignUpDto.setUserId(userQueryService.findCurrentUser().getId());  // UserDetails에서 유저 정보 조회
-        User user = userService.signUp2(userSignUpDto);                 // 추가 정보 저장
 
-        userResponseDto.setRole(user.getRole().getKey());
-        userResponseDto.setNickname(user.getNickname());
 
-        return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto), HttpStatus.OK.value());
 
     }
 
@@ -167,13 +162,9 @@ public class UserController {
     @PostMapping("/nickname")
     public ResponseEntity<CommonBaseResult> checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto)
         throws IOException {
-        Optional<User> user = userQueryService.findByNickname(userSignUpDto.getNickname());
+        userQueryService.duplicateNickname(userSignUpDto.getNickname());
 
-        if (user.isPresent()) {
-            throw new DuplicateResourceException("error.duplicate.nickname");
-        } else {
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
-        }
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
 
 

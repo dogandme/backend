@@ -4,7 +4,9 @@ import com.mungwithme.common.file.FileStore;
 import com.mungwithme.pet.model.dto.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
+import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserQueryService;
@@ -36,6 +38,7 @@ public class PetService {
     private final PetRepository petRepository;
     private  final UserQueryService userQueryService;
     private final FileStore fileStore;
+    private final JwtService jwtService;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
@@ -45,7 +48,7 @@ public class PetService {
      * @param petSignUpDto 애완동물정보
      */
     @Transactional
-    public User addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser();
         // 강쥐 프로필 이미지 업로드
@@ -63,11 +66,15 @@ public class PetService {
         petRepository.save(pet);
 
         // 기존에 USER 권한이 아니었을 경우 USER 권한으로 변경
+        UserResponseDto userResponseDto = new UserResponseDto();
         if (!user.getRole().equals(Role.USER)) {
             user.setRole(Role.USER);
+            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey());
+            userResponseDto.setAuthorization(accessToken);
         }
-
-        return user;
+        userResponseDto.setNickname(user.getNickname());
+        userResponseDto.setRole(user.getRole().getKey());
+        return userResponseDto;
     }
 
 

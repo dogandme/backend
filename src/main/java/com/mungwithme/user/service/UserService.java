@@ -73,10 +73,7 @@ public class UserService {
         UserResponseDto userResponseDto = new UserResponseDto();
 
         // 이메일 중복 확인
-        userQueryService.findByEmail(userSignUpDto.getEmail())
-            .ifPresent(user -> {
-                throw new DuplicateResourceException("error.duplicate.email");
-            });
+        userQueryService.duplicateEmail(userSignUpDto.getEmail());
 
         User newUser = User.builder()
             .token(TokenUtils.getToken())
@@ -84,9 +81,6 @@ public class UserService {
             .password(userSignUpDto.getPassword())
             .role(Role.NONE)
             .build();
-
-        newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
-        newUser = userRepository.save(newUser);    // DB 저장
 
         // NONE 권한의 토큰 발행(기본정보입력 화면으로 넘어가기 위함)
         String email = newUser.getEmail();
@@ -97,14 +91,15 @@ public class UserService {
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
 
-        userQueryService.findByEmail(email)
-            .ifPresent(user -> {
-                user.updateRefreshToken(refreshToken);
-                userRepository.saveAndFlush(user);
-            });
+        newUser.updateRefreshToken(refreshToken);
 
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(role.getKey());
+
+
+        // 유저 등록
+        newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
+        addUser(newUser);    // DB 저장
 
         return userResponseDto;
     }
@@ -116,37 +111,42 @@ public class UserService {
      *     추가 회원정보
      */
     @Transactional
-    public User signUp2(UserSignUpDto userSignUpDto) throws Exception {
+    public UserResponseDto signUp2(UserSignUpDto userSignUpDto) throws Exception {
 
         // 닉네임 중복 확인
-        userRepository.findByNickname(userSignUpDto.getNickname())
-            .ifPresent(user -> {
-                throw new DuplicateResourceException("error.duplicate.nickname");
-            });
+        userQueryService.duplicateNickname(userSignUpDto.getNickname());
 
-        // 추가 정보 저장
-        return userQueryService.findById(userSignUpDto.getUserId())
-            .map(user -> {
-                // 요청 데이터에서 region ID 리스트를 가져옴
-                List<Long> regionIds = userSignUpDto.getRegion();
+        // 유저 정보 확인
+        User currentUser = userQueryService.findCurrentUser();
 
-                // region ID를 기반으로 Address 엔터티 조회
-                Set<Address> addresses = regionIds.stream()
-                    .map(addressId -> addressRepository.findById(addressId)
-                        .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
-                    .collect(Collectors.toSet());
 
-                user.setRole(Role.GUEST);
-                user.setNickname(userSignUpDto.getNickname());
-                user.setGender(userSignUpDto.getGender());
-                user.setAge(userSignUpDto.getAge());
-                user.setRegions(addresses);
-                user.setMarketingYn(userSignUpDto.getMarketingYn());
+        // 요청 데이터에서 region ID 리스트를 가져옴
+        List<Long> regionIds = userSignUpDto.getRegion();
 
-                return userRepository.save(user);
-            })
-            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+        // region ID를 기반으로 Address 엔터티 조회
+        Set<Address> addresses = regionIds.stream()
+            .map(addressId -> addressRepository.findById(addressId)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
+            .collect(Collectors.toSet());
+
+        currentUser.setRole(Role.GUEST);
+        currentUser.setNickname(userSignUpDto.getNickname());
+        currentUser.setGender(userSignUpDto.getGender());
+        currentUser.setAge(userSignUpDto.getAge());
+        currentUser.setRegions(addresses);
+        currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
+
+
+        UserResponseDto userResponseDto = new UserResponseDto();
+
+        String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey());
+        userResponseDto.setAuthorization(accessToken);
+        userResponseDto.setRole(currentUser.getRole().getKey());
+        userResponseDto.setNickname(currentUser.getNickname());
+        return userResponseDto;
     }
+
+
 
 
     /**

@@ -1,6 +1,7 @@
 package com.mungwithme.user.service;
 
 
+import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.entity.User;
@@ -120,7 +121,18 @@ public class UserQueryService {
     public Optional<User> findByNickname(String nickname) {
         return userQueryRepository.findByNickname(nickname);
     }
-
+    public void duplicateNickname(String nickname) {
+        userQueryRepository.findByNickname(nickname)
+            .ifPresent(user -> {
+                throw new DuplicateResourceException("error.duplicate.nickname");
+            });
+    }
+    public void duplicateEmail(String email) {
+        userQueryRepository.findByEmail(email)
+            .ifPresent(user -> {
+                throw new DuplicateResourceException("error.duplicate.email");
+            });
+    }
 
 
 }
