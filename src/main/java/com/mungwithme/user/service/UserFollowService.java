@@ -99,6 +99,20 @@ public class UserFollowService {
         removeFollow(followerUser, followingUser);
     }
 
+
+
+    /**
+     * 유저와 관련된 팔로잉 및 팔로우 전부 삭제
+     *
+     *
+     * @param user
+     */
+    @Transactional
+    public void removeAllByUser(User user) {
+        userFollowRepository.deleteAllByUser(user);
+    }
+
+
     /**
      * 팔로잉 유무 확인
      *

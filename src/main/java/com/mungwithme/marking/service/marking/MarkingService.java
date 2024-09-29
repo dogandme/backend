@@ -18,9 +18,11 @@ import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
+import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -76,7 +78,8 @@ public class MarkingService {
 
         try {
             // 파일 업로드
-            List<String> fileNames = fileStore.uploadFiles(images, FileStore.MARKING_DIR);
+            List<String> fileNames = fileStore.uploadFiles(images,
+                FileStore.MARKING_DIR + File.separator + marking.getId());
 
             // 파일 이름과 인덱스를 사용해 MarkImage 객체 리스트 생성
             List<MarkImage> markImages = IntStream.range(0, fileNames.size())
@@ -93,6 +96,8 @@ public class MarkingService {
     }
 
     /**
+     *
+     *  Marking 삭제 API
      *
      */
     @Transactional
@@ -111,24 +116,55 @@ public class MarkingService {
 
         Set<MarkImage> images = marking.getImages();
 
-        for (MarkImage image : images) {
-            fileStore.deleteFile(FileStore.MARKING_DIR, image.getImageUrl());
-        }
+        fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
 
         // isDeleted true 로 업데이트
         marking.updateIsDeleted(true);
-
 
         // 삭제
         markImageRepository.deleteAllInBatch(images);
 
         // like 삭제
-        likesService.removeAllLikes(marking.getId(),ContentType.MARKING);
+        likesService.removeAllLikes(marking.getId(), ContentType.MARKING);
 
         markingSavesService.deleteAllSaves(marking);
 
     }
 
+
+    /**
+     * 마킹 삭제
+     * 저장 삭제
+     * 좋아요 삭제
+     * 이미지 삭제
+     * API
+     * @param user
+     */
+    @Transactional
+    public void removeAllMarkingsByUser (User user) {
+        Set<Marking> markings = markingQueryService.findAll(user, false);
+
+        Set<Long> removeIds = new HashSet<>();
+
+        for (Marking marking : markings) {
+            // 이미지 삭제
+            fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
+
+            removeIds.add(marking.getId());
+        }
+
+        // 이미지 삭제
+        markImageRepository.deleteAllByMarkings(markings);
+
+        // 저장 삭제
+        markingSavesService.deleteAllSavesBatch(markings);
+
+        // 좋아요 삭제
+        likesService.removeAllLikes(removeIds,ContentType.MARKING);
+
+        // 마킹 삭제
+        markingRepository.deleteAllInBatch(markings);
+    }
 
     /**
      * marking 수정 API
@@ -160,7 +196,6 @@ public class MarkingService {
         // 권한 업데이트
         marking.updateIsVisible(markingModifyDto.getIsVisible());
 
-
         //  임시저장 -> 저장 으로 상태 변경일 경우 실행
         if (!markingModifyDto.getIsTempSaved() && marking.getIsTempSaved()) {
             /**
@@ -170,7 +205,6 @@ public class MarkingService {
             isTempSaved = markingModifyDto.getIsTempSaved();
             marking.updateIsTempSaved(isTempSaved);
         }
-
 
         // 이미지 삭제 ids
         Set<Long> removeIds = markingModifyDto.getRemoveIds();
@@ -206,13 +240,16 @@ public class MarkingService {
 
         // markImage db 삭제
         if (!removeMarkImage.isEmpty()) {
-            removeMarkImage.forEach(remove -> fileStore.deleteFile(FileStore.MARKING_DIR, remove.getImageUrl()));
+            removeMarkImage.forEach(
+                remove -> fileStore.deleteFile(FileStore.MARKING_DIR + File.separator + marking.getId(),
+                    remove.getImageUrl()));
             markImageRepository.deleteAllInBatch(removeMarkImage);
         }
 
         try {
             // 파일 업로드
-            List<String> fileNames = fileStore.uploadFiles(images, FileStore.MARKING_DIR);
+            List<String> fileNames = fileStore.uploadFiles(images,
+                FileStore.MARKING_DIR + File.separator + marking.getId());
             // 가장 큰 order
             int maxLnk = 0;
             if (!images.isEmpty()) {
@@ -247,9 +284,6 @@ public class MarkingService {
         }
         return markingInfoResponseDto;
     }
-
-
-
 
 
     /**

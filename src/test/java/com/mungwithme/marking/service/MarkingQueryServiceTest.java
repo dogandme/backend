@@ -217,4 +217,16 @@ class MarkingQueryServiceTest {
 
         }
     }
+
+
+
+    @Test
+    public void findAll() {
+        User user = userQueryService.findByEmail("lim642666@gmail.com").orElse(null);
+
+        Set<Marking> all = markingQueryService.findAll(user, false);
+
+
+
+    }
 }

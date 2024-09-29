@@ -9,7 +9,9 @@ import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 @Transactional(readOnly = true)
@@ -67,6 +70,28 @@ public class PetService {
         return user;
     }
 
+
+    /**
+     * pet 삭제
+     *
+     * @param user
+     * @throws IOException
+     */
+    @Transactional
+    public void deletePet(User user) {
+        Pet pet = findByUser(user).orElse(null);
+
+        if (pet != null) {
+
+            log.info("pet.getName() = {}", pet.getName());
+            String profile = pet.getProfile();
+//            petRepository.delete(pet);
+            // Pet 이미지 삭제
+            fileStore.deleteFile(FileStore.PET_DIR,profile);
+
+        }
+    }
+
     /**
      * 강쥐 프로필 이미지 업로드
      * @param profile 업로드 할 파일
@@ -89,6 +114,13 @@ public class PetService {
 
         return saveName;
     }
+
+
+
+    public Optional<Pet> findByUser(User user) {
+        return petRepository.findByUser(user);
+    }
+
 
 
     /**

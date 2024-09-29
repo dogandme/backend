@@ -52,6 +52,13 @@ public class User extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private SocialType socialType;  // 소셜 채널(Kakao, Google, Naver)
 
+
+    // oAuth에서 제공해주는 accessToken 기한 1 시간
+    private String oAuthAccessToken;
+
+    // oAuth에서 제공해주는 refreshToken 기한 1년
+    private String oAuthRefreshToken;
+
     private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
@@ -78,7 +85,6 @@ public class User extends BaseTimeEntity {
     /**
      * 비밀번호 업데이트
      *
-     * @param user
      * @param password
      * @param passwordEncoder
      * @return
@@ -95,6 +101,26 @@ public class User extends BaseTimeEntity {
      */
     public void updateRefreshToken(String updateRefreshToken) {
         this.refreshToken = updateRefreshToken;
+    }
+
+    /**
+     * oAuth 리프레시토큰 업데이트
+     *
+     * @param oAuthRefreshToken
+     *     신규 리프레시토큰
+     */
+    public void updateOauthRefreshToken(String oAuthRefreshToken) {
+        this.oAuthRefreshToken = oAuthRefreshToken;
+    }
+
+    /**
+     * oAuth 리프레시토큰 업데이트
+     *
+     * @param oAuthAccessToken
+     *     신규 리프레시토큰
+     */
+    public void updateOauthAccessToken(String oAuthAccessToken) {
+        this.oAuthAccessToken = oAuthAccessToken;
     }
 
     /**

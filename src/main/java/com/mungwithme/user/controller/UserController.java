@@ -1,5 +1,6 @@
 package com.mungwithme.user.controller;
 
+import com.mungwithme.common.annotation.authorize.NoneAuthorize;
 import com.mungwithme.common.email.EmailAuthRequestDto;
 import com.mungwithme.common.email.EmailRequestDto;
 import com.mungwithme.common.email.EmailService;
@@ -173,4 +174,31 @@ public class UserController {
             return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
         }
     }
+
+
+
+    /**
+     * 유저 탈퇴 API
+     *
+     * 소셜 회원일 경우
+     * 이메일 회원일 경우
+     * 마킹 삭제
+     * 펫 삭제
+     * Address 삭제
+     * likes 삭제
+     * image 삭제
+     *
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<CommonBaseResult> deleteUsers(HttpServletRequest request)
+        throws IOException {
+
+        userService.removeUser();
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"user.delete.success",request.getLocale());
+    }
+
+
+
+
+
 }

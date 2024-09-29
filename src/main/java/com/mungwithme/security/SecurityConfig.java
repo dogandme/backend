@@ -13,6 +13,7 @@ import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationSuccessHan
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -45,10 +47,10 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final BaseResponse baseResponse;
-
-    private final CustomOAuthAuthenticationSuccessHandler customOAuthAuthenticationSuccessHandler;
+    private final OAuth2AuthorizedClientService authorizedClientService;
     private final CustomOAuthAuthenticationFailureHandler customOAuthAuthenticationFailureHandler;
-    private final CustomOAuth2UserService customOAuth2UserService;
+
+
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
@@ -56,7 +58,7 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,UserService userService) throws Exception {
 
         http
             .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -92,7 +94,7 @@ public class SecurityConfig {
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**"
+                        "/addresses", "/addresses/**","/users/me"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
@@ -124,10 +126,10 @@ public class SecurityConfig {
         //oauth2
         http
             .oauth2Login((oauth2) -> oauth2
-                .successHandler(customOAuthAuthenticationSuccessHandler)
+                .successHandler(customOAuthAuthenticationSuccessHandler(userService))
                 .failureHandler(customOAuthAuthenticationFailureHandler)
                 .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                    .userService(customOAuth2UserService)))
+                    .userService(customOAuth2UserService(userService))))
         ;
 
         http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(),
@@ -163,6 +165,30 @@ public class SecurityConfig {
     @Bean
     public CustomJsonAuthenticationSuccessHandler loginSuccessHandler() {
         return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse);
+    }
+
+    /**
+     *
+     * userService 순환참조 문제로 인해
+     * bean 으로 생성
+     * @param userService
+     * @return
+     */
+    @Bean
+    public CustomOAuthAuthenticationSuccessHandler customOAuthAuthenticationSuccessHandler(UserService userService) {
+        return new CustomOAuthAuthenticationSuccessHandler(jwtService, userService, authorizedClientService);
+    }
+
+    /**
+     *
+     * userService 순환참조 문제로 인해
+     * bean 으로 생성
+     * @param userService
+     * @return
+     */
+    @Bean
+    public CustomOAuth2UserService customOAuth2UserService(UserService userService) {
+        return new CustomOAuth2UserService(userService);
     }
 
     /**

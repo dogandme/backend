@@ -116,6 +116,26 @@ public class LikesService {
 
 
     /**
+     * 컨텐트에 해당하는 like 전부 다 삭제
+     *
+     *
+     * @param contentType
+     */
+    /**
+     * 컨텐트 아이디 리스트에 해당하는 like 전부 다 삭제
+     * @param contentsIds
+     *          아이디 리스트
+     * @param contentType
+     *          컨텐츠 타입
+     */
+    @Transactional
+    public void removeAllLikes(Set<Long> contentsIds, ContentType contentType) {
+        likesRepository.deleteAllByContentIds(contentsIds, contentType);
+    }
+
+
+
+    /**
      * 좋아요 검색
      *
      * @param user
