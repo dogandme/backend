@@ -67,7 +67,7 @@ public class ProfileQueryService {
                 .map(dto -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", dto.getMarking().getId());
-                    map.put("images", dto.getMarking().getImages().isEmpty() ? null : dto.getMarking().getImages().iterator().next()); // 가장 최근에 등록된 이미지 불러오기
+                    map.put("images", dto.getMarking().getImages().get(0)); // 가장 최근에 등록된 이미지 불러오기
                     return map;
                 })
                 .toList();
