@@ -8,6 +8,7 @@ import com.mungwithme.maps.dto.response.GooglePlaceResponseDto;
 import com.mungwithme.maps.dto.response.PlaceDetailsResponseDto;
 import com.mungwithme.maps.dto.response.PlaceResult;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -21,9 +22,11 @@ import org.springframework.web.client.RestTemplate;
  */
 @Slf4j
 @Service
+//@RequiredArgsConstructor
 public class GoogleApiService {
 
 
+//    @Value("${google.api.key}")
     private final String API_KEY; // Google API Key
 
     private static final String GEOCODING_API_URL = "https://maps.googleapis.com/maps/api/geocode/json";
@@ -33,9 +36,9 @@ public class GoogleApiService {
 
     private final RestTemplate restTemplate;
 
-    public GoogleApiService(@Value("${google.api.key}") String apiKey) {
+    public GoogleApiService(@Value("${google.api.key}") String apiKey,RestTemplate restTemplate) {
         this.API_KEY = apiKey;
-        this.restTemplate = new RestTemplate();
+        this.restTemplate = restTemplate;
     }
 
     public GeocodingResponseDto findReverseGeocoding(double lat, double lng) {

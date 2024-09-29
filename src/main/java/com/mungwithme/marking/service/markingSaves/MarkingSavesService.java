@@ -9,6 +9,7 @@ import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
 import com.mungwithme.user.service.UserQueryService;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -85,6 +86,16 @@ public class MarkingSavesService {
     public void deleteAllSaves(Marking marking) {
         markingSavesRepository.deleteAllByMarking(marking);
     }
+
+    /**
+     * 마킹 즐겨찾기 전부 삭제
+     * @param markings
+     */
+    @Transactional
+    public void deleteAllSavesBatch(Set<Marking> markings) {
+        markingSavesRepository.deleteAllByMarkings(markings);
+    }
+
 
 
     public boolean existsSaves(User user, Marking marking) {

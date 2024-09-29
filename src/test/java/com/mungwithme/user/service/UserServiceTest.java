@@ -9,9 +9,27 @@ class UserServiceTest {
 
     @Autowired
     UserQueryService userQueryService;
+
+    @Autowired
+    UserService userService;
+
     @Test
     void getCurrentUser_V2() {
         userQueryService.findCurrentUser_v2();
+    }
+
+
+    @Test
+    public void removeUser() {
+
+        // given
+
+
+        // when
+
+        // then
+
+        userService.removeUser();
 
     }
 }

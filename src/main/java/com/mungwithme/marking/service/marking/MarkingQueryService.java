@@ -154,6 +154,20 @@ public class MarkingQueryService {
 
 
     /**
+     * 내가 업로드한 마킹 리스트 (임시저장 포함)
+     *
+     * @param isDeleted
+     * @param user
+     * @return
+     */
+    public Set<Marking> findAll(
+        User user,
+        boolean isDeleted
+    ) {
+        return markingQueryRepository.findAll(user.getId(),isDeleted);
+    }
+
+    /**
      * 내가 즐겨찾기 한  마킹리스트
      *
      * @param isDeleted

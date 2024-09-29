@@ -33,6 +33,20 @@ class MarkingServiceTest {
     @Autowired
     MarkingQueryRepository markingQueryRepository;
 
+
+
+    @Test
+    public void delete() {
+
+        markingQueryRepository.deleteById(11L);
+    // given
+
+    // when
+
+    // then
+
+    }
+
     @Test
     void addMarking() throws IOException {
 

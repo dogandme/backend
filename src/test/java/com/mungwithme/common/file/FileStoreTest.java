@@ -62,6 +62,17 @@ class FileStoreTest {
 
 
     @Test
+    public void deleteFolder() {
+
+    // given
+    fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + "153");
+    // when
+
+    // then
+
+    }
+
+    @Test
     public void deleteFile() {
         fileStore.deleteFile(FileStore.USER_PROFILE_DIR,"fd2ca386-2a1e-4ba1-8711-adcf0d62a6c6_NJ_BubbleGum_21.jpeg");
     }

@@ -38,16 +38,6 @@ import java.io.IOException;
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    // 아래 URL로 들어오는 요청은 Filter 작동 X
-    private static final String NO_CHECK_URL_LOGIN = "/login";
-    private static final String NO_CHECK_URL_SIGNUP = "/users";
-    private static final String NO_CHECK_URL_SIGNUP_EMAIL = "/users/auth";
-    private static final String NO_CHECK_URL_NEW_PASSWORD = "/users/password";
-    private static final String NO_CHECK_URL_OAUTH2 = "/oauth2";
-    private static final String NO_CHECK_URL_AWS = "/health";
-    private static final String NO_CHECK_URL_SWAGGER1 = "/swagger-ui/";
-    private static final String NO_CHECK_URL_SWAGGER2 = "/v3/api-docs";
-
     private final JwtService jwtService;
 
     private GrantedAuthoritiesMapper authoritiesMapper = new NullAuthoritiesMapper();
@@ -55,15 +45,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-
-
         // 사용자 요청 쿠키에서 accessToken 추출
         // accessToken이 유효하지 않으면 해당 상태코드 전송
         String accessToken = jwtService.extractAccessToken(request)
             .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
             .orElse(null);                // 없으면 null 반환
-
-        log.info("accessToken = {}", accessToken);
 
         if (accessToken != null) {
             // AccessToken이 유효하면 검증하여 인증처리
@@ -99,8 +85,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
          */
 
         // 유저 정보
-
-        log.info("role = {}", role);
         UserDetails userDetailsUser = org.springframework.security.core.userdetails.User.builder()
             .username(email)
             .roles(role)

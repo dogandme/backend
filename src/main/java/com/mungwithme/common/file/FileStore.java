@@ -5,9 +5,12 @@ import com.mungwithme.common.exception.ResourceNotFoundException;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -130,6 +133,40 @@ public class FileStore {
             throw new RuntimeException("error.internal");
         }
     }
+
+
+    /**
+     * 폴더 및 폴더 내 파일 삭제 메서드
+     *
+     * @param dirPath
+     *     path type
+     */
+    public void deleteFolder(String dirPath) {
+        Path folderPath = Paths.get(getFolderPath(dirPath));
+        try {
+            if (Files.exists(folderPath)) {
+                // Files.walkFileTree를 사용하여 폴더 내 모든 파일과 폴더를 삭제
+                Files.walkFileTree(folderPath, new SimpleFileVisitor<Path>() {
+                    @Override
+                    public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                        // 파일 삭제
+                        Files.delete(file);
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+                        // 디렉토리 삭제
+                        Files.delete(dir);
+                        return FileVisitResult.CONTINUE;
+                    }
+                });
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("error.internal", e);
+        }
+    }
+
 
     /**
      * image URLResource 반환

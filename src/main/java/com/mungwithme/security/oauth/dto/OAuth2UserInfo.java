@@ -1,5 +1,6 @@
 package com.mungwithme.security.oauth.dto;
 
+import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.user.model.Role;
 import com.mungwithme.user.model.SocialType;
 import com.mungwithme.user.model.entity.User;
@@ -31,23 +32,24 @@ public record OAuth2UserInfo(
 
     private static OAuth2UserInfo ofNaver(Map<String, Object> attributes) {
         return OAuth2UserInfo.builder()
-                .email((String) ((Map<String, Object>) attributes.get("response")).get("email"))
-                .socialType(SocialType.NAVER)
-                .build();
+            .email((String) ((Map<String, Object>) attributes.get("response")).get("email"))
+            .socialType(SocialType.NAVER)
+            .build();
     }
 
     private static OAuth2UserInfo ofGoogle(Map<String, Object> attributes) {
         return OAuth2UserInfo.builder()
-                .email((String) attributes.get("email"))
-                .socialType(SocialType.GOOGLE)
-                .build();
+            .email((String) attributes.get("email"))
+            .socialType(SocialType.GOOGLE)
+            .build();
     }
 
     public User toEntity() {
         return User.builder()
-                .email(email)
-                .role(Role.NONE)
-                .socialType(socialType)
-                .build();
+            .email(email)
+            .role(Role.NONE)
+            .token(TokenUtils.getToken())
+            .socialType(socialType)
+            .build();
     }
 }
