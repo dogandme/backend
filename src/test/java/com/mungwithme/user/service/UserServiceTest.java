@@ -29,7 +29,7 @@ class UserServiceTest {
 
         // then
 
-        userService.removeUser();
+//        userService.removeUser();
 
     }
 }

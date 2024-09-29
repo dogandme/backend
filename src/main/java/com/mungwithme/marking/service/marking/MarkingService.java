@@ -146,6 +146,11 @@ public class MarkingService {
 
         Set<Long> removeIds = new HashSet<>();
 
+        if (markings.isEmpty()) {
+            return;
+        }
+
+
         for (Marking marking : markings) {
             // 이미지 삭제
             fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
@@ -161,6 +166,7 @@ public class MarkingService {
 
         // 좋아요 삭제
         likesService.removeAllLikes(removeIds,ContentType.MARKING);
+
 
         // 마킹 삭제
         markingRepository.deleteAllInBatch(markings);

@@ -134,6 +134,16 @@ public class LikesService {
     }
 
 
+    /**
+     * 유저 좋아요 모두 삭제
+     * @param user
+     */
+    @Transactional
+    public void removeAllByUser(User user) {
+        likesRepository.deleteAllByUser(user);
+    }
+
+
 
     /**
      * 좋아요 검색
