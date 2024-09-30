@@ -94,7 +94,7 @@ public class SecurityConfig {
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**","/users/me","/users/profile/password"
+                        "/addresses", "/addresses/**","/users/me","/users/profile/password","/logout"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )

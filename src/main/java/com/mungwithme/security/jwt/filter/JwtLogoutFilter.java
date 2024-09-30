@@ -50,6 +50,9 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
+
+        log.info("refreshToken.orElse(null) = {}", refreshToken.orElse(null));
+
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "로그아웃 토큰 검증 실패"));
             return;

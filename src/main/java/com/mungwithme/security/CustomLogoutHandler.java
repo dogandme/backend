@@ -10,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.logout.LogoutHandler;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +31,7 @@ public class CustomLogoutHandler  implements LogoutHandler {
 
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
+
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             try {
                 baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "토큰 검증에 실패했습니다."));
