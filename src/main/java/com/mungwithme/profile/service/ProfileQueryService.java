@@ -6,6 +6,8 @@ import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.marking.MarkingTempService;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesQueryService;
+import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
+import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.service.PetQueryService;
 import com.mungwithme.profile.model.dto.response.ProfileResponseDto;
 import com.mungwithme.user.model.entity.User;
@@ -54,7 +56,17 @@ public class ProfileQueryService {
         }
 
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
-        profileResponseDto.setPet(petQueryService.findPetByUserId(userId));   // 펫 정보
+        petQueryService.findByUser(user)
+                .ifPresent(pet -> profileResponseDto.setPet(
+                        PetInfoResponseDto.builder()
+                                .petId(pet.getId())
+                                .name(pet.getName())
+                                .description(pet.getDescription())
+                                .profile(pet.getProfile())
+                                .breed(pet.getBreed())
+                                .personalities(pet.getPersonalities())
+                                .build()
+                )); // 펫 정보
         profileResponseDto.setFollowers(userFollowsQueryService.findAllFollowersByUserId(userId));    // 팔로워 목록
         profileResponseDto.setFollowings(userFollowsQueryService.findAllFollowingsByUserId(userId));  // 팔로잉 목록
         profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
