@@ -1,8 +1,7 @@
-package com.mungwithme.pet.model.dto;
+package com.mungwithme.pet.model.dto.response;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 

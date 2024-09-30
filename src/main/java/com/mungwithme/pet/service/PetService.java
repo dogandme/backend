@@ -1,7 +1,11 @@
 package com.mungwithme.pet.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
-import com.mungwithme.pet.model.dto.PetSignUpDto;
+import com.mungwithme.pet.model.dto.request.PetRequestDto;
+import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
+import com.mungwithme.pet.model.dto.response.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.security.jwt.service.JwtService;
@@ -30,6 +34,7 @@ public class PetService {
     private final FileStore fileStore;
     private final JwtService jwtService;
     private final PetQueryService petQueryService;
+    private final ObjectMapper objectMapper;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
@@ -87,5 +92,63 @@ public class PetService {
             fileStore.deleteFile(FileStore.PET_DIR,profile);
 
         }
+    }
+
+    /**
+     * 유저 닉네임으로 펫 조회
+     * @param nickname 유저 닉네임
+     * @return 펫 정보
+     */
+    public PetInfoResponseDto findPetByNickname(String nickname) {
+        // 닉네임 조회
+        User user = userQueryService.findByNickname(nickname)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
+
+        // 펫 조회
+        Pet pet = petQueryService.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
+
+        return PetInfoResponseDto.builder()
+                .petId(pet.getId())
+                .name(pet.getName())
+                .description(pet.getDescription())
+                .profile(pet.getProfile())
+                .breed(pet.getBreed())
+                .personalities(pet.getPersonalities())
+                .build();
+    }
+
+    /**
+     * 펫 정보 수정
+     * @param petDtoJson 수정 정보
+     * @param image 수정 프로필 이미지
+     */
+    @Transactional
+    public void editPet(String petDtoJson, List<MultipartFile> image) throws IOException {
+
+        // UserDetails에서 user 엔터티 조회
+        User user = userQueryService.findCurrentUser_v2();
+
+        // 이전 강쥐 프로필 이미지 삭제
+        Pet prevPet = petQueryService.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
+        fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
+
+        // JSON 문자열을 DTO로 변환
+        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
+
+        // 강쥐 프로필 이미지 업로드
+        List<String> profile = fileStore.uploadFiles(image, FileStore.PET_DIR);
+
+        // 강쥐 DB 저장
+        petRepository.save(Pet.builder()
+                .id(prevPet.getId())
+                .name(petRequestDto.getName())
+                .description(petRequestDto.getDescription())
+                .personalities(petRequestDto.getPersonalities())
+                .profile(profile.get(0))
+                .breed(petRequestDto.getBreed())
+                .user(user)
+                .build());
     }
 }

@@ -20,6 +20,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -101,9 +102,14 @@ public class SecurityConfig {
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
-                    .requestMatchers("/users/pets", "/profile", "/users/profile", "/users/profile/**")
+
+                    .requestMatchers("/profile","/users/profile","/users/profile/**")
                     .hasAnyRole(
-                        Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.POST, "/pets")
+                    .hasAnyRole(
+                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
                     .requestMatchers(
@@ -111,6 +117,14 @@ public class SecurityConfig {
                         "/users/follows/**", "/markings/**"
                     ).hasAnyRole(
                         Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.GET, "/pets")
+                    .hasAnyRole(
+                            Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.PUT, "/pets")
+                    .hasAnyRole(
+                            Role.USER.name(), Role.ADMIN.name()
                     )
 
                     .anyRequest()
