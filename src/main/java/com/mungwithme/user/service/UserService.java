@@ -1,10 +1,9 @@
 package com.mungwithme.user.service;
 
 import com.mungwithme.address.model.entity.Address;
-import com.mungwithme.address.repository.AddressRepository;
-import com.mungwithme.common.exception.DuplicateResourceException;
+import com.mungwithme.address.service.AddressQueryService;
+import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
-import com.mungwithme.common.util.RegexPatterns;
 import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.marking.service.marking.MarkingService;
@@ -12,19 +11,21 @@ import com.mungwithme.pet.service.PetService;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.service.OAuth2Service;
-import com.mungwithme.user.model.Role;
-import com.mungwithme.user.model.SocialType;
+import com.mungwithme.user.model.dto.request.UserAgeUpdateDto;
+import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
+import com.mungwithme.user.model.dto.request.UserAddressUpdateDto;
 import com.mungwithme.user.model.dto.request.UserDeleteDto;
+import com.mungwithme.user.model.dto.request.UserGenderUpdateDto;
+import com.mungwithme.user.model.dto.request.UserNicknameUpdateDto;
 import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
-import java.util.Optional;
-import org.springframework.security.authorization.AuthorizationDeniedException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +44,9 @@ import org.springframework.util.StringUtils;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final AddressRepository addressRepository;
+//    private final AddressRepository addressRepository;
+
+    private final AddressQueryService addressQueryService;
 
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
@@ -96,7 +99,6 @@ public class UserService {
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(role.getKey());
 
-
         // 유저 등록
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
         addUser(newUser);    // DB 저장
@@ -119,13 +121,12 @@ public class UserService {
         // 유저 정보 확인
         User currentUser = userQueryService.findCurrentUser();
 
-
         // 요청 데이터에서 region ID 리스트를 가져옴
         List<Long> regionIds = userSignUpDto.getRegion();
 
         // region ID를 기반으로 Address 엔터티 조회
         Set<Address> addresses = regionIds.stream()
-            .map(addressId -> addressRepository.findById(addressId)
+            .map(addressId -> addressQueryService.findById(addressId)
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
             .collect(Collectors.toSet());
 
@@ -136,7 +137,6 @@ public class UserService {
         currentUser.setRegions(addresses);
         currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
 
-
         UserResponseDto userResponseDto = new UserResponseDto();
 
         String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey());
@@ -145,8 +145,6 @@ public class UserService {
         userResponseDto.setNickname(currentUser.getNickname());
         return userResponseDto;
     }
-
-
 
 
     /**
@@ -192,6 +190,138 @@ public class UserService {
         // 비밀번호 업데이트
         currentUser.updatePw(newPw, passwordEncoder);
     }
+
+    /**
+     * 닉네임 변경 API
+     *
+     * @param userNicknameUpdateDto
+     */
+    @Transactional
+    public void editNickname(UserNicknameUpdateDto userNicknameUpdateDto) {
+        User currentUser = userQueryService.findCurrentUser();
+
+        if (currentUser.getNickname().equals(userNicknameUpdateDto.getNickname())) {
+            return;
+        }
+
+        LocalDateTime nickExModDt = currentUser.getNickExModDt();
+
+        // 현재 시간
+        LocalDateTime now = LocalDateTime.now();
+
+        // 한달 후 시간을 DB 에 저장
+        LocalDateTime plusMonths = now.plusMonths(1);
+
+        String nickname = userNicknameUpdateDto.getNickname();
+
+        // 사용자가 닉네임을 변경을 한지 한달을 초과했는지 획인을 위해
+        // 현재 시간을 가지고 와서 DB에 저장되어 있는 날짜와 비교 후 초과가 되지 않았다면 예외 발생
+        // 가입하고나서 처음 닉네임을 변경한다면 변경 가능
+        if (nickExModDt != null && !now.isAfter(nickExModDt)) {
+            // 1개월이 넘지못했다면
+            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd E HH:mm");
+            throw new CustomIllegalArgumentException("error.arg.nickname.ex", nickExModDt.format(dateTimeFormatter));
+        }
+        // 중복 검사
+        userQueryService.duplicateNickname(nickname);
+
+        // 한달 후 시간을 저장
+        currentUser.updateNickModDt(plusMonths);
+        // Update
+        currentUser.updateNickname(userNicknameUpdateDto.getNickname());
+    }
+
+    /**
+     * 성별 업데이트 API
+     *
+     * @param userGenderUpdateDto
+     */
+    @Transactional
+    public void editGender(UserGenderUpdateDto userGenderUpdateDto) {
+        User currentUser = userQueryService.findCurrentUser();
+
+        if (!currentUser.getGender().equals(userGenderUpdateDto.getGender())) {
+            currentUser.updateGender(userGenderUpdateDto.getGender());
+        }
+    }
+
+    /**
+     * 나이 업데이트 API
+     *
+     * @param userAgeUpdateDto
+     */
+    @Transactional
+    public void editAge(UserAgeUpdateDto userAgeUpdateDto) {
+        User currentUser = userQueryService.findCurrentUser();
+        if (currentUser.getAge() != userAgeUpdateDto.getAge().getAge()) {
+            currentUser.updateAge(userAgeUpdateDto.getAge());
+        }
+    }
+
+
+    /**
+     * 주소 업데이트 API
+     */
+    @Transactional
+    public void editAddress(UserAddressUpdateDto userAddressUpdateDto) {
+
+        // 삭제할 주소 ID 목록
+        Set<Long> removeIds = userAddressUpdateDto.getRemoveIds();
+
+        // 추가할 주소 ID 목록
+        Set<Long> addIds = userAddressUpdateDto.getAddIds();
+
+        if (removeIds.isEmpty() && addIds.isEmpty()) {
+            throw new IllegalArgumentException("error.arg");
+        }
+
+        // 현재 사용자 가져오기
+//        User currentUser = userQueryService.findCurrentUser();
+        User currentUser = userQueryService.findByEmailWithAddress("2221325@naver.com").orElse(null);
+
+        // 사용자의 현재 주소 목록
+        Set<Address> regions = currentUser.getRegions();
+
+        // 삭제할 Address 객체 목록
+        Set<Address> removeAddress = regions.stream()
+            .filter(address -> removeIds.contains(address.getId()))
+            .collect(Collectors.toSet());
+
+        log.info("removeAddress = {}", removeAddress.size());
+
+        // 현재 주소 목록에서 삭제
+        regions.removeAll(removeAddress);
+        currentUser.removeAllRegions(removeAddress);
+
+        // 중복 주소 필터링
+        Set<Address> duplicateAddresses = regions.stream()
+            .filter(region -> addIds.contains(region.getId()))
+            .collect(Collectors.toSet());
+
+        // 총 추가할 주소 개수에서 중복되는 주소 개수 제외
+        int addSize = addIds.size() - duplicateAddresses.size();
+
+        // 최종 주소 개수 (기존 주소 + 추가할 주소)
+        int finalRegionSize = regions.size() + addSize;
+
+        // 유효성 검사: 1~5개의 주소만 허용
+        if (finalRegionSize < 1 || finalRegionSize > 5) {
+            throw new IllegalArgumentException("error.arg.address.limit");
+        }
+
+        // 추가할 Address 객체를 데이터베이스에서 조회
+        List<Address> addressList = addressQueryService.findByIds(addIds);
+
+        // 중복되지 않는 주소만 추가
+        regions.addAll(addressList.stream()
+            .filter(address -> !duplicateAddresses.contains(address)).toList());
+
+        log.info("regions.size() = {}", regions.size());
+
+        // 업데이트된 주소를 사용자 객체에 설정
+        currentUser.addAllRegions(regions);
+    }
+
 
     /**
      * 회원 탈퇴 API

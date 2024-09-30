@@ -1,11 +1,14 @@
 package com.mungwithme.user.service;
 
 
+import com.mungwithme.address.model.dto.response.AddressResponseDto;
 import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
+import com.mungwithme.user.model.dto.response.UserMyInfoResponseDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserQueryRepository;
+import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +16,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -121,12 +123,47 @@ public class UserQueryService {
     public Optional<User> findByNickname(String nickname) {
         return userQueryRepository.findByNickname(nickname);
     }
+
+
+    /**
+     * 닉네임 중복 확인
+     *
+     * @param nickname
+     */
     public void duplicateNickname(String nickname) {
         userQueryRepository.findByNickname(nickname)
             .ifPresent(user -> {
                 throw new DuplicateResourceException("error.duplicate.nickname");
             });
     }
+
+
+    /**
+     * 이메일을 이용하여 회원 조회
+     *
+     * @param email 이메일
+     * @return 조회된 회원
+     */
+    public Optional<User> findByEmailWithAddress(String email) {
+        return userQueryRepository.findByEmailWithAddress(email);
+    }
+
+
+    public UserMyInfoResponseDto findMyInfo () {
+        User currentUser = findCurrentUser();
+
+        List<AddressResponseDto> regions = currentUser.getRegions().stream()
+            .map(region -> new AddressResponseDto(region.getId(), region.getProvince(),
+                region.getCityCounty(), region.getDistrict(),
+                region.getSubDistrict())).toList();
+        return UserMyInfoResponseDto.builder().nickname(currentUser.getNickname()).age(currentUser.getAge())
+            .gender(currentUser.getGender()).regions(regions).build();
+    }
+
+    /**
+     * email 중복 확인
+     * @param email
+     */
     public void duplicateEmail(String email) {
         userQueryRepository.findByEmail(email)
             .ifPresent(user -> {

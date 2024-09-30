@@ -9,6 +9,8 @@ import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
 import com.mungwithme.common.util.GeoUtils;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -29,7 +31,7 @@ import org.springframework.util.StringUtils;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AddressSearchService {
+public class AddressQueryService {
 
     private final AddressRepository addressRepository;
 
@@ -111,6 +113,13 @@ public class AddressSearchService {
         ).toList();
     }
 
+    public Optional<Address> findById(long id) {
+        return addressRepository.findById(id);
+    }
+
+    public List<Address> findByIds(Set<Long> ids) {
+        return addressRepository.findAllById(ids);
+    }
 
 
 

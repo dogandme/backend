@@ -1,4 +1,4 @@
-package com.mungwithme.user.model;
+package com.mungwithme.user.model.enums;
 
 /**
  * 성별

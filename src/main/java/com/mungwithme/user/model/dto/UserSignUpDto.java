@@ -1,6 +1,6 @@
 package com.mungwithme.user.model.dto;
 
-import com.mungwithme.user.model.Gender;
+import com.mungwithme.user.model.enums.Gender;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

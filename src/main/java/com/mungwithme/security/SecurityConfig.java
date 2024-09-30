@@ -11,7 +11,7 @@ import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationFailureHandler;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationSuccessHandler;
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -99,7 +99,7 @@ public class SecurityConfig {
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
-                    .requestMatchers("/users/pets", "/profile")
+                    .requestMatchers("/users/pets", "/profile","/users/profile","/users/profile/**")
                     .hasAnyRole(
                         Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )

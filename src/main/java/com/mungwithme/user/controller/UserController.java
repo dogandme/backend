@@ -112,10 +112,6 @@ public class UserController {
     @PutMapping("/additional-info")
     public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
         throws Exception {
-
-
-
-
         return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto), HttpStatus.OK.value());
 
     }
