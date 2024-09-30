@@ -13,6 +13,8 @@ import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationSuccessHan
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
 import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.service.UserLogoutService;
+import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -52,14 +54,14 @@ public class SecurityConfig {
     private final CustomOAuthAuthenticationFailureHandler customOAuthAuthenticationFailureHandler;
 
 
+    private final CustomLogoutHandler customLogoutHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-    private final CustomLogoutHandler customLogoutHandler;
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,UserService userService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserService userService,UserQueryService userQueryService) throws Exception {
 
         http
             .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -90,15 +92,16 @@ public class SecurityConfig {
                     .requestMatchers(
                         "/", "/auth", "/users", "/users/auth/**", "/users/password",
                         "/oauth2/**", "/v3/api-docs/**", "/swagger-ui/**",
-                        "/swagger-ui.html", "/markings/search", "/health","/markings/image/**"
+                        "/swagger-ui.html", "/markings/search", "/health", "/markings/image/**"
                     ).permitAll()
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**","/users/me","/users/profile/password"
+                        "/addresses", "/addresses/**", "/users/me", "/users/profile/password", "/logout"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
+
 
                     .requestMatchers("/profile","/users/profile","/users/profile/**")
                     .hasAnyRole(
@@ -180,10 +183,11 @@ public class SecurityConfig {
         return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse);
     }
 
+
     /**
-     *
      * userService 순환참조 문제로 인해
      * bean 으로 생성
+     *
      * @param userService
      * @return
      */
@@ -193,9 +197,9 @@ public class SecurityConfig {
     }
 
     /**
-     *
      * userService 순환참조 문제로 인해
      * bean 으로 생성
+     *
      * @param userService
      * @return
      */
