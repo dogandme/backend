@@ -44,8 +44,6 @@ import org.springframework.util.StringUtils;
 public class UserService {
 
     private final UserRepository userRepository;
-//    private final AddressRepository addressRepository;
-
     private final AddressQueryService addressQueryService;
 
     private final PasswordEncoder passwordEncoder;
@@ -286,9 +284,6 @@ public class UserService {
         Set<Address> removeAddress = regions.stream()
             .filter(address -> removeIds.contains(address.getId()))
             .collect(Collectors.toSet());
-
-        log.info("removeAddress = {}", removeAddress.size());
-
         // 현재 주소 목록에서 삭제
         regions.removeAll(removeAddress);
         currentUser.removeAllRegions(removeAddress);
@@ -407,7 +402,6 @@ public class UserService {
         );
 
     }
-
 
     @Transactional
     public void removeUser(User user) {
