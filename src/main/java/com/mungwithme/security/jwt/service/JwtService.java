@@ -182,13 +182,13 @@ public class JwtService {
         return cookie;
     }
 
-    /**
+/*    *//**
      * RefreshToken DB 저장(업데이트)
      *
      * @modification.author 장수현
      * @modification.date 2024.8.14
      * @modification.detail 토큰을 업데이트하고 DB 저장 로직 추
-     */
+     *//*
     public void updateRefreshToken(String email, String refreshToken) {
         userRepository.findByEmail(email)   // 이메일로 회원 찾기
                 .ifPresentOrElse(
@@ -198,7 +198,7 @@ public class JwtService {
                         },
                         () -> new ResourceNotFoundException("error.notfound.user")     // 없으면 예외발생
                 );
-    }
+    }*/
 
     /**
      * 토큰 검증

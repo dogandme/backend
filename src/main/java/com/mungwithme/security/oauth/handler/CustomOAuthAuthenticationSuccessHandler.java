@@ -83,11 +83,7 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
             String refreshToken = jwtService.createRefreshToken();
             jwtService.setRefreshTokenCookie(response, refreshToken); // 응답 쿠키에 RefreshToken 담아 응답
 
-            jwtService.updateRefreshToken(email, refreshToken);
-
             String finalOAuthRefreshToken = oAuthRefreshToken;
-
-
 
             // 4. 기존 회원일 경우 닉네임 쿠키에 저장
             int maxAge = 3600000;
