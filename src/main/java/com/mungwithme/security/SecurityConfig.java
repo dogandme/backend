@@ -90,9 +90,20 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
                     .requestMatchers(
-                        "/", "/auth", "/users", "/users/auth/**", "/users/password",
-                        "/oauth2/**", "/v3/api-docs/**", "/swagger-ui/**",
-                        "/swagger-ui.html", "/markings/search", "/health", "/markings/image/**"
+                        "/",
+                        "/auth",
+                        "/users",
+                        "/users/auth/**",
+                        "/users/password",
+                        "/oauth2/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/users/follows/followings"
+                        ,"/users/follows/followers",
+                        "/swagger-ui.html",
+                        "/markings/search",
+                        "/health",
+                        "/markings/image/**"
                     ).permitAll()
 
                     .requestMatchers(

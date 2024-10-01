@@ -14,10 +14,13 @@ import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowsQueryService;
 import com.mungwithme.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ProfileQueryService {
@@ -54,7 +57,6 @@ public class ProfileQueryService {
                     markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
             profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
         }
-
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
         petQueryService.findByUser(user)
                 .ifPresent(pet -> profileResponseDto.setPet(
@@ -73,13 +75,14 @@ public class ProfileQueryService {
 
         // 마킹 목록
         Set<MarkingQueryDto> markingQueryDtos = markingQueryService.findAllMarkersByUser(user, false, false);
+
         List<Map<String, Object>> markings = Optional.ofNullable(markingQueryDtos)
                 .orElseGet(Collections::emptySet)
                 .stream()
                 .map(dto -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", dto.getMarking().getId());
-                    map.put("images", dto.getMarking().getImages().get(0)); // 가장 최근에 등록된 이미지 불러오기
+                    map.put("images", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
                     return map;
                 })
                 .toList();

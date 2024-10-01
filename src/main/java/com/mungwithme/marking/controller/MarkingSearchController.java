@@ -83,11 +83,6 @@ public class MarkingSearchController {
 
     /**
      * 좋아요 날짜
-     */
-
-    /**
-     * 내가 좋아요한 마킹 리스트 불러오기
-     *
      * @return
      */
     @GetMapping("/likes")
@@ -97,10 +92,6 @@ public class MarkingSearchController {
         return baseResponse.sendContentResponse(likedMarkersByUser, HttpStatus.OK.value());
 
     }
-
-    /**
-     * 좋아요 날짜
-     */
 
     /**
      * 내가 즐겨 찾기 한 마킹 리스트 불러오기

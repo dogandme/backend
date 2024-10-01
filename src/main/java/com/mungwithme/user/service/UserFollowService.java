@@ -19,6 +19,7 @@ public class UserFollowService {
 
     private final UserFollowRepository userFollowRepository;
     private final UserQueryService userQueryService;
+    private final UserFollowsQueryService userfollowsQueryService;
 
     /**
      * 팔로우 추가
@@ -58,7 +59,7 @@ public class UserFollowService {
     @Transactional
     public void removeFollow(User followerUser, User followingUser) {
 
-        UserFollows userFollows = findByFollowingUser(followerUser, followingUser);
+        UserFollows userFollows = userfollowsQueryService.findByFollowingUser(followerUser, followingUser);
 
         if (userFollows == null) {
             return;
@@ -120,19 +121,11 @@ public class UserFollowService {
      */
     public boolean existsFollowing(User followerUser, User followingUser) {
 
-        UserFollows byFollowingUser = findByFollowingUser(followerUser, followingUser);
+        UserFollows byFollowingUser =  userfollowsQueryService.findByFollowingUser(followerUser, followingUser);
         return byFollowingUser == null;
     }
 
-    /**
-     * 팔로잉 유저 기준으로 검색
-     *
-     * @return
-     */
-    public UserFollows findByFollowingUser(User followerUser, User followingUser) {
-        return userFollowRepository.findByFollowingUser(followingUser, followerUser).orElse(null);
 
-    }
 
 
 }

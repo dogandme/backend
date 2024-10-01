@@ -3,7 +3,7 @@ package com.mungwithme.marking.model.dto.response;
 
 import static lombok.AccessLevel.PRIVATE;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,6 +17,6 @@ import lombok.Setter;
 public class MarkingSavedInfoResponseDto{
 
     private Long savedId;
-    private Date savedRegDt;
+    private LocalDateTime savedRegDt;
 
 }
