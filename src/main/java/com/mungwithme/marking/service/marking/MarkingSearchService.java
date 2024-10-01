@@ -73,9 +73,6 @@ public class MarkingSearchService {
         if (nearbyMarkers.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.markings");
         }
-
-        log.info("nearbyMarkers.size() = {}", nearbyMarkers.size());
-
         return findMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
     }
 

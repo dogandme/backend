@@ -3,6 +3,7 @@ package com.mungwithme.marking.model.dto.response;
 
 import static lombok.AccessLevel.PRIVATE;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -18,5 +19,5 @@ public class MarkingLikedInfoResponseDto {
 
 
     private Long likedId;
-    private Date likedRegDt;
+    private LocalDateTime likedRegDt;
 }

@@ -20,7 +20,7 @@ public interface UserFollowQueryRepository extends JpaRepository<UserFollows, Lo
 
     @Query("SELECT distinct uf.followingUser.id FROM UserFollows uf "
         + " WHERE uf.followerUser.id = :userId ")
-    List<Long> findIdsByFollowerUserId(Long userId);
+    List<Long> findIdsByFollowerUserId(@Param("userId") Long userId);
 
     @Query("select f from UserFollows f where f.followingUser = :followingUser and f.followerUser = :followerUser ")
     Optional<UserFollows> findByFollowingUser(

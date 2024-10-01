@@ -9,6 +9,7 @@ import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -29,7 +30,7 @@ public class MarkingInfoResponseDto {
     private String content;
     private Visibility isVisible;
 
-    private Date regDt;
+    private LocalDateTime regDt;
 
     private Long userId;
 
@@ -95,10 +96,10 @@ public class MarkingInfoResponseDto {
         this.countData.updateLikedCount(count);
     }
 
-    public void updateLikedInfo(long likeId, Date regDt) {
+    public void updateLikedInfo(long likeId, LocalDateTime regDt) {
         this.likedInfo = new MarkingLikedInfoResponseDto(likeId, regDt);
     }
-    public void updateSavedInfo(long savedId, Date regDt) {
+    public void updateSavedInfo(long savedId, LocalDateTime regDt) {
         this.savedInfo = new MarkingSavedInfoResponseDto(savedId, regDt);
     }
 

@@ -113,7 +113,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         + " left join fetch m.images img"
         + " left join fetch m.saves "
         + " WHERE m.isDeleted =:isDeleted and m.isTempSaved = :isTempSaved and m.user.id =:userId "
-        + " ORDER BY img.regDt DESC")
+        + " ORDER BY img.regDt  DESC")
     Set<MarkingQueryDto> findAllMarkersByUser(
         @Param("isDeleted") boolean isDeleted,
         @Param("isTempSaved") boolean isTempSaved,

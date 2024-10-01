@@ -2,6 +2,8 @@ package com.mungwithme.user.controller;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,8 +11,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 class UserControllerTest {
-
-
 
 
     @Test
@@ -27,7 +27,22 @@ class UserControllerTest {
         } else {
             System.out.println("Password is invalid");
         }
+    }
 
+
+    @Test
+    public void test1() {
+
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+
+        System.out.println("ZonedDateTime = " + zonedDateTime);
+
+        // given
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println("now = " + now);
+        // when
+
+        // then
 
     }
 }
