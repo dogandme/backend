@@ -114,14 +114,17 @@ public class SecurityConfig {
                     )
 
 
-                    .requestMatchers("/profile","/users/profile","/users/profile/**")
+                    .requestMatchers("/profile","/users/profile", "/users/profile/**")
                     .hasAnyRole(
                             Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.POST, "/pets")
                     .hasAnyRole(
                             Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
+
 
                     .requestMatchers(
                         "/markings", "/maps/**", "/users/follows",
@@ -129,10 +132,14 @@ public class SecurityConfig {
                     ).hasAnyRole(
                         Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.GET, "/pets")
                     .hasAnyRole(
                             Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.PUT, "/pets")
                     .hasAnyRole(
                             Role.USER.name(), Role.ADMIN.name()
