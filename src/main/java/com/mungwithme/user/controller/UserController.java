@@ -1,5 +1,6 @@
 package com.mungwithme.user.controller;
 
+import com.mungwithme.common.annotation.authorize.NoneAuthorize;
 import com.mungwithme.common.email.EmailAuthRequestDto;
 import com.mungwithme.common.email.EmailRequestDto;
 import com.mungwithme.common.email.EmailService;
@@ -11,18 +12,33 @@ import com.mungwithme.security.jwt.PasswordUtil;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
+import com.mungwithme.user.model.dto.request.UserDeleteDto;
+import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.Optional;
+import org.springframework.web.client.RestTemplate;
 
 @Slf4j
 @RestController
@@ -31,9 +47,9 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final UserQueryService userQueryService;
     private final BaseResponse baseResponse;
     private final EmailService emailService;
-    private final JwtService jwtService;
 
     /**
      * 회원가입 1단계 : [일반] 이메일/비밀번호 저장
@@ -59,9 +75,10 @@ public class UserController {
      * 회원가입 이메일 인증 코드 전송
      */
     @PostMapping("/auth")
-    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Validated EmailRequestDto emailDto) throws IOException {
+    public ResponseEntity<CommonBaseResult> mailSend(@RequestBody @Validated EmailRequestDto emailDto)
+        throws IOException {
         // 이메일 중복
-        Optional<User> user = userService.findByEmail(emailDto.getEmail());
+        Optional<User> user = userQueryService.findByEmail(emailDto.getEmail());
         if (user.isPresent()) {
             throw new DuplicateResourceException("error.duplicate.email");
         }
@@ -93,17 +110,9 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto) throws Exception {
-
-        UserResponseDto userResponseDto = new UserResponseDto();
-
-        userSignUpDto.setUserId(userService.findCurrentUser().getId());  // UserDetails에서 유저 정보 조회
-        User user = userService.signUp2(userSignUpDto);                 // 추가 정보 저장
-
-        userResponseDto.setRole(user.getRole().getKey());
-        userResponseDto.setNickname(user.getNickname());
-
-        return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
+        throws Exception {
+        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto), HttpStatus.OK.value());
 
     }
 
@@ -120,7 +129,7 @@ public class UserController {
         String email = emailDto.getEmail();
 
         // 1. 이메일로 일반 회원 조회 (소셜 회원은 임시 비밀번호 설정 불가)
-        Optional<User> user = userService.findByEmailAndSocialTypeIsNull(email);
+        Optional<User> user = userQueryService.findByEmailAndSocialTypeIsNull(email);
 
         // 2. 실패 시 실패 응답 return
         if (user.isEmpty()) {
@@ -129,7 +138,6 @@ public class UserController {
 
         // 3. 성공 시 임시 비밀번호 생성
         String temporaryPassword = PasswordUtil.generateRandomPassword();
-        log.info("temporaryPassword : {}", temporaryPassword);
 
         // 4. 임시 비밀번호 DB 업데이트
         userService.editPasswordByEmail(email, temporaryPassword);
@@ -150,12 +158,30 @@ public class UserController {
     @PostMapping("/nickname")
     public ResponseEntity<CommonBaseResult> checkNicknameDuplicate(@RequestBody UserSignUpDto userSignUpDto)
         throws IOException {
-        Optional<User> user = userService.findByNickname(userSignUpDto.getNickname());
+        userQueryService.duplicateNickname(userSignUpDto.getNickname());
 
-        if (user.isPresent()) {
-            throw new DuplicateResourceException("error.duplicate.nickname");
-        } else {
-            return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
-        }
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
+
+
+    /**
+     * 유저 탈퇴 API
+     * <p>
+     * 소셜 회원일 경우
+     * 이메일 회원일 경우
+     * 마킹 삭제
+     * 펫 삭제
+     * Address 삭제
+     * likes 삭제
+     * image 삭제
+     */
+    @DeleteMapping("/me")
+    public ResponseEntity<CommonBaseResult> deleteUsers(@RequestBody UserDeleteDto userDeleteDto,
+        HttpServletRequest request)
+        throws IOException {
+        userService.removeUser(userDeleteDto);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "user.delete.success", request.getLocale());
+    }
+
+
 }

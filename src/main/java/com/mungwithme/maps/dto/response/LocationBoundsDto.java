@@ -15,6 +15,7 @@ public class LocationBoundsDto {
 
     @NotNull(message = "{error.NotNull}")
     private Double southBottomLat;
+
     @NotNull(message = "{error.NotNull}")
     private Double northTopLat;
     @NotNull(message = "{error.NotNull}")

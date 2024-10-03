@@ -11,6 +11,7 @@ import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.marking.MarkingService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -124,15 +125,15 @@ public class MarkingController {
      * @return
      * @throws IOException
      */
-    @GetMapping("/image/{fileName}")
-    public ResponseEntity<UrlResource> getMarkingImage(@PathVariable(name = "fileName") String fileName) {
+    @GetMapping("/image/{marking-id}/{fileName}")
+    public ResponseEntity<UrlResource> getMarkingImage(@PathVariable(name = "marking-id") Long markingId,@PathVariable(name = "fileName") String fileName) {
         // file MediaType 확인 후 header 에 저장
         MediaType mediaType = null;
         UrlResource pictureImage = null;
         try {
             if (StringUtils.hasText(fileName)) {
                 mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
-                pictureImage = fileStore.getUrlResource(fileName, FileStore.MARKING_DIR);
+                pictureImage = fileStore.getUrlResource(fileName, FileStore.MARKING_DIR + File.separator + markingId);
             }
         } catch (Exception e) {
             throw new ResourceNotFoundException("error.notfound.image");

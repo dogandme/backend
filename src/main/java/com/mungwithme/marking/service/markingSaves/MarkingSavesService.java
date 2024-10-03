@@ -8,7 +8,8 @@ import com.mungwithme.marking.repository.markingSaves.MarkingSavesRepository;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
-import com.mungwithme.user.service.UserService;
+import com.mungwithme.user.service.UserQueryService;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class MarkingSavesService {
 
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
     private final UserFollowService userFollowService;
     private final MarkingQueryService markingQueryService;
     private final MarkingSavesRepository markingSavesRepository;
@@ -33,7 +34,7 @@ public class MarkingSavesService {
      */
     @Transactional
     public void addSaves(long markingId) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
         User postUser = null;
         boolean isOwner = false;
         Marking marking = markingQueryService.findById(markingId, false, false);
@@ -69,7 +70,7 @@ public class MarkingSavesService {
      */
     @Transactional
     public void deleteSaves(long markingId) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
         MarkingSaves markingSaves = fetchSaves(currentUser, markingId);
         if (markingSaves == null) {
             return;
@@ -85,6 +86,16 @@ public class MarkingSavesService {
     public void deleteAllSaves(Marking marking) {
         markingSavesRepository.deleteAllByMarking(marking);
     }
+
+    /**
+     * 마킹 즐겨찾기 전부 삭제
+     * @param markings
+     */
+    @Transactional
+    public void deleteAllSavesBatch(Set<Marking> markings) {
+        markingSavesRepository.deleteAllByMarkings(markings);
+    }
+
 
 
     public boolean existsSaves(User user, Marking marking) {

@@ -1,36 +1,40 @@
 package com.mungwithme.pet.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
-import com.mungwithme.pet.model.dto.PetSignUpDto;
+import com.mungwithme.pet.model.dto.request.PetRequestDto;
+import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
+import com.mungwithme.pet.model.dto.response.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.pet.repository.PetRepository;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.security.jwt.service.JwtService;
+import com.mungwithme.user.model.enums.Role;
+import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.repository.UserRepository;
-import com.mungwithme.user.service.UserService;
+import com.mungwithme.user.service.UserQueryService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
+@Transactional(readOnly = true)
 public class PetService {
 
     private final PetRepository petRepository;
-    private final UserRepository userRepository;
-    private  final UserService userService;
+    private  final UserQueryService userQueryService;
     private final FileStore fileStore;
+    private final JwtService jwtService;
+    private final PetQueryService petQueryService;
+    private final ObjectMapper objectMapper;
 
     @Value("${com.example.ex8_fileupload.upload.path}") // application 의 properties 의 변수
     private String uploadPath;
@@ -39,11 +43,10 @@ public class PetService {
      * 애완동물 정보 저장 및 USER권한 토큰 발행
      * @param petSignUpDto 애완동물정보
      */
-    public User addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
-
+    @Transactional
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
         // UserDetails에서 user 엔터티 조회
-        User user = userService.findCurrentUser();
-
+        User user = userQueryService.findCurrentUser();
         // 강쥐 프로필 이미지 업로드
         List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
 
@@ -59,51 +62,93 @@ public class PetService {
         petRepository.save(pet);
 
         // 기존에 USER 권한이 아니었을 경우 USER 권한으로 변경
+        UserResponseDto userResponseDto = new UserResponseDto();
         if (!user.getRole().equals(Role.USER)) {
             user.setRole(Role.USER);
-            userRepository.save(user);
+            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey());
+            userResponseDto.setAuthorization(accessToken);
         }
+        userResponseDto.setNickname(user.getNickname());
+        userResponseDto.setRole(user.getRole().getKey());
+        return userResponseDto;
+    }
 
-        return user;
+
+    /**
+     * pet 삭제
+     *
+     * @param user
+     * @throws IOException
+     */
+    @Transactional
+    public void deletePet(User user) {
+        Pet pet = petQueryService.findByUser(user).orElse(null);
+
+        if (pet != null) {
+
+            String profile = pet.getProfile();
+//            petRepository.delete(pet);
+            // Pet 이미지 삭제
+            fileStore.deleteFile(FileStore.PET_DIR,profile);
+
+        }
     }
 
     /**
-     * 강쥐 프로필 이미지 업로드
-     * @param profile 업로드 할 파일
+     * 유저 닉네임으로 펫 조회
+     * @param nickname 유저 닉네임
+     * @return 펫 정보
      */
-    private String editFile(MultipartFile profile) throws IOException {
+    public PetInfoResponseDto findPetByNickname(String nickname) {
+        // 닉네임 조회
+        User user = userQueryService.findByNickname(nickname)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
 
-        // 이미지 파일만 업로드
-        if (!Objects.requireNonNull(profile.getContentType()).startsWith("image")) {
-            // Todo 예외처리 필요
-        }
+        // 펫 조회
+        Pet pet = petQueryService.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
 
-        String folderPath = makeFolder();           // 날짜 폴더 생성
-        String uuid = UUID.randomUUID().toString(); // UUID 생성
-
-        String saveName = uploadPath + File.separator + folderPath + File.separator + uuid + "_" + profile.getName();
-        Path savePath = Paths.get(saveName);
-
-        // 실제 파일 저장
-        profile.transferTo(savePath);
-
-        return saveName;
+        return PetInfoResponseDto.builder()
+                .petId(pet.getId())
+                .name(pet.getName())
+                .description(pet.getDescription())
+                .profile(pet.getProfile())
+                .breed(pet.getBreed())
+                .personalities(pet.getPersonalities())
+                .build();
     }
 
     /**
-     * 날짜 폴더 생성
-     * @return 폴더 경로
+     * 펫 정보 수정
+     * @param petDtoJson 수정 정보
+     * @param image 수정 프로필 이미지
      */
-    private String makeFolder() {
-        String str = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-        String folderPath = str.replace("/", File.separator);
+    @Transactional
+    public void editPet(String petDtoJson, List<MultipartFile> image) throws IOException {
 
-        File uploadPathFolder = new File(uploadPath, folderPath);
+        // UserDetails에서 user 엔터티 조회
+        User user = userQueryService.findCurrentUser_v2();
 
-        if (!uploadPathFolder.exists()) {
-            boolean mkdirs = uploadPathFolder.mkdirs();
-        }
+        // 이전 강쥐 프로필 이미지 삭제
+        Pet prevPet = petQueryService.findByUser(user)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
+        fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
 
-        return folderPath;
+        // JSON 문자열을 DTO로 변환
+        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
+
+        // 강쥐 프로필 이미지 업로드
+        List<String> profile = fileStore.uploadFiles(image, FileStore.PET_DIR);
+
+        // 강쥐 DB 저장
+        petRepository.save(Pet.builder()
+                .id(prevPet.getId())
+                .name(petRequestDto.getName())
+                .description(petRequestDto.getDescription())
+                .personalities(petRequestDto.getPersonalities())
+                .profile(profile.get(0))
+                .breed(petRequestDto.getBreed())
+                .user(user)
+                .build());
     }
 }

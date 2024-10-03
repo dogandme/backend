@@ -1,7 +1,7 @@
-package com.mungwithme.common.util.validation.validatior;
+package com.mungwithme.common.annotation.validator;
 
 import com.mungwithme.common.file.FileUtils;
-import com.mungwithme.common.util.validation.annotation.MultipartImageValid;
+import com.mungwithme.common.annotation.valid.MultipartImageValid;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;

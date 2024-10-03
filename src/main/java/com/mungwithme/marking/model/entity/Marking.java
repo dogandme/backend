@@ -19,9 +19,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+
+import java.util.*;
+
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -79,7 +79,7 @@ public class Marking extends BaseTimeEntity {
 
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
-    private Set<MarkImage> images = new HashSet<>();   // One(marking)-to-Many(images) Join
+    private List<MarkImage> images = new ArrayList<>();   // One(marking)-to-Many(images) Join
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkingSaves> saves = new HashSet<>();   // One(marking)-to-Many(images) Join

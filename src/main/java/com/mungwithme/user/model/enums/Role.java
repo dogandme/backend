@@ -1,6 +1,5 @@
-package com.mungwithme.user.model;
+package com.mungwithme.user.model.enums;
 
-import javax.naming.AuthenticationException;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 

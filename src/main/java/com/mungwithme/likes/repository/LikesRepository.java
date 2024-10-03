@@ -26,8 +26,18 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
         @Param("contentId") long contentId, @Param("contentType") ContentType contentType);
 
 
+    @Modifying(clearAutomatically = true)
+    @Query("delete from Likes l where l.contentId in (:contentsIds) and l.contentType =:contentType ")
+    void deleteAllByContentIds(
+        @Param("contentsIds") Set<Long> contentsIds, @Param("contentType") ContentType contentType);
 
-//    COALESCE(count(s.id),0)
+    @Modifying(clearAutomatically = true)
+    @Query("delete from Likes l where l.user = :user ")
+    void deleteAllByUser(@Param("user") User user);
+
+
+
+    //    COALESCE(count(s.id),0)
     @Query("select new com.mungwithme.likes.model.dto.response.LikeCountResponseDto(l.contentId,l.contentType"
         + ",COALESCE(count(l.contentId),0)) from Likes l "
         + "where l.contentId in (:contentsIds) and l.contentType = :contentType group by l.contentId ")

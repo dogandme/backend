@@ -50,6 +50,9 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
+
+        log.info("refreshToken.orElse(null) = {}", refreshToken.orElse(null));
+
         if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
             baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "로그아웃 토큰 검증 실패"));
             return;
@@ -63,7 +66,7 @@ public class JwtLogoutFilter extends GenericFilterBean {
         }
 
         //로그아웃 진행
-        jwtService.updateRefreshToken(byRefreshToken.get().getEmail(), null); // Refresh 토큰 DB에서 제거
+//        jwtService.updateRefreshToken(byRefreshToken.get().getEmail(), null); // Refresh 토큰 DB에서 제거
         jwtService.clearAllCookie(request, response);                                    // 토큰 삭제
         baseResponse.handleResponse(response, baseResponse.sendSuccessResponse(200));      // 로그아웃 성공 응답
     }

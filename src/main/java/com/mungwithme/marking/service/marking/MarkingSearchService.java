@@ -15,6 +15,7 @@ import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -34,7 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MarkingSearchService {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
     private final LikesService likesService;
 
@@ -53,7 +54,7 @@ public class MarkingSearchService {
             locationBoundsDto.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
-        User currentUser = userService.findCurrentUser_v2();
+        User currentUser = userQueryService.findCurrentUser_v2();
 
         boolean isMember = currentUser != null;
 
@@ -72,9 +73,6 @@ public class MarkingSearchService {
         if (nearbyMarkers.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.markings");
         }
-
-        log.info("nearbyMarkers.size() = {}", nearbyMarkers.size());
-
         return findMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
     }
 
@@ -84,7 +82,7 @@ public class MarkingSearchService {
      *
      */
     public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
-        User myUser = userService.findCurrentUser();
+        User myUser = userQueryService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
 
@@ -99,7 +97,7 @@ public class MarkingSearchService {
      *
      */
     public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
-        User myUser = userService.findCurrentUser();
+        User myUser = userQueryService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
 
@@ -117,8 +115,8 @@ public class MarkingSearchService {
      * @return
      */
     public MyMarkingsResponseDto findAllMarkersByUser(String nickname) {
-        User myUser = userService.findCurrentUser();
-        User profileUser = userService.findByNickname(nickname).orElse(null);
+        User myUser = userQueryService.findCurrentUser();
+        User profileUser = userQueryService.findByNickname(nickname).orElse(null);
         if (profileUser == null) {
             throw new ResourceNotFoundException("error.notfound.user");
         }
@@ -146,7 +144,7 @@ public class MarkingSearchService {
      * @return
      */
     public MyTempMarkingsResponseDto findTempMarkersByUser() {
-        User myUser = userService.findCurrentUser();
+        User myUser = userQueryService.findCurrentUser();
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
             markingQueryService.findAllMarkersByUser(myUser, false, true));

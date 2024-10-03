@@ -1,7 +1,7 @@
 package com.mungwithme.security.jwt.service;
 
 
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

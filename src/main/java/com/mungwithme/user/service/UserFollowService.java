@@ -18,16 +18,27 @@ public class UserFollowService {
 
 
     private final UserFollowRepository userFollowRepository;
-    private final UserService userService;
+    private final UserQueryService userQueryService;
+    private final UserFollowsQueryService userfollowsQueryService;
 
+    /**
+     * 팔로우 추가
+     * @param followingNickname
+     */
     @Transactional
-    public void addFollowing(String followingEmail) {
+    public void addFollowing(String followingNickname) {
 
         // 요청 사용자
-        User followerUser = userService.findCurrentUser();
+        User followerUser = userQueryService.findCurrentUser();
 
-        User followingUser = userService.findByEmail(followingEmail)
+        User followingUser = userQueryService.findByNickname(followingNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+
+
+        // 자기 자신을 팔로잉 할 경우
+        if (followerUser.getId().equals(followingUser.getId())){
+            throw new IllegalArgumentException("error.arg");
+        }
 
         if (!existsFollowing(followerUser, followingUser)) {
             return;
@@ -41,13 +52,14 @@ public class UserFollowService {
 
     /**
      * 팔로우 삭제 API
+     *
      * @param followerUser
      * @param followingUser
      */
     @Transactional
     public void removeFollow(User followerUser, User followingUser) {
 
-        UserFollows userFollows = findByFollowingUser(followerUser, followingUser);
+        UserFollows userFollows = userfollowsQueryService.findByFollowingUser(followerUser, followingUser);
 
         if (userFollows == null) {
             return;
@@ -57,19 +69,16 @@ public class UserFollowService {
     }
 
 
-
-     /**
+    /**
+     * 나의 팔로우 리스트에서 나를 팔로우 하는 사용자를 강제 언팔 API
      *
-     *  나의 팔로우 리스트에서 나를 팔로우 하는 사용자를 강제 언팔 API
-     * @param followerEmail
      */
     @Transactional
-    public void forceUnfollow(String followerEmail) {
+    public void forceUnfollow(String followerNickname) {
         // 요청 사용자
-        User followingUser = userService.findCurrentUser();
+        User followingUser = userQueryService.findCurrentUser();
 
-
-        User followerUser = userService.findByEmail(followerEmail)
+        User followerUser = userQueryService.findByNickname(followerNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         removeFollow(followerUser, followingUser);
     }
@@ -77,19 +86,34 @@ public class UserFollowService {
 
     /**
      * 상대방 팔로잉 취소 API
-     * @param followingEmail
-     *          팔로우 당한 유저의 이메일
      *
+     * @param followingNickname
+     *     팔로우 당한 유저의 닉네임
      */
     @Transactional
-    public void removeFollow(String followingEmail) {
+    public void removeFollow(String followingNickname) {
         // 요청 사용자
-        User followerUser = userService.findCurrentUser();
+        User followerUser = userQueryService.findCurrentUser();
 
-        User followingUser = userService.findByEmail(followingEmail)
+        User followingUser = userQueryService.findByNickname(followingNickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
         removeFollow(followerUser, followingUser);
     }
+
+
+
+    /**
+     * 유저와 관련된 팔로잉 및 팔로우 전부 삭제
+     *
+     *
+     * @param user
+     */
+    @Transactional
+    public void removeAllByUser(User user) {
+        userFollowRepository.deleteAllByUser(user);
+    }
+
+
     /**
      * 팔로잉 유무 확인
      *
@@ -97,19 +121,11 @@ public class UserFollowService {
      */
     public boolean existsFollowing(User followerUser, User followingUser) {
 
-        UserFollows byFollowingUser = findByFollowingUser(followerUser, followingUser);
+        UserFollows byFollowingUser =  userfollowsQueryService.findByFollowingUser(followerUser, followingUser);
         return byFollowingUser == null;
     }
 
-    /**
-     * 팔로잉 유저 기준으로 검색
-     *
-     * @return
-     */
-    public UserFollows findByFollowingUser(User followerUser, User followingUser) {
-        return userFollowRepository.findByFollowingUser(followingUser, followerUser).orElse(null);
 
-    }
 
 
 }

@@ -2,6 +2,7 @@ package com.mungwithme.marking.model.dto.response;
 
 
 import com.mungwithme.marking.model.entity.MarkImage;
+import java.time.LocalDateTime;
 import java.util.Date;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,7 +17,7 @@ public class MarkImageResponseDto {
     private Long id;
     private String imageUrl;
     private Integer lank;
-    private Date regDt;
+    private LocalDateTime regDt;
 
     public MarkImageResponseDto(MarkImage markImage) {
         this.id = markImage.getId();

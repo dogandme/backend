@@ -10,7 +10,7 @@ import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserFollowService;
-import com.mungwithme.user.service.UserService;
+import com.mungwithme.user.service.UserQueryService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class LikesService {
 
-    private final UserService userService;
+    private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
     private final UserFollowService userFollowService;
     private final LikesRepository likesRepository;
@@ -40,7 +40,7 @@ public class LikesService {
      */
     @Transactional
     public void addLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
 
         User postUser = null;
         boolean isOwner = false;
@@ -91,7 +91,7 @@ public class LikesService {
      */
     @Transactional
     public void removeLikes(long contentId, ContentType contentType) {
-        User currentUser = userService.findCurrentUser();
+        User currentUser = userQueryService.findCurrentUser();
 
         Likes likes = findLikes(currentUser, contentType, contentId);
 
@@ -113,6 +113,36 @@ public class LikesService {
     public void removeAllLikes(long contentId, ContentType contentType) {
         likesRepository.deleteAllByContentId(contentId, contentType);
     }
+
+
+    /**
+     * 컨텐트에 해당하는 like 전부 다 삭제
+     *
+     *
+     * @param contentType
+     */
+    /**
+     * 컨텐트 아이디 리스트에 해당하는 like 전부 다 삭제
+     * @param contentsIds
+     *          아이디 리스트
+     * @param contentType
+     *          컨텐츠 타입
+     */
+    @Transactional
+    public void removeAllLikes(Set<Long> contentsIds, ContentType contentType) {
+        likesRepository.deleteAllByContentIds(contentsIds, contentType);
+    }
+
+
+    /**
+     * 유저 좋아요 모두 삭제
+     * @param user
+     */
+    @Transactional
+    public void removeAllByUser(User user) {
+        likesRepository.deleteAllByUser(user);
+    }
+
 
 
     /**

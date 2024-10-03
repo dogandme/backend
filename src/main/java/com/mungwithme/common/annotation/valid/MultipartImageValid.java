@@ -1,9 +1,9 @@
-package com.mungwithme.common.util.validation.annotation;
+package com.mungwithme.common.annotation.valid;
 
 import static java.lang.annotation.ElementType.FIELD;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-import com.mungwithme.common.util.validation.validatior.MultipartImageValidator;
+import com.mungwithme.common.annotation.validator.MultipartImageValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 import java.lang.annotation.Retention;

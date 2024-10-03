@@ -11,12 +11,16 @@ import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationFailureHandler;
 import com.mungwithme.security.oauth.handler.CustomOAuthAuthenticationSuccessHandler;
 import com.mungwithme.security.oauth.service.CustomOAuth2UserService;
-import com.mungwithme.user.model.Role;
+import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.user.service.UserLogoutService;
+import com.mungwithme.user.service.UserQueryService;
+import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -27,6 +31,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.logout.LogoutFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -45,18 +50,18 @@ public class SecurityConfig {
     private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
     private final BaseResponse baseResponse;
-
-    private final CustomOAuthAuthenticationSuccessHandler customOAuthAuthenticationSuccessHandler;
+    private final OAuth2AuthorizedClientService authorizedClientService;
     private final CustomOAuthAuthenticationFailureHandler customOAuthAuthenticationFailureHandler;
-    private final CustomOAuth2UserService customOAuth2UserService;
+
+
+    private final CustomLogoutHandler customLogoutHandler;
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
     private final CustomLogoutSuccessHandler customLogoutSuccessHandler;
-    private final CustomLogoutHandler customLogoutHandler;
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserService userService,UserQueryService userQueryService) throws Exception {
 
         http
             .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -85,21 +90,37 @@ public class SecurityConfig {
             .authorizeHttpRequests(authorizeRequests ->
                 authorizeRequests
                     .requestMatchers(
-                        "/", "/auth", "/users", "/users/auth/**", "/users/password",
-                        "/oauth2/**", "/v3/api-docs/**", "/swagger-ui/**",
-                        "/swagger-ui.html", "/markings/search", "/health"
+                        "/",
+                        "/auth",
+                        "/users",
+                        "/users/auth/**",
+                        "/users/password",
+                        "/oauth2/**",
+                        "/v3/api-docs/**",
+                        "/swagger-ui/**",
+                        "/users/follows/followings"
+                        ,"/users/follows/followers",
+                        "/swagger-ui.html",
+                        "/markings/search",
+                        "/health",
+                        "/markings/image/**"
                     ).permitAll()
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**"
+                        "/addresses", "/addresses/**", "/users/me", "/users/profile/password", "/logout"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
-                    .requestMatchers("/users/pets")
+
+                    .requestMatchers("/profile","/users/profile","/users/profile/**")
                     .hasAnyRole(
-                        Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.POST, "/pets")
+                    .hasAnyRole(
+                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
                     .requestMatchers(
@@ -107,6 +128,14 @@ public class SecurityConfig {
                         "/users/follows/**", "/markings/**"
                     ).hasAnyRole(
                         Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.GET, "/pets")
+                    .hasAnyRole(
+                            Role.USER.name(), Role.ADMIN.name()
+                    )
+                    .requestMatchers(HttpMethod.PUT, "/pets")
+                    .hasAnyRole(
+                            Role.USER.name(), Role.ADMIN.name()
                     )
 
                     .anyRequest()
@@ -124,10 +153,10 @@ public class SecurityConfig {
         //oauth2
         http
             .oauth2Login((oauth2) -> oauth2
-                .successHandler(customOAuthAuthenticationSuccessHandler)
+                .successHandler(customOAuthAuthenticationSuccessHandler(userService))
                 .failureHandler(customOAuthAuthenticationFailureHandler)
                 .userInfoEndpoint((userInfoEndpointConfig) -> userInfoEndpointConfig
-                    .userService(customOAuth2UserService)))
+                    .userService(customOAuth2UserService(userService))))
         ;
 
         http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(),
@@ -163,6 +192,31 @@ public class SecurityConfig {
     @Bean
     public CustomJsonAuthenticationSuccessHandler loginSuccessHandler() {
         return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse);
+    }
+
+
+    /**
+     * userService 순환참조 문제로 인해
+     * bean 으로 생성
+     *
+     * @param userService
+     * @return
+     */
+    @Bean
+    public CustomOAuthAuthenticationSuccessHandler customOAuthAuthenticationSuccessHandler(UserService userService) {
+        return new CustomOAuthAuthenticationSuccessHandler(jwtService, userService, authorizedClientService);
+    }
+
+    /**
+     * userService 순환참조 문제로 인해
+     * bean 으로 생성
+     *
+     * @param userService
+     * @return
+     */
+    @Bean
+    public CustomOAuth2UserService customOAuth2UserService(UserService userService) {
+        return new CustomOAuth2UserService(userService);
     }
 
     /**
