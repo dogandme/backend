@@ -11,15 +11,10 @@ import com.mungwithme.pet.service.PetService;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.service.OAuth2Service;
-import com.mungwithme.user.model.dto.request.UserAgeUpdateDto;
+import com.mungwithme.user.model.dto.request.*;
 import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
-import com.mungwithme.user.model.dto.request.UserAddressUpdateDto;
-import com.mungwithme.user.model.dto.request.UserDeleteDto;
-import com.mungwithme.user.model.dto.request.UserGenderUpdateDto;
-import com.mungwithme.user.model.dto.request.UserNicknameUpdateDto;
-import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
@@ -274,8 +269,7 @@ public class UserService {
         }
 
         // 현재 사용자 가져오기
-//        User currentUser = userQueryService.findCurrentUser();
-        User currentUser = userQueryService.findByEmailWithAddress("2221325@naver.com").orElse(null);
+        User currentUser = userQueryService.findCurrentUser();
 
         // 사용자의 현재 주소 목록
         Set<Address> regions = currentUser.getRegions();
@@ -426,5 +420,32 @@ public class UserService {
         return user;
     }
 
+    /**
+     * 소셜 계정 첫 password 업데이트
+     * @param socialUserPwUpdateDto 소셜 계정 비밀번호
+     */
+    @Transactional
+    public void editSocialPassword(SocialUserPwUpdateDto socialUserPwUpdateDto) {
 
+        // 조건1 : 소셜 계정
+        User currentUser = userQueryService.findCurrentUser_v2();
+        if (currentUser.getSocialType() == null) {
+            throw new IllegalArgumentException("error.arg.standard.pw");
+        }
+
+        // 조건 2 : 첫 비밀번호 설정
+        if (!currentUser.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("error.arg.standard.pw.first");
+        }
+
+        // 조건 3 : 변경 비밀번호와 변경확인 비밀번호 입력값이 동일
+        String newPw = socialUserPwUpdateDto.getNewPw();
+        String newPwChk = socialUserPwUpdateDto.getNewPwChk();
+        if (!newPw.equals(newPwChk)) {
+            throw new IllegalArgumentException("error.arg.change.pw");
+        }
+
+        // 비밀번호 업데이트
+        currentUser.updatePw(newPw, passwordEncoder);
+    }
 }
