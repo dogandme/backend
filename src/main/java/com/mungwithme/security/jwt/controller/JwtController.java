@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 /**
  *
@@ -34,7 +33,7 @@ public class JwtController {
         String accessToken = "";
 
         String refreshToken = jwtService.extractRefreshToken(request)
-                    .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
+                    .filter(jwtService::tokenValid)   // refresh Token이 있고 검증되면 반환
                     .orElse(null);                // 없으면 null 반환
 
         if (refreshToken != null) {

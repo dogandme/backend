@@ -40,11 +40,11 @@ public class PetController {
     @PostMapping("")
     public ResponseEntity<CommonBaseResult> createPet(
         @RequestPart(name = "petSignUpDto") String petSignUpDtoJson,
-        @RequestPart(name = "image") List<MultipartFile> image) throws Exception {
+        @RequestPart(name = "image") List<MultipartFile> image, HttpServletRequest request) throws Exception {
 
         PetSignUpDto petSignUpDto = objectMapper.readValue(petSignUpDtoJson, PetSignUpDto.class);   // JSON 문자열을 DTO로 변환
 
-        UserResponseDto userResponseDto = petService.addPet(petSignUpDto, image);
+        UserResponseDto userResponseDto = petService.addPet(petSignUpDto, image, request);
 
         return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
 
@@ -52,7 +52,9 @@ public class PetController {
 
     /**
      * 펫 정보 조회
-     * @param nickname 유저 닉네임
+     *
+     * @param nickname
+     *     유저 닉네임
      * @return 펫 정보
      */
     @GetMapping("")
@@ -62,15 +64,18 @@ public class PetController {
 
     /**
      * 펫 정보 수정
-     * @param petDtoJson 펫 수정 정보
-     * @param image 펫 수정 프로필 이미지
+     *
+     * @param petDtoJson
+     *     펫 수정 정보
+     * @param image
+     *     펫 수정 프로필 이미지
      * @return
      */
     @PutMapping("")
     public ResponseEntity<CommonBaseResult> updatePet(
-            @RequestPart(name = "petDto") String petDtoJson,
-            @RequestPart(name = "image") List<MultipartFile> image,
-            HttpServletRequest request) throws IOException {
+        @RequestPart(name = "petDto") String petDtoJson,
+        @RequestPart(name = "image") List<MultipartFile> image,
+        HttpServletRequest request) throws IOException {
         petService.editPet(petDtoJson, image);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "pet.modify.success", request.getLocale());
     }

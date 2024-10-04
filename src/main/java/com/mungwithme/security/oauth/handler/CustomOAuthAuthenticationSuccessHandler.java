@@ -1,6 +1,11 @@
 package com.mungwithme.security.oauth.handler;
 
 
+import com.mungwithme.common.redis.RedisUtil;
+import com.mungwithme.common.redis.model.RedisKeys;
+import com.mungwithme.common.util.TokenUtils;
+import com.mungwithme.login.model.entity.LoginStatus;
+import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.PrincipalDetails;
 import com.mungwithme.user.model.entity.User;
@@ -51,6 +56,7 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
         Authentication authentication) throws IOException, ServletException {
 
         try {
+
             OAuth2AuthenticationToken oauthToken = (OAuth2AuthenticationToken) authentication;
             OAuth2AuthorizedClient authorizedClient = authorizedClientService.loadAuthorizedClient(
                 oauthToken.getAuthorizedClientRegistrationId(),
@@ -78,9 +84,11 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
                 .toList();
             String role = roles.get(0);
 
+            String redisAuthToken = TokenUtils.getRedisAuthToken();
+
             // 3. 토큰 발급 및 저장
-            String accessToken = jwtService.createAccessToken(email, role);
-            String refreshToken = jwtService.createRefreshToken();
+            String accessToken = jwtService.createAccessToken(email, role, redisAuthToken);
+            String refreshToken = jwtService.createRefreshToken(email,role, redisAuthToken);
             jwtService.setRefreshTokenCookie(response, refreshToken); // 응답 쿠키에 RefreshToken 담아 응답
 
             String finalOAuthRefreshToken = oAuthRefreshToken;
@@ -94,8 +102,7 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
             // 기존회원인지 신규 가입인지
             // Role NONE -> 닉네임 X
             userService.editRefreshTokenAndSetCookie(email, refreshToken, oAuthAccessToken, finalOAuthRefreshToken,
-                response, maxAge);
-
+                response, request, RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken, maxAge);
 
             // accessToken과 권한 쿠키에 저장
             Cookie authorizationCookie = new Cookie("authorization", accessToken);

@@ -60,14 +60,14 @@ public class UserController {
      */
     @PostMapping("")
     public ResponseEntity<CommonBaseResult> createUserSingUp(@RequestBody UserSignUpDto userSignUpDto,
-        HttpServletResponse response) throws Exception {
+        HttpServletResponse response,HttpServletRequest request) throws Exception {
         String email = userSignUpDto.getEmail();
         String password = userSignUpDto.getPassword();
         // email, password null 체크
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             throw new IllegalArgumentException("error.arg.signUp");
         }
-        UserResponseDto userResponseDto = userService.signUp(userSignUpDto, response); // 회원가입
+        UserResponseDto userResponseDto = userService.signUp(userSignUpDto, response,request); // 회원가입
         return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
     }
 
@@ -110,9 +110,9 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto,HttpServletRequest request)
         throws Exception {
-        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto), HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto,request), HttpStatus.OK.value());
 
     }
 

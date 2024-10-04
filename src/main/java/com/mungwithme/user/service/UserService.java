@@ -1,11 +1,15 @@
 package com.mungwithme.user.service;
 
+import com.auth0.jwt.interfaces.Claim;
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.redis.model.RedisKeys;
 import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.login.model.entity.LoginStatus;
+import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
 import com.mungwithme.security.jwt.service.JwtService;
@@ -23,9 +27,14 @@ import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
+import org.springframework.boot.autoconfigure.cache.CacheProperties.Redis;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -59,6 +68,8 @@ public class UserService {
 
     private final OAuth2Service oAuth2Service;
 
+    private final LoginStatusService loginStatusService;
+
 
     private static final String BEARER = "Bearer_";
 
@@ -69,7 +80,8 @@ public class UserService {
      *     가입요청 회원정보
      */
     @Transactional
-    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
+    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletResponse response, HttpServletRequest request)
+        throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -87,12 +99,13 @@ public class UserService {
         String email = newUser.getEmail();
         Role role = newUser.getRole();
 
-        String accessToken = jwtService.createAccessToken(email, role.getKey());   // AccessToken 발급
-        String refreshToken = jwtService.createRefreshToken();                             // RefreshToken 발급
+        String redisAuthToken = TokenUtils.getRedisAuthToken();
+
+        String accessToken = jwtService.createAccessToken(email, role.getKey(), redisAuthToken);   // AccessToken 발급
+        String refreshToken = jwtService.createRefreshToken(email,role.getKey(),           // RefreshToken 발급
+            redisAuthToken);
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
-
-        newUser.updateRefreshToken(refreshToken);
 
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(role.getKey());
@@ -100,6 +113,11 @@ public class UserService {
         // 유저 등록
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
         addUser(newUser);    // DB 저장
+
+        String userAgent = request.getHeader("User-Agent");
+        String sessionId = request.getSession().getId();
+
+        loginStatusService.addStatus(userAgent, refreshToken,  RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken, newUser.getId(), sessionId);
 
         return userResponseDto;
     }
@@ -111,7 +129,7 @@ public class UserService {
      *     추가 회원정보
      */
     @Transactional
-    public UserResponseDto signUp2(UserSignUpDto userSignUpDto) throws Exception {
+    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request) throws Exception {
 
         // 닉네임 중복 확인
         userQueryService.duplicateNickname(userSignUpDto.getNickname());
@@ -137,12 +155,18 @@ public class UserService {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
-        String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey());
+        // refreshToken 에서 RedisToken 추출
+        String redisAuthToken = jwtService.getRedisAuthToken(request);
+
+        String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey(),
+            redisAuthToken);
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(currentUser.getRole().getKey());
         userResponseDto.setNickname(currentUser.getNickname());
         return userResponseDto;
     }
+
+
 
 
     /**
@@ -274,8 +298,7 @@ public class UserService {
         }
 
         // 현재 사용자 가져오기
-//        User currentUser = userQueryService.findCurrentUser();
-        User currentUser = userQueryService.findByEmailWithAddress("2221325@naver.com").orElse(null);
+        User currentUser = userQueryService.findCurrentUser();
 
         // 사용자의 현재 주소 목록
         Set<Address> regions = currentUser.getRegions();
@@ -310,8 +333,6 @@ public class UserService {
         // 중복되지 않는 주소만 추가
         regions.addAll(addressList.stream()
             .filter(address -> !duplicateAddresses.contains(address)).toList());
-
-        log.info("regions.size() = {}", regions.size());
 
         // 업데이트된 주소를 사용자 객체에 설정
         currentUser.addAllRegions(regions);
@@ -384,10 +405,16 @@ public class UserService {
      */
     @Transactional
     public void editRefreshTokenAndSetCookie(String email, String refreshToken, String oAuthAccessToken,
-        String finalOAuthRefreshToken, HttpServletResponse response, int maxAge) {
+        String finalOAuthRefreshToken, HttpServletResponse response, HttpServletRequest request, String redisAuthToken,
+        int maxAge) {
         userQueryService.findByEmail(email).ifPresent(currentUser ->
             {
-                currentUser.updateRefreshToken(refreshToken);
+
+                String userAgent = request.getHeader("User-Agent");
+                loginStatusService.addStatus(userAgent, refreshToken, redisAuthToken, currentUser.getId(),
+                    request.getSession().getId());
+
+//                currentUser.updateRefreshToken(refreshToken);
                 currentUser.updateOauthAccessToken(oAuthAccessToken);
                 currentUser.updateOauthRefreshToken(finalOAuthRefreshToken);
 
@@ -406,6 +433,11 @@ public class UserService {
     @Transactional
     public void removeUser(User user) {
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public void editPersistLogin(User user) {
+
     }
 
     @Transactional

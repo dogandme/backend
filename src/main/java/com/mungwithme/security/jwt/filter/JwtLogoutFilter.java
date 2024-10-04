@@ -25,6 +25,7 @@ import java.util.Optional;
  * 나머지 경로는 pass
  */
 
+/*
 @Slf4j
 @RequiredArgsConstructor
 public class JwtLogoutFilter extends GenericFilterBean {
@@ -41,7 +42,6 @@ public class JwtLogoutFilter extends GenericFilterBean {
 
     private void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
 
-        log.info(" 로그아웃 필터 접근 ");
         // POST "/logout"이 아니면 CustomLogoutFilter 패스
         if (!"/logout".equals(request.getRequestURI()) || !"POST".equals(request.getMethod())) {
             filterChain.doFilter(request, response);
@@ -51,19 +51,18 @@ public class JwtLogoutFilter extends GenericFilterBean {
         // 토큰 검증
         Optional<String> refreshToken = jwtService.extractRefreshToken(request);
 
-        log.info("refreshToken.orElse(null) = {}", refreshToken.orElse(null));
 
-        if (refreshToken.isEmpty() || !jwtService.isTokenValid(refreshToken.get())) {
+        if (refreshToken.isEmpty() || !jwtService.tokenValid(refreshToken.get())) {
             baseResponse.handleResponse(response, baseResponse.sendErrorResponse(401, "로그아웃 토큰 검증 실패"));
             return;
         }
 
-        // refreshToken으로 User 조회
-        Optional<User> byRefreshToken = userRepository.findByRefreshToken(refreshToken.get());
-        if (byRefreshToken.isEmpty()) {
-            baseResponse.handleResponse(response, baseResponse.sendErrorResponse(404, "유저 조회 실패"));   // 조회된 User가 없을 경우 에러
-            return;
-        }
+//        // refreshToken으로 User 조회
+//        Optional<User> byRefreshToken = userRepository.findByRefreshToken(refreshToken.get());
+//        if (byRefreshToken.isEmpty()) {
+//            baseResponse.handleResponse(response, baseResponse.sendErrorResponse(404, "유저 조회 실패"));   // 조회된 User가 없을 경우 에러
+//            return;
+//        }
 
         //로그아웃 진행
 //        jwtService.updateRefreshToken(byRefreshToken.get().getEmail(), null); // Refresh 토큰 DB에서 제거
@@ -71,3 +70,4 @@ public class JwtLogoutFilter extends GenericFilterBean {
         baseResponse.handleResponse(response, baseResponse.sendSuccessResponse(200));      // 로그아웃 성공 응답
     }
 }
+*/

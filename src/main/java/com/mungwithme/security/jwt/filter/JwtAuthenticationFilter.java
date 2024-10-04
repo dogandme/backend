@@ -1,11 +1,13 @@
 package com.mungwithme.security.jwt.filter;
 
+import com.auth0.jwt.interfaces.Claim;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.enums.Role;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -45,7 +47,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 사용자 요청 쿠키에서 accessToken 추출
         // accessToken이 유효하지 않으면 해당 상태코드 전송
         String accessToken = jwtService.extractAccessToken(request)
-            .filter(jwtService::isTokenValid)   // refresh Token이 있고 검증되면 반환
+            .filter(jwtService::tokenValid)   // refresh Token이 있고 검증되면 반환
             .orElse(null);                // 없으면 null 반환
 
         if (accessToken != null) {
@@ -63,13 +65,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 검증
         // 검증되면 PayLoad 에 있는 값을 Map<String,Claim>으로 반환
         jwtService.extractAccessToken(request)      // Access Token 추출
-            .filter(jwtService::isTokenValid).flatMap(jwtService::getJwtClaim).ifPresent(claim ->
-                saveAuthentication(
-                    // email 추출
-                    claim.get(JwtService.EMAIL_CLAIM).asString(),
-                    // role 추출
-                    Role.findByStr(claim.get(JwtService.ROLE_CLAIM).asString()).name()
-                ));         // 찾은 회원에 인증 허가
+            .filter(jwtService::tokenValid).ifPresent(accessToken -> {
+                Map<String, Claim> jwtClaim = jwtService.getJwtClaim(accessToken);
+
+                Claim emailClaim = jwtClaim.get(JwtService.EMAIL_CLAIM);
+                Claim roleClaim = jwtClaim.get(JwtService.ROLE_CLAIM);
+                String roleStr = roleClaim.asString();
+                Role role = Role.findByStr(roleStr);
+                saveAuthentication(emailClaim.asString(),role.name());
+
+            });
     }
     /**
      * 인증 허가 메소드

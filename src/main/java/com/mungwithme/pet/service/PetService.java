@@ -13,6 +13,7 @@ import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,7 +45,7 @@ public class PetService {
      * @param petSignUpDto 애완동물정보
      */
     @Transactional
-    public UserResponseDto addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images) throws IOException {
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images, HttpServletRequest request) throws IOException {
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser();
         // 강쥐 프로필 이미지 업로드
@@ -61,11 +62,13 @@ public class PetService {
                 .build();
         petRepository.save(pet);
 
+        String redisAuthToken = jwtService.getRedisAuthToken(request);
+
         // 기존에 USER 권한이 아니었을 경우 USER 권한으로 변경
         UserResponseDto userResponseDto = new UserResponseDto();
         if (!user.getRole().equals(Role.USER)) {
             user.setRole(Role.USER);
-            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey());
+            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(),redisAuthToken);
             userResponseDto.setAuthorization(accessToken);
         }
         userResponseDto.setNickname(user.getNickname());

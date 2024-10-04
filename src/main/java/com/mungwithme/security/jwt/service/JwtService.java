@@ -3,14 +3,15 @@ package com.mungwithme.security.jwt.service;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
-import com.mungwithme.common.exception.ResourceNotFoundException;
-import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.repository.UserRepository;
+import com.mungwithme.common.exception.UnauthorizedException;
+import com.mungwithme.common.redis.RedisUtil;
+import com.mungwithme.common.redis.model.RedisKeys;
+import com.mungwithme.login.service.LoginStatusService;
+import com.mungwithme.user.service.UserQueryService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
-import java.util.Map.Entry;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -49,29 +51,35 @@ public class JwtService {
     //jwtFilter 사용을 위해 private -> public 변경
     public static final String EMAIL_CLAIM = "email";
     public static final String ROLE_CLAIM = "role";
+    public static final String REDIS_CLAIM = "redis";
 
     private static final String BEARER = "Bearer_";
 
-    private final UserRepository userRepository;
+    private final RedisUtil redisUtil;
+    private final LoginStatusService loginStatusService;
+    private final UserQueryService userQueryService;
 
     /**
      * AccessToken 생성
-     * @param email Claim 추가를 위함
-     * @param role 토큰 role값 검증을 위함
      *
+     * @param email
+     *     Claim 추가를 위함
+     * @param role
+     *     토큰 role값 검증을 위함
      * @modification.author 장수현
      * @modification.date 2024.8.14
      * @modification.details 토큰 앞에 "BEARER+" 추가
      */
-    public String createAccessToken(String email, String role) {
+    public String createAccessToken(String email, String role, String redisAuthToken) {
         Date now = new Date();
         return BEARER + JWT.create()                    // JWT 토큰을 생성하는 빌더
-                .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
-                .withIssuedAt(new Date())
-                .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
-                .withClaim("role", role)          // 권한
-                .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
-                .sign(Algorithm.HMAC512(secretKey));    // HMAC512 알고리즘 사용, application-jwt.yml에서 지정한 secret 키로 암호화
+            .withSubject(ACCESS_TOKEN_SUBJECT)      // JWT의 Subject 지정
+            .withIssuedAt(new Date())
+            .withExpiresAt(new Date(now.getTime() + accessTokenExpirationPeriod)) // 토큰 만료 시간 설정
+            .withClaim(ROLE_CLAIM, role)          // 권한
+            .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
+            .withClaim(REDIS_CLAIM, redisAuthToken)          // redis Claim 설정
+            .sign(Algorithm.HMAC512(secretKey));    // HMAC512 알고리즘 사용, application-jwt.yml에서 지정한 secret 키로 암호화
     }
 
     /**
@@ -81,12 +89,19 @@ public class JwtService {
      * @modification.date 2024.8.14
      * @modification.details 토큰 앞에 "BEARER+" 추가
      */
-    public String createRefreshToken() {
+    public String createRefreshToken(String email, String role, String redisAuthToken) {
         Date now = new Date();
+        redisUtil.setDataExpire(RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken, email,
+            refreshTokenExpirationPeriod);
         return JWT.create()
-                .withSubject(REFRESH_TOKEN_SUBJECT)
-                .withExpiresAt(new Date(now.getTime() + refreshTokenExpirationPeriod))
-                .sign(Algorithm.HMAC512(secretKey));
+            .withSubject(REFRESH_TOKEN_SUBJECT)
+            .withExpiresAt(new Date(now.getTime() + refreshTokenExpirationPeriod))
+            .withClaim(ROLE_CLAIM, role)          // 권한
+            .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
+            .withClaim(REDIS_CLAIM, redisAuthToken)// redis Claim 설정
+            .sign(Algorithm.HMAC512(secretKey));
+
+
     }
 
     /**
@@ -98,12 +113,12 @@ public class JwtService {
      */
     public Optional<String> extractRefreshToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getCookies())                                    // 쿠키 배열을 가져옵니다.
-                .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
-                        .filter(cookie -> refreshCookie.equals(cookie.getName()))           // refreshToken 쿠키를 찾습니다.
-                        .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
-                        .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
-                        .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
-                        .findFirst());
+            .flatMap(cookies -> Arrays.stream(cookies)                                  // 쿠키 배열을 스트림으로 변환합니다.
+                .filter(cookie -> refreshCookie.equals(cookie.getName()))           // refreshToken 쿠키를 찾습니다.
+                .map(Cookie::getValue)                                              // 쿠키의 값을 가져옵니다.
+                .filter(refreshToken -> refreshToken.startsWith(BEARER))            // 리프레시 토큰이 "BEARER "로 시작하면
+                .map(refreshToken -> refreshToken.replace(BEARER, ""))    // "BEARER "를 제거하고 추출합니다.
+                .findFirst());
     }
 
     /**
@@ -115,22 +130,23 @@ public class JwtService {
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
         return Optional.ofNullable(request.getHeader("Authorization"))        // Authorization 헤더를 가져옵니다.
-                .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
-                .map(header -> header.replace(BEARER, ""))             // "BEARER "를 제거하고 추출합니다.
-                .map(String::trim);
+            .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
+            .map(header -> header.replace(BEARER, ""))             // "BEARER "를 제거하고 추출합니다.
+            .map(String::trim);
     }
 
     /**
      * AccessToken에서 Email 추출
+     *
      * @param accessToken
      */
     public Optional<String> extractEmail(String accessToken) {
         try {
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))    // 토큰 검증기 생성
-                    .build()
-                    .verify(accessToken)    // accessToken을 검증하고 유효하지 않다면 예외 발생
-                    .getClaim(EMAIL_CLAIM)  // claim(Email) 가져오기
-                    .asString());
+                .build()
+                .verify(accessToken)    // accessToken을 검증하고 유효하지 않다면 예외 발생
+                .getClaim(EMAIL_CLAIM)  // claim(Email) 가져오기
+                .asString());
         } catch (Exception e) {
             log.error("액세스 토큰이 유효하지 않습니다.");
             return Optional.empty();
@@ -138,22 +154,23 @@ public class JwtService {
     }
 
     /**
-     * AccessToken 에서 claim 추출
-     * @param accessToken
+     * AccessToken 이나 refreshToken 에서 claim 추출
+     *
+     * @param token
      */
-    public Optional<Map<String,Claim>> getJwtClaim(String accessToken) {
+    public Map<String, Claim> getJwtClaim(String token) {
         try {
-            // accessToken을 검증하고 유효하지 않다면 예외 발생
+            // token 을 검증하고 유효하지 않다면 예외 발생
             // 토큰 검증기 생성
+
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                 .build()
-                .verify(accessToken).getClaims());
+                .verify(token).getClaims()).orElseThrow(() -> new UnauthorizedException("error.arg"));
         } catch (Exception e) {
-            log.error("액세스 토큰이 유효하지 않습니다.");
-//            return Optional.empty();
+            throw new UnauthorizedException("error.arg");
         }
 
-        return null;
+
     }
 
     /**
@@ -169,10 +186,15 @@ public class JwtService {
 
     /**
      * 쿠키 생성
-     * @param key 쿠키명
-     * @param value 토큰
-     * @param expirationPeriod 토큰 만료 시간
-     * @param httpOnly httpOnly 설정 여부
+     *
+     * @param key
+     *     쿠키명
+     * @param value
+     *     토큰
+     * @param expirationPeriod
+     *     토큰 만료 시간
+     * @param httpOnly
+     *     httpOnly 설정 여부
      */
     public Cookie createCookie(String key, String value, int expirationPeriod, boolean httpOnly) {
         Cookie cookie = new Cookie(key, value);
@@ -182,7 +204,7 @@ public class JwtService {
         return cookie;
     }
 
-/*    *//**
+    /*    *//**
      * RefreshToken DB 저장(업데이트)
      *
      * @modification.author 장수현
@@ -202,16 +224,27 @@ public class JwtService {
 
     /**
      * 토큰 검증
-     * @param token 검증할 토큰
+     *
+     * @param token
+     *     검증할 토큰
      */
-    public boolean isTokenValid(String token) {
-        try {
-            JWT.require(Algorithm.HMAC512(secretKey)).build().verify(token);
-            return true;
-        } catch (Exception e) {
-            log.error("유효하지 않은 토큰입니다. {}", e.getMessage());
-            return false;
+    public boolean tokenValid(String token) {
+
+        Map<String, Claim> jwtClaim = getJwtClaim(token);
+
+        String email = jwtClaim.get(JwtService.EMAIL_CLAIM).asString();
+
+        String redisAuthToken = jwtClaim.get(JwtService.REDIS_CLAIM).asString();
+
+        // token 으로 갖고 오기
+        String redisEmail = redisUtil.getData(RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken);
+
+        // redis 에 redisAuthToken 이 없는 경우 예외처리
+        // 저장해놓은 이메일이 같지 않다면 예외처리
+        if (!StringUtils.hasText(redisEmail) || !redisEmail.equals(email)) {
+            throw new UnauthorizedException("error.arg");
         }
+        return true;
     }
 
     /**
@@ -232,10 +265,26 @@ public class JwtService {
         }
     }
 
+
+
+    public String getRedisAuthToken(HttpServletRequest request) {
+        // refreshToken 추출
+        String refreshToken = extractRefreshToken(request)
+            .orElseThrow(() -> new UnauthorizedException("error.arg"));
+
+        // refreshToken 에 있는 redisToken 추출
+        Map<String, Claim> refreshClaimMap = getJwtClaim(refreshToken);
+
+        return refreshClaimMap.get(JwtService.REDIS_CLAIM).asString();
+    }
+
     /**
      * Refresh Token 으로 유저 정보 찾기 & Access/Refresh Token 재발급 메소드
-     * @param refreshToken Access Token이 만료 되어서 새로 발급하기 위해 이용
-     * @param  -> createAccessToken 매개변수 role값 추가
+     *
+     * @param refreshToken
+     *     Access Token이 만료 되어서 새로 발급하기 위해 이용
+     * @param ->
+     *     createAccessToken 매개변수 role값 추가
      * @modification.author 전형근
      * @modification.date 2024.8.9
      * @modification.details 토큰 생성 메서드의 role값 받는것을 추가.
@@ -243,26 +292,19 @@ public class JwtService {
     public String checkRefreshTokenAndReIssueAccessToken(HttpServletResponse response, String refreshToken) {
         AtomicReference<String> accessToken = new AtomicReference<>("");
 
-        userRepository.findByRefreshToken(refreshToken) // refresh Token으로 회원 찾기
-                .ifPresent(user -> {                    // 회원이 있다면
-                    String reIssuedRefreshToken = reIssueRefreshToken(user); // refresh Token 재발행
-                    setRefreshTokenCookie(response, reIssuedRefreshToken);
+        Map<String, Claim> jwtClaim = getJwtClaim(refreshToken);
 
-                    accessToken.set(createAccessToken(user.getEmail(), user.getRole().getKey()));
-                });
+        String redisAuthToken = jwtClaim.get(JwtService.REDIS_CLAIM).asString();
+        String role = jwtClaim.get(JwtService.ROLE_CLAIM).asString();
+        String email = jwtClaim.get(JwtService.EMAIL_CLAIM).asString();
+
+        String reIssuedRefreshToken = createRefreshToken(email, role, redisAuthToken); // refresh Token 재발행
+        setRefreshTokenCookie(response, reIssuedRefreshToken);
+
+        accessToken.set(createAccessToken(email, role, redisAuthToken));
 
         return accessToken.get();
     }
 
-    /**
-     * Refresh Token 생성 및 저장
-     * @param user 토근 소유자
-     * @return
-     */
-    private String reIssueRefreshToken(User user) {
-        String reIssuedRefreshToken = createRefreshToken();
-        user.updateRefreshToken(reIssuedRefreshToken);
-        userRepository.saveAndFlush(user);
-        return reIssuedRefreshToken;
-    }
+
 }

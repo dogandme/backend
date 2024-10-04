@@ -106,15 +106,6 @@ public class UserQueryService {
     }
 
 
-    /**
-     * refreshToken 이용하여 회원 조회
-     *
-     * @param email 이메일
-     * @return 조회된 회원
-     */
-    public Optional<User> findByRefreshToken(String refreshToken) {
-        return userQueryRepository.findByRefreshToken(refreshToken);
-    }
 
 
     /**

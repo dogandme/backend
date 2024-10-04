@@ -29,7 +29,6 @@ public interface UserQueryRepository extends JpaRepository<User, Long> {
     @Query("select u from User u join fetch u.regions where u.email =:email")
     Optional<User> findByEmailWithAddress(@Param("email") String email);
 
-    Optional<User> findByRefreshToken(String refreshToken);
 
     Optional<User> findByNickname(String nickname);
 

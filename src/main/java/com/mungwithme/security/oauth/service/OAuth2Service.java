@@ -125,10 +125,6 @@ public class OAuth2Service {
                 OAuthResponseDto.class
             );
 
-            log.info("response.getBody().getRefreshToken() = {}", response.getBody().getRefreshToken());
-            log.info("response.getBody().getAccessToken() = {}", response.getBody().getAccessToken());
-            log.info("response.getStatusCode() = {}", response.getStatusCode());
-
             if (response.getBody().getError() != null) {
                 throw new Exception("error");
             }

@@ -2,7 +2,7 @@ package com.mungwithme.common.util;
 
 /**
  *
- * 28자로 이루어진 토큰 생성
+ *  토큰 생성
  *
  */
 import java.security.SecureRandom;
@@ -32,4 +32,15 @@ public class TokenUtils {
         }
     }
 
+    // SALT 값 생성
+    public static String getRedisAuthToken() {
+        try {
+            SecureRandom rnd = new SecureRandom();
+            byte[] temp = new byte[10];
+            rnd.nextBytes(temp);
+            return Byte_to_String(temp);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

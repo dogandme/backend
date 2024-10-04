@@ -63,7 +63,7 @@ public class User extends BaseTimeEntity {
     private LocalDateTime nickExModDt;
 
 
-    private String refreshToken;
+//    private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
 
@@ -97,15 +97,15 @@ public class User extends BaseTimeEntity {
         this.setPassword(passwordEncoder.encode(password));
     }
 
-    /**
-     * 리프레시토큰 업데이트
-     *
-     * @param updateRefreshToken
-     *     신규 리프레시토큰
-     */
-    public void updateRefreshToken(String updateRefreshToken) {
-        this.refreshToken = updateRefreshToken;
-    }
+//    /**
+//     * 리프레시토큰 업데이트
+//     *
+//     * @param updateRefreshToken
+//     *     신규 리프레시토큰
+//     */
+//    public void updateRefreshToken(String updateRefreshToken) {
+//        this.refreshToken = updateRefreshToken;
+//    }
 
     /**
      * oAuth 리프레시토큰 업데이트
