@@ -2,6 +2,7 @@ package com.mungwithme.user.service;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
+import com.mungwithme.common.email.EmailService;
 import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.redis.model.RedisKeys;
@@ -10,6 +11,7 @@ import com.mungwithme.likes.service.LikesService;
 import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
+import com.mungwithme.security.jwt.PasswordUtil;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.service.OAuth2Service;
@@ -35,6 +37,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
@@ -64,6 +67,8 @@ public class UserService {
     private final LoginStatusService loginStatusService;
 
     private final UserAddressService userAddressService;
+
+    private final EmailService emailService;
 
 
     private static final String BEARER = "Bearer_";
@@ -512,5 +517,29 @@ public class UserService {
 
         // 비밀번호 업데이트
         currentUser.updatePw(newPw, passwordEncoder);
+    }
+
+    /**
+     * 임시 비밀번호 이메일 전송
+     * @param email 수신 이메일
+     */
+    public void sendTemporaryPassword(String email) {
+
+        // 1. 이메일로 일반 회원 조회 (비밀번호 미설정 소셜 회원은 임시 비밀번호 설정 불가)
+        Optional<User> user = userQueryService.findByEmailAndPasswordIsNotNull(email);
+
+        // 2. 실패 시 실패 응답 return
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("error.notfound.user.password");
+        }
+
+        // 3. 성공 시 임시 비밀번호 생성
+        String temporaryPassword = PasswordUtil.generateRandomPassword();
+
+        // 4. 임시 비밀번호 DB 업데이트
+        editPasswordByEmail(email, temporaryPassword);
+
+        // 5. 임시 비밀번호 이메일 전송
+        emailService.temporaryPasswordEmail(email, temporaryPassword);
     }
 }

@@ -121,28 +121,8 @@ public class UserController {
      */
     @PostMapping("/password")
     public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Validated EmailRequestDto emailDto)
-        throws IOException {
-
-        String email = emailDto.getEmail();
-
-        // 1. 이메일로 일반 회원 조회 (소셜 회원은 임시 비밀번호 설정 불가)
-        Optional<User> user = userQueryService.findByEmailAndSocialTypeIsNull(email);
-
-        // 2. 실패 시 실패 응답 return
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException("error.notfound.user");
-        }
-
-        // 3. 성공 시 임시 비밀번호 생성
-        String temporaryPassword = PasswordUtil.generateRandomPassword();
-
-        // 4. 임시 비밀번호 DB 업데이트
-        userService.editPasswordByEmail(email, temporaryPassword);
-
-        // 5. 임시 비밀번호 이메일 전송
-        emailService.temporaryPasswordEmail(email, temporaryPassword);
-
-        // 6. 성공 응답 return
+            throws IOException {
+        userService.sendTemporaryPassword(emailDto.getEmail());
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
 

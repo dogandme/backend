@@ -164,5 +164,12 @@ public class UserQueryService {
             });
     }
 
-
+    /**
+     * 비밀번호가 null이 아닌 회원 중 이메일로 조회
+     * @param email 이메일
+     * @return
+     */
+    public Optional<User> findByEmailAndPasswordIsNotNull(String email) {
+        return userQueryRepository.findByEmailAndPasswordIsNotNull(email);
+    }
 }
