@@ -4,6 +4,7 @@ package com.mungwithme.common.exception.handler;
 import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.DuplicateResourceException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.exception.UnauthorizedException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import jakarta.servlet.http.HttpServletRequest;
@@ -83,6 +84,12 @@ public class GlobalExHandlers {
     }
 
 
+    @ExceptionHandler(UnauthorizedException.class)
+    protected ResponseEntity<CommonBaseResult> handleUnauthorizedException(UnauthorizedException e,
+        HttpServletRequest request) throws IOException {
+        String message = getMessage("error.auth", null, request.getLocale());
+        return baseResponse.sendErrorResponse(HttpStatus.UNAUTHORIZED.value(), message);
+    }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
     protected ResponseEntity<CommonBaseResult> handleAuthorizationDeniedException(AuthorizationDeniedException e,

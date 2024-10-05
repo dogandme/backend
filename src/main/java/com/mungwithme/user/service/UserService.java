@@ -2,30 +2,34 @@ package com.mungwithme.user.service;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
+import com.mungwithme.common.email.EmailService;
 import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.common.redis.model.RedisKeys;
 import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
+import com.mungwithme.security.jwt.PasswordUtil;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.service.OAuth2Service;
-import com.mungwithme.user.model.dto.request.UserAgeUpdateDto;
+
+import com.mungwithme.user.model.entity.UserAddress;
+import com.mungwithme.user.model.dto.request.*;
+
 import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
-import com.mungwithme.user.model.dto.request.UserAddressUpdateDto;
-import com.mungwithme.user.model.dto.request.UserDeleteDto;
-import com.mungwithme.user.model.dto.request.UserGenderUpdateDto;
-import com.mungwithme.user.model.dto.request.UserNicknameUpdateDto;
-import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.util.StringUtils;
@@ -59,6 +64,12 @@ public class UserService {
 
     private final OAuth2Service oAuth2Service;
 
+    private final LoginStatusService loginStatusService;
+
+    private final UserAddressService userAddressService;
+
+    private final EmailService emailService;
+
 
     private static final String BEARER = "Bearer_";
 
@@ -69,7 +80,8 @@ public class UserService {
      *     가입요청 회원정보
      */
     @Transactional
-    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletResponse response) throws Exception {
+    public UserResponseDto signUp(UserSignUpDto userSignUpDto, HttpServletResponse response, HttpServletRequest request)
+        throws Exception {
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -87,12 +99,13 @@ public class UserService {
         String email = newUser.getEmail();
         Role role = newUser.getRole();
 
-        String accessToken = jwtService.createAccessToken(email, role.getKey());   // AccessToken 발급
-        String refreshToken = jwtService.createRefreshToken();                             // RefreshToken 발급
+        String redisAuthToken = TokenUtils.getRedisAuthToken();
+
+        String accessToken = jwtService.createAccessToken(email, role.getKey(), redisAuthToken);   // AccessToken 발급
+        String refreshToken = jwtService.createRefreshToken(email, role.getKey(),           // RefreshToken 발급
+            redisAuthToken);
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
-
-        newUser.updateRefreshToken(refreshToken);
 
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(role.getKey());
@@ -100,6 +113,12 @@ public class UserService {
         // 유저 등록
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
         addUser(newUser);    // DB 저장
+
+        String userAgent = request.getHeader("User-Agent");
+        String sessionId = request.getSession().getId();
+
+        loginStatusService.addStatus(userAgent, refreshToken, RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken,
+            newUser.getId(), sessionId);
 
         return userResponseDto;
     }
@@ -111,7 +130,7 @@ public class UserService {
      *     추가 회원정보
      */
     @Transactional
-    public UserResponseDto signUp2(UserSignUpDto userSignUpDto) throws Exception {
+    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request) throws Exception {
 
         // 닉네임 중복 확인
         userQueryService.duplicateNickname(userSignUpDto.getNickname());
@@ -128,16 +147,23 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
             .collect(Collectors.toSet());
 
+        Set<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toSet());
+
         currentUser.setRole(Role.GUEST);
         currentUser.setNickname(userSignUpDto.getNickname());
         currentUser.setGender(userSignUpDto.getGender());
         currentUser.setAge(userSignUpDto.getAge());
-        currentUser.setRegions(addresses);
+        currentUser.setUserAddresses(userAddresses);
         currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
-        String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey());
+        // refreshToken 에서 RedisToken 추출
+        String redisAuthToken = jwtService.getRedisAuthToken(request);
+
+        String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey(),
+            redisAuthToken);
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(currentUser.getRole().getKey());
         userResponseDto.setNickname(currentUser.getNickname());
@@ -167,7 +193,9 @@ public class UserService {
     @Transactional
     public void editPassword(UserPwUpdateDto userPwUpdateDto) {
         User currentUser = userQueryService.findCurrentUser();
-        if (currentUser.getSocialType() != null) {
+
+        // 패스워드가 없고 일반회원이 아닌 경우
+        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != null) {
             throw new IllegalArgumentException("error.arg.social.pw");
         }
 
@@ -274,47 +302,51 @@ public class UserService {
         }
 
         // 현재 사용자 가져오기
-//        User currentUser = userQueryService.findCurrentUser();
-        User currentUser = userQueryService.findByEmailWithAddress("2221325@naver.com").orElse(null);
+        User currentUser = userQueryService.findCurrentUser();
 
         // 사용자의 현재 주소 목록
-        Set<Address> regions = currentUser.getRegions();
+        Set<UserAddress> userAddresses = currentUser.getUserAddresses();
 
         // 삭제할 Address 객체 목록
-        Set<Address> removeAddress = regions.stream()
-            .filter(address -> removeIds.contains(address.getId()))
+        Set<UserAddress> removeAddress = userAddresses.stream()
+            .filter(address -> removeIds.contains(address.getAddress().getId()))
             .collect(Collectors.toSet());
-        // 현재 주소 목록에서 삭제
-        regions.removeAll(removeAddress);
-        currentUser.removeAllRegions(removeAddress);
 
         // 중복 주소 필터링
-        Set<Address> duplicateAddresses = regions.stream()
-            .filter(region -> addIds.contains(region.getId()))
+        Set<UserAddress> duplicateAddresses = userAddresses.stream()
+            .filter(region -> addIds.contains(region.getAddress().getId()))
             .collect(Collectors.toSet());
 
         // 총 추가할 주소 개수에서 중복되는 주소 개수 제외
         int addSize = addIds.size() - duplicateAddresses.size();
 
         // 최종 주소 개수 (기존 주소 + 추가할 주소)
-        int finalRegionSize = regions.size() + addSize;
+        int finalRegionSize = userAddresses.size() + addSize;
 
         // 유효성 검사: 1~5개의 주소만 허용
         if (finalRegionSize < 1 || finalRegionSize > 5) {
             throw new IllegalArgumentException("error.arg.address.limit");
         }
 
+        // Transactional
+        userAddressService.removeSet(removeAddress);
+
+        // 중복제거
+        duplicateAddresses.stream()
+            .map(data -> data.getAddress().getId())
+            .forEach(addIds::remove);
+
         // 추가할 Address 객체를 데이터베이스에서 조회
         List<Address> addressList = addressQueryService.findByIds(addIds);
 
+
         // 중복되지 않는 주소만 추가
-        regions.addAll(addressList.stream()
-            .filter(address -> !duplicateAddresses.contains(address)).toList());
+        Set<UserAddress> addressSet = addressList.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toSet());
 
-        log.info("regions.size() = {}", regions.size());
-
+        // Transactional
         // 업데이트된 주소를 사용자 객체에 설정
-        currentUser.addAllRegions(regions);
+        userAddressService.addSet(addressSet);
     }
 
 
@@ -341,8 +373,10 @@ public class UserService {
         // 연동 해제
         if (currentUser.getSocialType() != null) {
             oAuth2Service.disconnectOAuth2Account(currentUser.getSocialType(), currentUser.getOAuthRefreshToken());
-        } else {
+        }
 
+        // 비밀번호가 설정이 되어 있다면 확인
+        if (StringUtils.hasText(currentUser.getPassword())) {
             String password = userDeleteDto.getPassword();
             // 빈값인지 확인
             if (!StringUtils.hasText(password)) {
@@ -354,7 +388,6 @@ public class UserService {
             if (!matches) {
                 throw new IllegalArgumentException("error.arg.auth.pw");
             }
-
         }
 
         // marking 에 관련된 모든걸 삭제
@@ -366,8 +399,14 @@ public class UserService {
         // 팔로우 삭제
         userFollowService.removeAllByUser(currentUser);
 
+        // 주소 삭제
+        userAddressService.removeAllByUser(currentUser);
+
         //pet 삭제
         petService.deletePet(currentUser);
+
+        // status 삭제
+        loginStatusService.removeAllStatusWithRedis(currentUser);
 
         // 유저 삭제
         removeUser(currentUser);
@@ -382,14 +421,19 @@ public class UserService {
      * @param oAuthAccessToken
      * @param finalOAuthRefreshToken
      */
+
     @Transactional
     public void editRefreshTokenAndSetCookie(String email, String refreshToken, String oAuthAccessToken,
-        String finalOAuthRefreshToken, HttpServletResponse response, int maxAge) {
+        String finalOAuthRefreshToken, HttpServletResponse response, HttpServletRequest request, String redisAuthToken,
+        int maxAge) {
+
         userQueryService.findByEmail(email).ifPresent(currentUser ->
             {
-                currentUser.updateRefreshToken(refreshToken);
                 currentUser.updateOauthAccessToken(oAuthAccessToken);
                 currentUser.updateOauthRefreshToken(finalOAuthRefreshToken);
+                String userAgent = request.getHeader("User-Agent");
+                loginStatusService.addStatus(userAgent, refreshToken, redisAuthToken, currentUser.getId(),
+                    request.getSession().getId());
 
                 if (currentUser.getNickname() != null) {
                     Cookie nicknameCookie = new Cookie("nickname", currentUser.getNickname());
@@ -398,6 +442,7 @@ public class UserService {
                     response.addCookie(nicknameCookie);
                 }
 
+                addUser(currentUser);
             }
         );
 
@@ -409,12 +454,24 @@ public class UserService {
     }
 
     @Transactional
+    public void editPersistLogin(User user) {
+
+    }
+
+    @Transactional
     public void addUser(User user) {
         userRepository.save(user);
     }
 
+    /**
+     *
+     * 소셜로 회원가입시
+     * get or save
+     * @param oAuth2UserInfo
+     * @return
+     */
     @Transactional
-    public User getOrSave(OAuth2UserInfo oAuth2UserInfo) {
+    public User findOrSave(OAuth2UserInfo oAuth2UserInfo) {
 
         User user = userQueryService.findByEmail(oAuth2UserInfo.email()).orElse(null);
 
@@ -423,8 +480,67 @@ public class UserService {
             addUser(newUser);
             return newUser;
         }
+
+        // 만약 기존에 있던 계정이 일반 회원가입인 경우
+        // socialType update
+        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == null) {
+            user.updateSocialType(oAuth2UserInfo.socialType());
+        }
+
         return user;
     }
 
+    /**
+     * 소셜 계정 첫 password 업데이트
+     * @param socialUserPwUpdateDto 소셜 계정 비밀번호
+     */
+    @Transactional
+    public void editSocialPassword(SocialUserPwUpdateDto socialUserPwUpdateDto) {
 
+        // 조건1 : 소셜 계정
+        User currentUser = userQueryService.findCurrentUser_v2();
+        if (currentUser.getSocialType() == null) {
+            throw new IllegalArgumentException("error.arg.standard.pw");
+        }
+
+        // 조건 2 : 첫 비밀번호 설정
+        if (!currentUser.getPassword().isEmpty()) {
+            throw new IllegalArgumentException("error.arg.standard.pw.first");
+        }
+
+        // 조건 3 : 변경 비밀번호와 변경확인 비밀번호 입력값이 동일
+        String newPw = socialUserPwUpdateDto.getNewPw();
+        String newPwChk = socialUserPwUpdateDto.getNewPwChk();
+        if (!newPw.equals(newPwChk)) {
+            throw new IllegalArgumentException("error.arg.change.pw");
+        }
+
+        // 비밀번호 업데이트
+        currentUser.updatePw(newPw, passwordEncoder);
+    }
+
+    /**
+     * 임시 비밀번호 이메일 전송
+     * @param email 수신 이메일
+     */
+    @Transactional
+    public void sendTemporaryPassword(String email) {
+
+        // 1. 이메일로 일반 회원 조회 (비밀번호 미설정 소셜 회원은 임시 비밀번호 설정 불가)
+        Optional<User> user = userQueryService.findByEmailAndPasswordIsNotNull(email);
+
+        // 2. 실패 시 실패 응답 return
+        if (user.isEmpty()) {
+            throw new ResourceNotFoundException("error.notfound.user.password");
+        }
+
+        // 3. 성공 시 임시 비밀번호 생성
+        String temporaryPassword = PasswordUtil.generateRandomPassword();
+
+        // 4. 임시 비밀번호 DB 업데이트
+        editPasswordByEmail(email, temporaryPassword);
+
+        // 5. 임시 비밀번호 이메일 전송
+        emailService.temporaryPasswordEmail(email, temporaryPassword);
+    }
 }

@@ -53,6 +53,4 @@ public class Address extends BaseTimeEntity {
     
     private Double lng; // 경도
 
-    @ManyToMany(mappedBy = "regions")
-    private Set<User> users = new HashSet<>();
 }

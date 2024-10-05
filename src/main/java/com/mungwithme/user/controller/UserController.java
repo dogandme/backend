@@ -60,14 +60,14 @@ public class UserController {
      */
     @PostMapping("")
     public ResponseEntity<CommonBaseResult> createUserSingUp(@RequestBody UserSignUpDto userSignUpDto,
-        HttpServletResponse response) throws Exception {
+        HttpServletResponse response,HttpServletRequest request) throws Exception {
         String email = userSignUpDto.getEmail();
         String password = userSignUpDto.getPassword();
         // email, password null 체크
         if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
             throw new IllegalArgumentException("error.arg.signUp");
         }
-        UserResponseDto userResponseDto = userService.signUp(userSignUpDto, response); // 회원가입
+        UserResponseDto userResponseDto = userService.signUp(userSignUpDto, response,request); // 회원가입
         return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
     }
 
@@ -82,9 +82,7 @@ public class UserController {
         if (user.isPresent()) {
             throw new DuplicateResourceException("error.duplicate.email");
         }
-
         emailService.joinEmail(emailDto.getEmail()); // 인증코드 이메일 전송
-
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
 
@@ -98,7 +96,6 @@ public class UserController {
         if (checked) {
             return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
         } else {
-            // 변경) 401 -> 400
             throw new IllegalArgumentException("error.arg.authCheck");
         }
     }
@@ -110,9 +107,9 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto)
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto,HttpServletRequest request)
         throws Exception {
-        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto), HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto,request), HttpStatus.OK.value());
 
     }
 
@@ -124,28 +121,8 @@ public class UserController {
      */
     @PostMapping("/password")
     public ResponseEntity<CommonBaseResult> sendTemporaryPassword(@RequestBody @Validated EmailRequestDto emailDto)
-        throws IOException {
-
-        String email = emailDto.getEmail();
-
-        // 1. 이메일로 일반 회원 조회 (소셜 회원은 임시 비밀번호 설정 불가)
-        Optional<User> user = userQueryService.findByEmailAndSocialTypeIsNull(email);
-
-        // 2. 실패 시 실패 응답 return
-        if (user.isEmpty()) {
-            throw new ResourceNotFoundException("error.notfound.user");
-        }
-
-        // 3. 성공 시 임시 비밀번호 생성
-        String temporaryPassword = PasswordUtil.generateRandomPassword();
-
-        // 4. 임시 비밀번호 DB 업데이트
-        userService.editPasswordByEmail(email, temporaryPassword);
-
-        // 5. 임시 비밀번호 이메일 전송
-        emailService.temporaryPasswordEmail(email, temporaryPassword);
-
-        // 6. 성공 응답 return
+            throws IOException {
+        userService.sendTemporaryPassword(emailDto.getEmail());
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
 

@@ -1,5 +1,6 @@
 package com.mungwithme.common.email;
 
+import com.mungwithme.common.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

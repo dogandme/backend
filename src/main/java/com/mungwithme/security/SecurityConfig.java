@@ -5,6 +5,7 @@ import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.login.filter.CustomJsonUsernamePasswordAuthenticationFilter;
 import com.mungwithme.login.handler.CustomJsonAuthenticationFailureHandler;
 import com.mungwithme.login.handler.CustomJsonAuthenticationSuccessHandler;
+import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.login.service.UserDetailsServiceImpl;
 import com.mungwithme.security.jwt.filter.JwtAuthenticationFilter;
 import com.mungwithme.security.jwt.service.JwtService;
@@ -48,6 +49,9 @@ public class SecurityConfig {
     private final UserDetailsServiceImpl userDetailsServiceImpl;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+
+    private final UserQueryService userQueryService;
+    private final LoginStatusService loginStatusService;
     private final ObjectMapper objectMapper;
     private final BaseResponse baseResponse;
     private final OAuth2AuthorizedClientService authorizedClientService;
@@ -61,7 +65,7 @@ public class SecurityConfig {
 
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserService userService,UserQueryService userQueryService) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, UserService userService) throws Exception {
 
         http
             .cors(corsCustomizer -> corsCustomizer.configurationSource(new CorsConfigurationSource() {
@@ -99,29 +103,33 @@ public class SecurityConfig {
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/users/follows/followings"
-                        ,"/users/follows/followers",
+                        , "/users/follows/followers",
                         "/swagger-ui.html",
                         "/markings/search",
                         "/health",
-                        "/markings/image/**"
+                        "/markings/image/**",
+                        "/addresses", "/addresses/**"
                     ).permitAll()
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**", "/users/me", "/users/profile/password", "/logout"
+                         "/users/me", "/users/profile/password", "/logout"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
 
 
-                    .requestMatchers("/profile","/users/profile","/users/profile/**")
+                    .requestMatchers("/profile","/users/profile", "/users/profile/**")
                     .hasAnyRole(
-                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                        Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.POST, "/pets")
                     .hasAnyRole(
-                            Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
+                        Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
+
 
                     .requestMatchers(
                         "/markings", "/maps/**", "/users/follows",
@@ -129,13 +137,17 @@ public class SecurityConfig {
                     ).hasAnyRole(
                         Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.GET, "/pets")
                     .hasAnyRole(
-                            Role.USER.name(), Role.ADMIN.name()
+                        Role.USER.name(), Role.ADMIN.name()
                     )
+
+
                     .requestMatchers(HttpMethod.PUT, "/pets")
                     .hasAnyRole(
-                            Role.USER.name(), Role.ADMIN.name()
+                        Role.USER.name(), Role.ADMIN.name()
                     )
 
                     .anyRequest()
@@ -159,7 +171,7 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService(userService))))
         ;
 
-        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(),
+        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(userService),
             LogoutFilter.class);                              // json 로그인 필터
         http.addFilterBefore(jwtAuthenticationProcessingFilter(),
             CustomJsonUsernamePasswordAuthenticationFilter.class);        // jwt 인증/인가 필터
@@ -191,7 +203,8 @@ public class SecurityConfig {
      */
     @Bean
     public CustomJsonAuthenticationSuccessHandler loginSuccessHandler() {
-        return new CustomJsonAuthenticationSuccessHandler(jwtService, userRepository, baseResponse);
+        return new CustomJsonAuthenticationSuccessHandler(jwtService, userQueryService, loginStatusService,
+            baseResponse);
     }
 
 
@@ -231,9 +244,9 @@ public class SecurityConfig {
      * CustomJsonUsernamePasswordAuthenticationFilter 빈 등록
      */
     @Bean
-    public CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter() {
+    public CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter(UserService userService) {
         CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordLoginFilter
-            = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper, userRepository);
+            = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper, userService);
         customJsonUsernamePasswordLoginFilter.setAuthenticationManager(
             authenticationManager());        // 위에서 등록한 AuthenticationManager(ProviderManager) 설정
         customJsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(

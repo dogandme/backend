@@ -1,0 +1,69 @@
+package com.mungwithme.login.service;
+
+
+import com.maxmind.geoip2.DatabaseReader;
+import com.maxmind.geoip2.DatabaseReader.Builder;
+import com.maxmind.geoip2.exception.GeoIp2Exception;
+import com.maxmind.geoip2.model.CityResponse;
+import com.mungwithme.login.model.dto.UserLocationDto;
+import com.mungwithme.login.model.enums.DataPath;
+import com.mungwithme.login.util.HttpReqRespUtils;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Service;
+
+/**
+ * 사용자 정보를 이용하여 geo ip DB 에서 추출
+ */
+@Slf4j
+@Service
+public class LocationFinderService {
+
+    public UserLocationDto findLocation() {
+
+        DatabaseReader databaseReader = getClassPathResource(DataPath.CITY_DB.getValue());
+        InetAddress ipAddress = null;
+        CityResponse response = null;
+        try {
+            ipAddress = getInetAddress();
+            response = databaseReader.city(ipAddress);
+        } catch (GeoIp2Exception | IOException e) {
+            throw new RuntimeException(e);
+        }
+        return UserLocationDto.create(response);
+    }
+
+    private InetAddress getInetAddress() throws UnknownHostException {
+        String ip = HttpReqRespUtils.getClientIpAddressIfServletRequestExist();
+
+        return InetAddress.getByName(ip);
+    }
+
+    private DatabaseReader getClassPathResource(String mmdbPath) {
+        InputStream resource = null;
+        DatabaseReader databaseReader = null;
+        try {
+
+            resource = new ClassPathResource(mmdbPath).getInputStream();
+            databaseReader = new Builder(resource).build();
+        } catch (IOException e) {
+            throw new RuntimeException("error");
+        } finally {
+            try {
+                if (resource != null) {
+                    resource.close();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("error");
+            }
+        }
+
+        return databaseReader;
+    }
+
+
+}

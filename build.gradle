@@ -52,6 +52,11 @@ dependencies {
 	// 서버 코드 변경시 자동으로 ReStart
 	compileOnly('org.springframework.boot:spring-boot-devtools')
 
+
+	//GeoLite2
+	implementation group: 'com.maxmind.geoip2', name: 'geoip2', version: '4.0.1'
+
+
 }
 
 tasks.named('test') {

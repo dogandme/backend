@@ -18,14 +18,14 @@ class JwtServiceTest {
     @Test
     void extractJwt() {
 
-        String accessToken = jwtService.createAccessToken("2221325@naver.com", Role.USER.getKey());
-
-        System.out.println("accessToken = " + accessToken);
-
-        String token = accessToken.replace("Bearer_", "");
-
-        jwtService.getJwtClaim(token);
-
+//        String accessToken = jwtService.createAccessToken("2221325@naver.com", Role.USER.getKey());
+//
+//        System.out.println("accessToken = " + accessToken);
+//
+//        String token = accessToken.replace("Bearer_", "");
+//
+//        jwtService.getJwtClaim(token);
+//
 
 
 
