@@ -100,8 +100,6 @@ public class JwtService {
             .withClaim(EMAIL_CLAIM, email)          // email Claim 설정
             .withClaim(REDIS_CLAIM, redisAuthToken)// redis Claim 설정
             .sign(Algorithm.HMAC512(secretKey));
-
-
     }
 
     /**

@@ -33,8 +33,6 @@ public class LoginStatus extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-
-
     // refreshToken 과 accessToken이 유효한지 증명하는 token
     @Column(nullable = false)
     private String redisAuthToken;

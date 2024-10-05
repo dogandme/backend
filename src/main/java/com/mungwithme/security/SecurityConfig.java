@@ -107,12 +107,13 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/markings/search",
                         "/health",
-                        "/markings/image/**"
+                        "/markings/image/**",
+                        "/addresses", "/addresses/**"
                     ).permitAll()
 
                     .requestMatchers(
                         "/users/nickname", "/users/additional-info",
-                        "/addresses", "/addresses/**", "/users/me", "/users/profile/password", "/logout"
+                         "/users/me", "/users/profile/password", "/logout"
                     ).hasAnyRole(
                         Role.NONE.name(), Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )
