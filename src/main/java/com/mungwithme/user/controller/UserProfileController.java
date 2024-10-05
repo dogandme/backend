@@ -4,11 +4,7 @@ package com.mungwithme.user.controller;
 import com.mungwithme.common.annotation.authorize.UserAuthorize;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.user.model.dto.request.UserAddressUpdateDto;
-import com.mungwithme.user.model.dto.request.UserAgeUpdateDto;
-import com.mungwithme.user.model.dto.request.UserGenderUpdateDto;
-import com.mungwithme.user.model.dto.request.UserNicknameUpdateDto;
-import com.mungwithme.user.model.dto.request.UserPwUpdateDto;
+import com.mungwithme.user.model.dto.request.*;
 import com.mungwithme.user.model.dto.response.UserMyInfoResponseDto;
 import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
@@ -131,6 +127,19 @@ public class UserProfileController {
         throws IOException {
         userService.editAge(userAgeUpdateDto);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"age.modify.success",request.getLocale());
+    }
+
+
+    /**
+     * 소셜 계정 첫 password 업데이트 API
+     * @param socialUserPwUpdateDto 소셜 계정 비밀번호
+     * @return
+     */
+    @PutMapping("/password/social")
+    public ResponseEntity<CommonBaseResult> updateSocialPassword(@RequestBody @Validated SocialUserPwUpdateDto socialUserPwUpdateDto,
+                                                           HttpServletRequest request) throws IOException {
+        userService.editSocialPassword(socialUserPwUpdateDto);
+        return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"pw.modify.success",request.getLocale());
     }
 
 
