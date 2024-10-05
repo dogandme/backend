@@ -51,9 +51,8 @@ public class OAuth2Service {
 
 
     /**
-     *
      * 로그인 연동해제 API
-     *
+     * <p>
      * oAuthRefreshToken 으로
      * accessToken 을 새로 발급 받은 뒤
      * accessToken 으로 연동 해제
@@ -68,7 +67,9 @@ public class OAuth2Service {
         Provider provider = oAuth2ClientProperties.getProvider().get(oAuthKey);
 
         OAuthResponseDto oAuthResponseDto = renewAccessToken(socialType, oAuthRefreshToken);
-
+        if (oAuthResponseDto == null) {
+            return;
+        }
 
         MultiValueMap<String, String> params = createParams("delete", oAuthRefreshToken, registration);
         String revokeUri = null;
@@ -89,7 +90,6 @@ public class OAuth2Service {
                 break;
         }
         params.add(tokenKey, oAuthResponseDto.getAccessToken());
-
 
         getOAuthResponseDto(revokeUri, params);
     }
@@ -125,17 +125,17 @@ public class OAuth2Service {
                 OAuthResponseDto.class
             );
 
-            if (response.getBody().getError() != null) {
-                throw new Exception("error");
-            }
             return response.getBody();
         } catch (URISyntaxException e) {
             log.info("잘못된 URL 방식입니다.");
-            throw new RuntimeException("error");
+//            throw new RuntimeException("error");
+            return null;
         } catch (Exception e) {
             log.info("e.getClass() = {}", e.getClass());
             log.info("연동 중 문제 발생");
-            throw new RuntimeException("error");
+//            throw new RuntimeException("error");
+
+            return null;
         }
     }
 

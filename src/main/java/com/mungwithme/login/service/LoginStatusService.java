@@ -124,6 +124,10 @@ public class LoginStatusService {
     }
 
 
+
+
+
+
     /**
      * sessionId에 해당하는 status 를 전부 다 off
      *
@@ -139,4 +143,35 @@ public class LoginStatusService {
         editStatus(user, false, false, sessionId);
 
     }
+
+
+    /**
+     * 유저 해당하는 status 를 전부 다 삭제 및 redis 정리
+     *
+     * @param user
+     */
+    @Transactional
+    public void removeAllStatusWithRedis(User user) {
+
+        // 활성화 된 status 검색 후
+        List<LoginStatus> statusList = loginStatusRepository.findList(user, true, true);
+
+        // redis 전부삭제
+        removeAllByRedisToken(statusList);
+
+        // delete 삭제
+        removeAllStatusByUser(user);
+
+    }
+
+    /**
+     *
+     *  유저 해당하는 status 를 전부 다 삭제
+     * @param user
+     */
+    @Transactional
+    public void removeAllStatusByUser(User user) {
+        loginStatusRepository.removeAllByUser(user);
+    }
+
 }

@@ -67,13 +67,9 @@ public class User extends BaseTimeEntity {
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
 
-    @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(
-        name = "user_address",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "address_id")
-    )
-    private Set<Address> regions;
+
+    @OneToMany(mappedBy = "user",cascade = CascadeType.ALL)
+    private Set<UserAddress> userAddresses;
 
     /**
      * 비밀번호 암호화 메소드
@@ -134,11 +130,11 @@ public class User extends BaseTimeEntity {
         this.persistLogin = persistLogin;
     }
 
-    public void addAllRegions(Set<Address> regions) {
-        this.regions.addAll(regions);
+    public void addAllUserAddress(Set<UserAddress> userAddresses) {
+        this.userAddresses.addAll(userAddresses);
     }
-    public void removeAllRegions(Set<Address> regions) {
-        this.regions.removeAll(regions);
+    public void removeAllUserAddress(Set<UserAddress> userAddresses) {
+        this.userAddresses.removeAll(userAddresses);
     }
 
     /**
@@ -162,6 +158,10 @@ public class User extends BaseTimeEntity {
 
     public void updateAge(AgeGroup age) {
         this.age = age.getAge();
+    }
+
+    public void updateSocialType(SocialType socialType) {
+        this.socialType = socialType;
     }
 
 }

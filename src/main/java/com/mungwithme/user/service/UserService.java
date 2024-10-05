@@ -1,6 +1,5 @@
 package com.mungwithme.user.service;
 
-import com.auth0.jwt.interfaces.Claim;
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.common.exception.CustomIllegalArgumentException;
@@ -8,7 +7,6 @@ import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.redis.model.RedisKeys;
 import com.mungwithme.common.util.TokenUtils;
 import com.mungwithme.likes.service.LikesService;
-import com.mungwithme.login.model.entity.LoginStatus;
 import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
@@ -16,6 +14,7 @@ import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.service.OAuth2Service;
 import com.mungwithme.user.model.dto.request.UserAgeUpdateDto;
+import com.mungwithme.user.model.entity.UserAddress;
 import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
@@ -31,10 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
-import org.springframework.boot.autoconfigure.cache.CacheProperties.Redis;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.core.AuthenticationException;
+import java.util.HashSet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +66,8 @@ public class UserService {
 
     private final LoginStatusService loginStatusService;
 
+    private final UserAddressService userAddressService;
+
 
     private static final String BEARER = "Bearer_";
 
@@ -102,7 +100,7 @@ public class UserService {
         String redisAuthToken = TokenUtils.getRedisAuthToken();
 
         String accessToken = jwtService.createAccessToken(email, role.getKey(), redisAuthToken);   // AccessToken 발급
-        String refreshToken = jwtService.createRefreshToken(email,role.getKey(),           // RefreshToken 발급
+        String refreshToken = jwtService.createRefreshToken(email, role.getKey(),           // RefreshToken 발급
             redisAuthToken);
 
         jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
@@ -117,7 +115,8 @@ public class UserService {
         String userAgent = request.getHeader("User-Agent");
         String sessionId = request.getSession().getId();
 
-        loginStatusService.addStatus(userAgent, refreshToken,  RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken, newUser.getId(), sessionId);
+        loginStatusService.addStatus(userAgent, refreshToken, RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken,
+            newUser.getId(), sessionId);
 
         return userResponseDto;
     }
@@ -146,11 +145,14 @@ public class UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
             .collect(Collectors.toSet());
 
+        Set<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toSet());
+
         currentUser.setRole(Role.GUEST);
         currentUser.setNickname(userSignUpDto.getNickname());
         currentUser.setGender(userSignUpDto.getGender());
         currentUser.setAge(userSignUpDto.getAge());
-        currentUser.setRegions(addresses);
+        currentUser.setUserAddresses(userAddresses);
         currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
 
         UserResponseDto userResponseDto = new UserResponseDto();
@@ -165,8 +167,6 @@ public class UserService {
         userResponseDto.setNickname(currentUser.getNickname());
         return userResponseDto;
     }
-
-
 
 
     /**
@@ -191,7 +191,9 @@ public class UserService {
     @Transactional
     public void editPassword(UserPwUpdateDto userPwUpdateDto) {
         User currentUser = userQueryService.findCurrentUser();
-        if (currentUser.getSocialType() != null) {
+
+        // 패스워드가 없고 일반회원이 아닌 경우
+        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != null) {
             throw new IllegalArgumentException("error.arg.social.pw");
         }
 
@@ -301,41 +303,48 @@ public class UserService {
         User currentUser = userQueryService.findCurrentUser();
 
         // 사용자의 현재 주소 목록
-        Set<Address> regions = currentUser.getRegions();
+        Set<UserAddress> userAddresses = currentUser.getUserAddresses();
 
         // 삭제할 Address 객체 목록
-        Set<Address> removeAddress = regions.stream()
-            .filter(address -> removeIds.contains(address.getId()))
+        Set<UserAddress> removeAddress = userAddresses.stream()
+            .filter(address -> removeIds.contains(address.getAddress().getId()))
             .collect(Collectors.toSet());
-        // 현재 주소 목록에서 삭제
-        regions.removeAll(removeAddress);
-        currentUser.removeAllRegions(removeAddress);
 
         // 중복 주소 필터링
-        Set<Address> duplicateAddresses = regions.stream()
-            .filter(region -> addIds.contains(region.getId()))
+        Set<UserAddress> duplicateAddresses = userAddresses.stream()
+            .filter(region -> addIds.contains(region.getAddress().getId()))
             .collect(Collectors.toSet());
 
         // 총 추가할 주소 개수에서 중복되는 주소 개수 제외
         int addSize = addIds.size() - duplicateAddresses.size();
 
         // 최종 주소 개수 (기존 주소 + 추가할 주소)
-        int finalRegionSize = regions.size() + addSize;
+        int finalRegionSize = userAddresses.size() + addSize;
 
         // 유효성 검사: 1~5개의 주소만 허용
         if (finalRegionSize < 1 || finalRegionSize > 5) {
             throw new IllegalArgumentException("error.arg.address.limit");
         }
 
+        // Transactional
+        userAddressService.removeSet(removeAddress);
+
+        // 중복제거
+        duplicateAddresses.stream()
+            .map(data -> data.getAddress().getId())
+            .forEach(addIds::remove);
+
         // 추가할 Address 객체를 데이터베이스에서 조회
         List<Address> addressList = addressQueryService.findByIds(addIds);
 
-        // 중복되지 않는 주소만 추가
-        regions.addAll(addressList.stream()
-            .filter(address -> !duplicateAddresses.contains(address)).toList());
 
+        // 중복되지 않는 주소만 추가
+        Set<UserAddress> addressSet = addressList.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toSet());
+
+        // Transactional
         // 업데이트된 주소를 사용자 객체에 설정
-        currentUser.addAllRegions(regions);
+        userAddressService.addSet(addressSet);
     }
 
 
@@ -362,8 +371,10 @@ public class UserService {
         // 연동 해제
         if (currentUser.getSocialType() != null) {
             oAuth2Service.disconnectOAuth2Account(currentUser.getSocialType(), currentUser.getOAuthRefreshToken());
-        } else {
+        }
 
+        // 비밀번호가 설정이 되어 있다면 확인
+        if (StringUtils.hasText(currentUser.getPassword())) {
             String password = userDeleteDto.getPassword();
             // 빈값인지 확인
             if (!StringUtils.hasText(password)) {
@@ -375,7 +386,6 @@ public class UserService {
             if (!matches) {
                 throw new IllegalArgumentException("error.arg.auth.pw");
             }
-
         }
 
         // marking 에 관련된 모든걸 삭제
@@ -387,8 +397,14 @@ public class UserService {
         // 팔로우 삭제
         userFollowService.removeAllByUser(currentUser);
 
+        // 주소 삭제
+        userAddressService.removeAllByUser(currentUser);
+
         //pet 삭제
         petService.deletePet(currentUser);
+
+        // status 삭제
+        loginStatusService.removeAllStatusWithRedis(currentUser);
 
         // 유저 삭제
         removeUser(currentUser);
@@ -403,20 +419,19 @@ public class UserService {
      * @param oAuthAccessToken
      * @param finalOAuthRefreshToken
      */
+
     @Transactional
     public void editRefreshTokenAndSetCookie(String email, String refreshToken, String oAuthAccessToken,
         String finalOAuthRefreshToken, HttpServletResponse response, HttpServletRequest request, String redisAuthToken,
         int maxAge) {
+
         userQueryService.findByEmail(email).ifPresent(currentUser ->
             {
-
+                currentUser.updateOauthAccessToken(oAuthAccessToken);
+                currentUser.updateOauthRefreshToken(finalOAuthRefreshToken);
                 String userAgent = request.getHeader("User-Agent");
                 loginStatusService.addStatus(userAgent, refreshToken, redisAuthToken, currentUser.getId(),
                     request.getSession().getId());
-
-//                currentUser.updateRefreshToken(refreshToken);
-                currentUser.updateOauthAccessToken(oAuthAccessToken);
-                currentUser.updateOauthRefreshToken(finalOAuthRefreshToken);
 
                 if (currentUser.getNickname() != null) {
                     Cookie nicknameCookie = new Cookie("nickname", currentUser.getNickname());
@@ -425,6 +440,7 @@ public class UserService {
                     response.addCookie(nicknameCookie);
                 }
 
+                addUser(currentUser);
             }
         );
 
@@ -445,8 +461,15 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     *
+     * 소셜로 회원가입시
+     * get or save
+     * @param oAuth2UserInfo
+     * @return
+     */
     @Transactional
-    public User getOrSave(OAuth2UserInfo oAuth2UserInfo) {
+    public User findOrSave(OAuth2UserInfo oAuth2UserInfo) {
 
         User user = userQueryService.findByEmail(oAuth2UserInfo.email()).orElse(null);
 
@@ -455,6 +478,13 @@ public class UserService {
             addUser(newUser);
             return newUser;
         }
+
+        // 만약 기존에 있던 계정이 일반 회원가입인 경우
+        // socialType update
+        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == null) {
+            user.updateSocialType(oAuth2UserInfo.socialType());
+        }
+
         return user;
     }
 

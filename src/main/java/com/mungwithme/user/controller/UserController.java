@@ -82,9 +82,7 @@ public class UserController {
         if (user.isPresent()) {
             throw new DuplicateResourceException("error.duplicate.email");
         }
-
         emailService.joinEmail(emailDto.getEmail()); // 인증코드 이메일 전송
-
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
     }
 
@@ -98,7 +96,6 @@ public class UserController {
         if (checked) {
             return baseResponse.sendSuccessResponse(HttpStatus.OK.value());
         } else {
-            // 변경) 401 -> 400
             throw new IllegalArgumentException("error.arg.authCheck");
         }
     }

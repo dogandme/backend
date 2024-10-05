@@ -19,11 +19,17 @@ public interface LoginStatusRepository extends JpaRepository<LoginStatus, Long> 
     List<LoginStatus> findList(@Param("user") User user, @Param("loginStatus") Boolean loginStatus,
         @Param("isStatus") Boolean isStatus, @Param("sessionId") String sessionId);
 
+
+
     @Query(value =
         "select l from LoginStatus l where l.user = :user "
             + " and l.loginStatus = :loginStatus and l.defaultLog.isStatus =:isStatus order by l.id asc")
     List<LoginStatus> findList(@Param("user") User user, @Param("loginStatus") Boolean loginStatus,
         @Param("isStatus") Boolean isStatus);
+
+    @Query(value =
+        "select l from LoginStatus l where l.user = :user order by l.id asc")
+    List<LoginStatus> findList(@Param("user") User user);
 
     @Modifying(clearAutomatically = true)
     @Query(value =
@@ -31,6 +37,11 @@ public interface LoginStatusRepository extends JpaRepository<LoginStatus, Long> 
             + "l.user = :user and l.sessionId = :sessionId")
     Integer update(@Param("user") User user, @Param("loginStatus") Boolean loginStatus,
         @Param("isStatus") Boolean isStatus, @Param("sessionId") String sessionId);
+
+    @Modifying(clearAutomatically = true)
+    @Query(value =
+        "delete from LoginStatus l where l.user =:user ")
+    void removeAllByUser(@Param("user") User user);
 
 
     @Query(value = "select l from LoginStatus l where l.user = :user and l.redisAuthToken = :redisAuthToken and l.refreshToken = :refreshToken and l.loginStatus = :loginStatus and l.defaultLog.isStatus = :isStatus")

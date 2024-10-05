@@ -88,12 +88,10 @@ public class PetService {
         Pet pet = petQueryService.findByUser(user).orElse(null);
 
         if (pet != null) {
-
             String profile = pet.getProfile();
 //            petRepository.delete(pet);
             // Pet 이미지 삭제
             fileStore.deleteFile(FileStore.PET_DIR,profile);
-
         }
     }
 

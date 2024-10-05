@@ -4,22 +4,12 @@ package com.mungwithme.security.oauth.service;
 import com.mungwithme.security.oauth.dto.OAuth2UserInfo;
 import com.mungwithme.security.oauth.dto.PrincipalDetails;
 import com.mungwithme.user.model.entity.User;
-import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserService;
 import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
-import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
-import org.springframework.security.oauth2.core.OAuth2AccessToken;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.OAuth2RefreshToken;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +56,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfo.of(registrationId, attributes);
 
         // 6. 회원가입 및 로그인
-        User user = userService.getOrSave(oAuth2UserInfo);
+        User user = userService.findOrSave(oAuth2UserInfo);
 
         // 7. OAuth2User로 반환
         return new PrincipalDetails(user, attributes, userNameAttributeName);

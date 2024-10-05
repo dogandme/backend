@@ -165,9 +165,9 @@ public class JwtService {
 
             return Optional.ofNullable(JWT.require(Algorithm.HMAC512(secretKey))
                 .build()
-                .verify(token).getClaims()).orElseThrow(() -> new UnauthorizedException("error.arg"));
+                .verify(token).getClaims()).orElseThrow(() -> new UnauthorizedException("error.auth"));
         } catch (Exception e) {
-            throw new UnauthorizedException("error.arg");
+            throw new UnauthorizedException("error.auth");
         }
 
 
@@ -242,7 +242,7 @@ public class JwtService {
         // redis 에 redisAuthToken 이 없는 경우 예외처리
         // 저장해놓은 이메일이 같지 않다면 예외처리
         if (!StringUtils.hasText(redisEmail) || !redisEmail.equals(email)) {
-            throw new UnauthorizedException("error.arg");
+            throw new UnauthorizedException("error.auth");
         }
         return true;
     }
@@ -270,7 +270,7 @@ public class JwtService {
     public String getRedisAuthToken(HttpServletRequest request) {
         // refreshToken 추출
         String refreshToken = extractRefreshToken(request)
-            .orElseThrow(() -> new UnauthorizedException("error.arg"));
+            .orElseThrow(() -> new UnauthorizedException("error.auth"));
 
         // refreshToken 에 있는 redisToken 추출
         Map<String, Claim> refreshClaimMap = getJwtClaim(refreshToken);
