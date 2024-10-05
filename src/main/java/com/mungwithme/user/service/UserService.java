@@ -523,6 +523,7 @@ public class UserService {
      * 임시 비밀번호 이메일 전송
      * @param email 수신 이메일
      */
+    @Transactional
     public void sendTemporaryPassword(String email) {
 
         // 1. 이메일로 일반 회원 조회 (비밀번호 미설정 소셜 회원은 임시 비밀번호 설정 불가)
