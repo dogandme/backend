@@ -62,8 +62,6 @@ public class User extends BaseTimeEntity {
     // 닉네임 변경시 한달 후의 날짜를 저장
     private LocalDateTime nickExModDt;
 
-
-//    private String refreshToken;
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
 

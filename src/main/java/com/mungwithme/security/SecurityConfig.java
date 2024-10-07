@@ -107,6 +107,7 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/markings/search",
                         "/health",
+                        "/pets/image/**",
                         "/markings/image/**",
                         "/addresses", "/addresses/**"
                     ).permitAll()

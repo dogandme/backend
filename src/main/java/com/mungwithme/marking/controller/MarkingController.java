@@ -1,6 +1,7 @@
 package com.mungwithme.marking.controller;
 
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.common.response.BaseResponse;
@@ -10,6 +11,7 @@ import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
 import com.mungwithme.marking.model.dto.request.MarkingRemoveDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.service.marking.MarkingService;
+import com.mungwithme.pet.model.dto.response.PetSignUpDto;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +51,7 @@ public class MarkingController {
     private final MarkingService markingService;
     private final BaseResponse baseResponse;
     private final FileStore fileStore;
+    private final ObjectMapper objectMapper;
 
     /**
      * marking 저장 API
@@ -62,7 +65,6 @@ public class MarkingController {
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
         @RequestPart(name = "images") List<MultipartFile> images, HttpServletRequest request) throws IOException {
         markingService.addMarking(markingAddDto, images, false);
-
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.save.success", request.getLocale());
 
     }

@@ -47,7 +47,8 @@ public class GoogleApiService {
         // Google Geocoding API URL 생성 (언어를 한국어로 설정)
         String geocodingUrl = GEOCODING_API_URL + "?latlng=" + lat + "," + lng + "&key=" + API_KEY + "&language=ko";
 
-
+        log.info("lat = {}", lat);
+        log.info("lng = {}", lng);
         // Google Geocoding API 요청 보내기
         GoogleGeocodingResponseDto response = restTemplate.getForObject(geocodingUrl, GoogleGeocodingResponseDto.class);
 
@@ -58,11 +59,27 @@ public class GoogleApiService {
             List<Result> results = response.getResults();
             log.info(" ===========================================");
             for (Result result : results) {
+                String formattedAddress = result.getFormattedAddress();
 
-                log.info("result = {}", result.getFormattedAddress());
+                log.info("formattedAddress = {}", formattedAddress);
 
             }
-            return new GeocodingResponseDto(response.getResults().get(0).getFormattedAddress());
+            String formattedAddress = response.getResults().get(0).getFormattedAddress();
+
+            String[] split = formattedAddress.split(" ");
+
+            for (String region : split) {
+
+                log.info("split.length = {}", split.length);
+
+                log.info("region = {}", region);
+
+            }
+            if (formattedAddress.startsWith("대한민국 ")) {
+                formattedAddress = formattedAddress.replaceFirst("대한민국 ", "");
+            }
+
+            return new GeocodingResponseDto(formattedAddress);
         }
         return null;
     }

@@ -17,7 +17,7 @@ public class MarkingAddDto {
     private String region;
 
     @Size(max = 150,message = "{error.size.content}")
-    @NotBlank(message = "{error.NotBlank}")
+    @NotNull(message = "{error.NotBlank}")
     private String content;
 
     @NotNull(message = "{error.NotNull}")

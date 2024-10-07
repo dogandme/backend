@@ -7,6 +7,7 @@ import com.mungwithme.pet.model.dto.request.PetRequestDto;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.dto.response.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
+import com.mungwithme.pet.model.entity.Pet.PetBuilder;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.enums.Role;
@@ -31,7 +32,7 @@ import java.util.List;
 public class PetService {
 
     private final PetRepository petRepository;
-    private  final UserQueryService userQueryService;
+    private final UserQueryService userQueryService;
     private final FileStore fileStore;
     private final JwtService jwtService;
     private final PetQueryService petQueryService;
@@ -42,24 +43,33 @@ public class PetService {
 
     /**
      * 애완동물 정보 저장 및 USER권한 토큰 발행
-     * @param petSignUpDto 애완동물정보
+     *
+     * @param petSignUpDto
+     *     애완동물정보
      */
     @Transactional
-    public UserResponseDto addPet(PetSignUpDto petSignUpDto, List<MultipartFile> images, HttpServletRequest request) throws IOException {
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, MultipartFile image, HttpServletRequest request)
+        throws IOException {
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser();
-        // 강쥐 프로필 이미지 업로드
-        List<String> profile = fileStore.uploadFiles(images, FileStore.PET_DIR);
+
+        String profile = null;
+
+        if (image != null && !image.isEmpty()) {
+            // 강쥐 프로필 이미지 업로드
+            profile = fileStore.uploadFile(image, FileStore.PET_DIR);
+        }
 
         // 강쥐 DB 저장
         Pet pet = Pet.builder()
-                .name(petSignUpDto.getName())
-                .description(petSignUpDto.getDescription())
-                .personalities(petSignUpDto.getPersonalities())
-                .profile(profile.get(0))
-                .breed(petSignUpDto.getBreed())
-                .user(user)
-                .build();
+            .name(petSignUpDto.getName())
+            .description(petSignUpDto.getDescription())
+            .personalities(petSignUpDto.getPersonalities())
+            .breed(petSignUpDto.getBreed())
+            .profile(profile)
+            .user(user).build();
+        // 이미지가 있는 경우 추가
+
         petRepository.save(pet);
 
         String redisAuthToken = jwtService.getRedisAuthToken(request);
@@ -68,7 +78,7 @@ public class PetService {
         UserResponseDto userResponseDto = new UserResponseDto();
         if (!user.getRole().equals(Role.USER)) {
             user.setRole(Role.USER);
-            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(),redisAuthToken);
+            String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(), redisAuthToken);
             userResponseDto.setAuthorization(accessToken);
         }
         userResponseDto.setNickname(user.getNickname());
@@ -91,65 +101,73 @@ public class PetService {
             String profile = pet.getProfile();
 //            petRepository.delete(pet);
             // Pet 이미지 삭제
-            fileStore.deleteFile(FileStore.PET_DIR,profile);
+            fileStore.deleteFile(FileStore.PET_DIR, profile);
         }
     }
 
     /**
      * 유저 닉네임으로 펫 조회
-     * @param nickname 유저 닉네임
+     *
+     * @param nickname
+     *     유저 닉네임
      * @return 펫 정보
      */
     public PetInfoResponseDto findPetByNickname(String nickname) {
         // 닉네임 조회
         User user = userQueryService.findByNickname(nickname)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
 
         // 펫 조회
         Pet pet = petQueryService.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
 
         return PetInfoResponseDto.builder()
-                .petId(pet.getId())
-                .name(pet.getName())
-                .description(pet.getDescription())
-                .profile(pet.getProfile())
-                .breed(pet.getBreed())
-                .personalities(pet.getPersonalities())
-                .build();
+            .petId(pet.getId())
+            .name(pet.getName())
+            .description(pet.getDescription())
+            .profile(pet.getProfile())
+            .breed(pet.getBreed())
+            .personalities(pet.getPersonalities())
+            .build();
     }
 
     /**
      * 펫 정보 수정
-     * @param petDtoJson 수정 정보
-     * @param image 수정 프로필 이미지
+     *
+     * @param petDtoJson
+     *     수정 정보
+     * @param image
+     *     수정 프로필 이미지
      */
     @Transactional
-    public void editPet(String petDtoJson, List<MultipartFile> image) throws IOException {
+    public void editPet(String petDtoJson, MultipartFile image) throws IOException {
 
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser_v2();
 
         // 이전 강쥐 프로필 이미지 삭제
         Pet prevPet = petQueryService.findByUser(user)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
         fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
 
         // JSON 문자열을 DTO로 변환
         PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
 
         // 강쥐 프로필 이미지 업로드
-        List<String> profile = fileStore.uploadFiles(image, FileStore.PET_DIR);
+        String profile = null;
+        if (image != null && !image.isEmpty()) {
+            profile = fileStore.uploadFile(image, FileStore.PET_DIR);
+        }
 
         // 강쥐 DB 저장
         petRepository.save(Pet.builder()
-                .id(prevPet.getId())
-                .name(petRequestDto.getName())
-                .description(petRequestDto.getDescription())
-                .personalities(petRequestDto.getPersonalities())
-                .profile(profile.get(0))
-                .breed(petRequestDto.getBreed())
-                .user(user)
-                .build());
+            .id(prevPet.getId())
+            .name(petRequestDto.getName())
+            .description(petRequestDto.getDescription())
+            .personalities(petRequestDto.getPersonalities())
+            .profile(profile)
+            .breed(petRequestDto.getBreed())
+            .user(user)
+            .build());
     }
 }
