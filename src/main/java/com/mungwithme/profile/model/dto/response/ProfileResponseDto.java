@@ -11,7 +11,6 @@ import java.util.Map;
 public class ProfileResponseDto {
 
     private String nickname;                        // 닉네임
-    private SocialType socialType;                  // 소셜 로그인 타입
     private int tempCnt;                            // 임시 저장 수
     private PetInfoResponseDto pet;                 // 펫 정보
     private List<Long> followers;                   // 팔로워 userId 목록

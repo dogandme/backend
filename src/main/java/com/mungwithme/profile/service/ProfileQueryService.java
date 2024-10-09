@@ -52,7 +52,6 @@ public class ProfileQueryService {
 
         // 조회하는 프로필이 본인일 경우 분기 처리
         if (isSelf) {
-            profileResponseDto.setSocialType(user.getSocialType());           // 소셜 로그인 타입
             profileResponseDto.setTempCnt(
                     markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
             profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록

@@ -145,12 +145,23 @@ public class UserQueryService {
     public UserMyInfoResponseDto findMyInfo () {
         User currentUser = findCurrentUser();
 
+        // 내 동네
         List<AddressResponseDto> regions = currentUser.getUserAddresses().stream()
             .map(region -> new AddressResponseDto(region.getAddress().getId(), region.getAddress().getProvince(),
                 region.getAddress().getCityCounty(), region.getAddress().getDistrict(),
                 region.getAddress().getSubDistrict())).toList();
-        return UserMyInfoResponseDto.builder().nickname(currentUser.getNickname()).age(currentUser.getAge())
-            .gender(currentUser.getGender()).regions(regions).build();
+
+        // 소셜 연동 유무
+        Boolean isPasswordSet = currentUser.getSocialType() != null && currentUser.getPassword() != null;
+
+        return UserMyInfoResponseDto.builder()
+                .age(currentUser.getAge())
+                .gender(currentUser.getGender())
+                .regions(regions)
+                .socialType(currentUser.getSocialType())
+                .nickLastModDt(currentUser.getNickLastModDt())
+                .isPasswordSet(isPasswordSet)
+                .build();
     }
 
     /**
