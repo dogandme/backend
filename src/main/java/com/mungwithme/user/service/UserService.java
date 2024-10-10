@@ -504,7 +504,7 @@ public class UserService {
         }
 
         // 조건 2 : 첫 비밀번호 설정
-        if (!currentUser.getPassword().isEmpty()) {
+        if (StringUtils.hasText(currentUser.getPassword())) {
             throw new IllegalArgumentException("error.arg.standard.pw.first");
         }
 

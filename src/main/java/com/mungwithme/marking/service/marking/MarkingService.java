@@ -1,6 +1,11 @@
 package com.mungwithme.marking.service.marking;
 
 
+import com.mungwithme.address.model.dto.request.AddressCoordinatesDto;
+import com.mungwithme.address.model.dto.response.AddressResponseDto;
+import com.mungwithme.address.model.entity.Address;
+import com.mungwithme.address.service.AddressQueryService;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
 import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.likes.service.LikesService;
@@ -46,6 +51,7 @@ public class MarkingService {
 
     private final UserQueryService userQueryService;
 
+    private final AddressQueryService addressQueryService;
     private final MarkingQueryService markingQueryService;
     private final FileStore fileStore;
     private final MarkImageRepository markImageRepository;
@@ -69,7 +75,16 @@ public class MarkingService {
         imageSizeCheck(images, isTempSaved);
         User user = userQueryService.findCurrentUser();
 
-        Marking marking = Marking.create(markingAddDto, user);
+        // 등록할 주소 찾기
+        List<Address> findAddressList = addressQueryService.findAllWithinDistance(10000,
+            markingAddDto.getLat(),
+            markingAddDto.getLng(), 0, 1);
+
+        if (findAddressList.isEmpty()) {
+            throw new ResourceNotFoundException("error.notfound.address");
+        }
+
+        Marking marking = Marking.create(markingAddDto, user, findAddressList.get(0));
 
         // 임시저장 여부
         marking.updateIsTempSaved(isTempSaved);
@@ -96,9 +111,7 @@ public class MarkingService {
     }
 
     /**
-     *
-     *  Marking 삭제 API
-     *
+     * Marking 삭제 API
      */
     @Transactional
     public void removeMarking(MarkingRemoveDto markingRemoveDto, boolean isTempSaved) {
@@ -138,10 +151,11 @@ public class MarkingService {
      * 좋아요 삭제
      * 이미지 삭제
      * API
+     *
      * @param user
      */
     @Transactional
-    public void removeAllMarkingsByUser (User user) {
+    public void removeAllMarkingsByUser(User user) {
         Set<Marking> markings = markingQueryService.findAll(user, false);
 
         Set<Long> removeIds = new HashSet<>();
@@ -149,7 +163,6 @@ public class MarkingService {
         if (markings.isEmpty()) {
             return;
         }
-
 
         for (Marking marking : markings) {
             // 이미지 삭제
@@ -165,8 +178,7 @@ public class MarkingService {
         markingSavesService.deleteAllSavesBatch(markings);
 
         // 좋아요 삭제
-        likesService.removeAllLikes(removeIds,ContentType.MARKING);
-
+        likesService.removeAllLikes(removeIds, ContentType.MARKING);
 
         // 마킹 삭제
         markingRepository.deleteAllInBatch(markings);

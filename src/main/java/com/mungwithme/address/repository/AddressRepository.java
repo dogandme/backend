@@ -26,7 +26,6 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
 
     List<Address> findAllByIdIn(Set<Long> ids);
 
-    //
     //    문자열을 단어 단위로 분리한 후 검색 규칙을 붙여서 검색을 할 수 있습니다. 행을 정렬하지 않습니다. 조건을 만족하면 반환하는 식입니다.
     //    예를 들어 이 쿼리에서는 MySQL 이 들어가고 YourSQL 이 없는 항목을 검색합니다.
     @Query(value = "SELECT * FROM Address WHERE MATCH(subdistrict) AGAINST (?1 IN BOOLEAN MODE)", nativeQuery = true)

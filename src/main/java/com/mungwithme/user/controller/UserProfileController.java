@@ -35,8 +35,6 @@ public class UserProfileController {
     /**
      * password 업데이트 API
      *
-     * 임시비밀번호를 보내는 url 과 겹쳐서
-     * 권한을 어노테이션으로 등록
      *
      * @param userPwUpdateDto
      * @return
@@ -136,8 +134,7 @@ public class UserProfileController {
      * @return
      */
     @PutMapping("/password/social")
-    public ResponseEntity<CommonBaseResult> updateSocialPassword(@RequestBody @Validated SocialUserPwUpdateDto socialUserPwUpdateDto,
-                                                           HttpServletRequest request) throws IOException {
+    public ResponseEntity<CommonBaseResult> updateSocialPassword(@RequestBody @Validated SocialUserPwUpdateDto socialUserPwUpdateDto, HttpServletRequest request) throws IOException {
         userService.editSocialPassword(socialUserPwUpdateDto);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(),"pw.modify.success",request.getLocale());
     }

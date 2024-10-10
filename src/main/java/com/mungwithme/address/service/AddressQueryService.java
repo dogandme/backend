@@ -76,6 +76,7 @@ public class AddressQueryService {
      *
      */
 
+
     /**
      * 좌표를 사용하여 근처 미터 단위로 읍면동 리스트 검색 API
      *
@@ -96,11 +97,8 @@ public class AddressQueryService {
         double lng = coordinatesDto.getLng();
 
         // 좌표 값 확인
-        GeoUtils.isWithinKorea(lat,lng);
 
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-
-        List<Address> addressList = addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
+        List<Address> addressList = findAllWithinDistance(radius, lat, lng, pageNumber, pageSize);
 
         if (addressList.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.coordinates");
@@ -113,6 +111,15 @@ public class AddressQueryService {
         ).toList();
     }
 
+    public List<Address> findAllWithinDistance(int radius, double lat, double lng, int pageNumber, int pageSize) {
+
+        GeoUtils.isWithinKorea(lat, lng);
+
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+
+        return addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
+    }
+
     public Optional<Address> findById(long id) {
         return addressRepository.findById(id);
     }
@@ -120,7 +127,6 @@ public class AddressQueryService {
     public List<Address> findByIds(Set<Long> ids) {
         return addressRepository.findAllById(ids);
     }
-
 
 
 }
