@@ -53,8 +53,6 @@ public class Marking extends BaseTimeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;              // 작성
 
-
-
     @JoinColumn(name = "address_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private Address address;          // 주소

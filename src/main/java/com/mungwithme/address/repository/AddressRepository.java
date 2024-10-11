@@ -12,14 +12,6 @@ import org.springframework.data.repository.query.Param;
 
 public interface AddressRepository extends JpaRepository<Address, Long> {
 
-    /**
-     * 동네 검색 (읍,면,동)
-     *
-     * @param subDistrict
-     * @param pageable
-     * @return
-     */
-
 //    @Query(value = "SELECT * FROM Address a WHERE MATCH(a.subdistrict) AGAINST (?1 IN BOOLEAN MODE)", nativeQuery = true)
 //    @Query(value = "select a from Address a where a.subDistrict like :subDistrict ")
 //    Page<Address> findAllBySubDist(@Param("subDistrict") String subDistrict, Pageable pageable);

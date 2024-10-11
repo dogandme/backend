@@ -37,7 +37,18 @@ public class MarkingSearchController {
     private final BaseResponse baseResponse;
 
     /**
-     * 주변 마킹 검색 API
+     * 내 위치 중심
+     * 현재 지도 중심
+     *
+     *
+     * 인기순
+     * 최신순
+     * 가까운순
+     *
+     */
+
+    /**
+     * 동네 마킹 검색 API
      * 비회원 식별 후 검색 기능을 다르게
      * 보기 권한에 따른 쿼리
      *
@@ -46,7 +57,6 @@ public class MarkingSearchController {
      */
 //    @NoneAuthorize
     @GetMapping
-
     public ResponseEntity<CommonBaseResult> getMarkingsById(@ModelAttribute @Validated LocationBoundsDto locationBoundsDto)
         throws IOException {
         List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);

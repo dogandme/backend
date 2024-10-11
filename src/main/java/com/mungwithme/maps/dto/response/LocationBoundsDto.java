@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class LocationBoundsDto {
 
+
     @NotNull(message = "{error.NotNull}")
     private Double southBottomLat;
 

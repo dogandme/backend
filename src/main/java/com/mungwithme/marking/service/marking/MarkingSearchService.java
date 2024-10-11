@@ -40,7 +40,7 @@ public class MarkingSearchService {
     private final LikesService likesService;
 
     /**
-     * 주변 마킹 검색 API
+     * 동네 마킹 검색 API
      * 보기 권한에 따른 쿼리 처리`
      *
      * @param locationBoundsDto

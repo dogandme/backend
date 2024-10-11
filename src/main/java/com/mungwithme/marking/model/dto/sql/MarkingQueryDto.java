@@ -23,10 +23,19 @@ public class MarkingQueryDto {
 
     private MarkingSaves markingSaves;
 
+    private double distance;
+
 
     public MarkingQueryDto(Marking marking, Pet pet) {
         this.marking = marking;
         this.pet = pet;
+    }
+
+
+    public MarkingQueryDto(Marking marking, Pet pet,double distance) {
+        this.marking = marking;
+        this.pet = pet;
+        this.distance = distance;
     }
 
 
