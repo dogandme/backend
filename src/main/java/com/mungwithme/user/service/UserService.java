@@ -23,6 +23,7 @@ import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.enums.SocialType;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -112,6 +113,7 @@ public class UserService {
 
         // 유저 등록
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
+        newUser.setSocialType(SocialType.EMAIL);   // 이메일 회원가입 시
         addUser(newUser);    // DB 저장
 
         String userAgent = request.getHeader("User-Agent");
@@ -196,7 +198,7 @@ public class UserService {
         User currentUser = userQueryService.findCurrentUser();
 
         // 패스워드가 없고 일반회원이 아닌 경우
-        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != null) {
+        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != SocialType.EMAIL) {
             throw new IllegalArgumentException("error.arg.social.pw");
         }
 
@@ -374,7 +376,7 @@ public class UserService {
 
         // 만약 유저가 oAuthAPI 를 연동한 회원일 경우
         // 연동 해제
-        if (currentUser.getSocialType() != null) {
+        if (currentUser.getSocialType() != SocialType.EMAIL) {
             oAuth2Service.disconnectOAuth2Account(currentUser.getSocialType(), currentUser.getOAuthRefreshToken());
         }
 
@@ -486,7 +488,7 @@ public class UserService {
 
         // 만약 기존에 있던 계정이 일반 회원가입인 경우
         // socialType update
-        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == null) {
+        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == SocialType.EMAIL) {
             user.updateSocialType(oAuth2UserInfo.socialType());
         }
 
@@ -502,7 +504,7 @@ public class UserService {
 
         // 조건1 : 소셜 계정
         User currentUser = userQueryService.findCurrentUser_v2();
-        if (currentUser.getSocialType() == null) {
+        if (currentUser.getSocialType() != SocialType.EMAIL) {
             throw new IllegalArgumentException("error.arg.standard.pw");
         }
 

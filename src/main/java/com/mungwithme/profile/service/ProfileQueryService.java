@@ -53,7 +53,7 @@ public class ProfileQueryService {
         // 조회하는 프로필이 본인일 경우 분기 처리
         if (isSelf) {
             profileResponseDto.setTempCnt(
-                    markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
+                    markingTempService.countTempMarkingByUserIdAndIsTempSavedTrue(userId));     // 임시 저장 수
             profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
         }
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
@@ -73,6 +73,7 @@ public class ProfileQueryService {
         profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
 
         // 마킹 목록
+        System.out.println("userId : " + user.getId());
         Set<MarkingQueryDto> markingQueryDtos = markingQueryService.findAllMarkersByUser(user, false, false);
 
         List<Map<String, Object>> markings = Optional.ofNullable(markingQueryDtos)
@@ -81,7 +82,7 @@ public class ProfileQueryService {
                 .map(dto -> {
                     Map<String, Object> map = new HashMap<>();
                     map.put("id", dto.getMarking().getId());
-                    map.put("images", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
+                    map.put("image", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
                     return map;
                 })
                 .toList();

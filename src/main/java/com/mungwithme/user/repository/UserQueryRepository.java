@@ -31,7 +31,5 @@ public interface UserQueryRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByNickname(String nickname);
 
-    Optional<User> findByEmailAndSocialTypeIsNull(String email);
-
     Optional<User> findByEmailAndPasswordIsNotNull(String email);
 }

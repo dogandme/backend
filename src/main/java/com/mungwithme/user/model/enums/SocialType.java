@@ -4,7 +4,7 @@ package com.mungwithme.user.model.enums;
  * 소셜 채널 종류
  */
 public enum SocialType {
-    KAKAO("kakao"), GOOGLE("google"), NAVER("naver");
+    KAKAO("kakao"), GOOGLE("google"), NAVER("naver"), EMAIL("email");
 
     private String type;
 

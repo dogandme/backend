@@ -7,6 +7,7 @@ import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.response.UserMyInfoResponseDto;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.enums.SocialType;
 import com.mungwithme.user.repository.UserQueryRepository;
 import java.util.List;
 import java.util.Optional;
@@ -106,17 +107,6 @@ public class UserQueryService {
     }
 
 
-
-
-    /**
-     * 이메일을 이용하여 일반 회원 조회
-     * @param email 이메일
-     * @return 조회된 회원
-     */
-    public Optional<User> findByEmailAndSocialTypeIsNull(String email) {
-        return userQueryRepository.findByEmailAndSocialTypeIsNull(email);
-    }
-
     /**
      * 닉네임을 이용하여 회원 조회
      * @param nickname 닉네임
@@ -152,9 +142,10 @@ public class UserQueryService {
                 region.getAddress().getSubDistrict())).toList();
 
         // 소셜 연동 유무
-        Boolean isPasswordSet = currentUser.getSocialType() != null && currentUser.getPassword() != null;
+        Boolean isPasswordSet = currentUser.getSocialType() != SocialType.EMAIL && currentUser.getPassword() != null;
 
         return UserMyInfoResponseDto.builder()
+                .email(currentUser.getEmail())
                 .age(currentUser.getAge())
                 .gender(currentUser.getGender())
                 .regions(regions)

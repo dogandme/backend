@@ -163,6 +163,5 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("isTempSaved") boolean isTempSaved,
         @Param("userId") long userId);
 
-
-    int countByUserId(Long userId);
+    int countTempMarkingByUserIdAndIsTempSavedTrue(Long userId);
 }

@@ -20,6 +20,7 @@ import lombok.Setter;
 @AllArgsConstructor
 public class UserMyInfoResponseDto {
 
+    private String email;
     private Gender gender;
     private int age;
     private List<AddressResponseDto> regions;
