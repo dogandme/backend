@@ -504,7 +504,7 @@ public class UserService {
 
         // 조건1 : 소셜 계정
         User currentUser = userQueryService.findCurrentUser_v2();
-        if (currentUser.getSocialType() != SocialType.EMAIL) {
+        if (currentUser.getSocialType() == SocialType.EMAIL) {
             throw new IllegalArgumentException("error.arg.standard.pw");
         }
 
