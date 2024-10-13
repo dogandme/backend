@@ -13,12 +13,11 @@ import lombok.Setter;
 public class LikeCountResponseDto {
 
     private Long contentId;
-    private ContentType contentType;
     private Long count;
 
-    public LikeCountResponseDto(long contentId, ContentType contentType, long count) {
+
+    public LikeCountResponseDto(long contentId,  long count) {
         this.contentId = contentId;
-        this.contentType = contentType;
         this.count = count;
     }
 }

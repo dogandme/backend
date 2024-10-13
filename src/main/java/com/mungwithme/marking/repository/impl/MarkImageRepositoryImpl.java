@@ -3,10 +3,13 @@ package com.mungwithme.marking.repository.impl;
 
 import com.mungwithme.common.jdbc.repository.JdbcRepository;
 import com.mungwithme.marking.model.entity.MarkImage;
+import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.repository.markImge.MarkImageRepository;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,6 +25,8 @@ public class MarkImageRepositoryImpl implements JdbcRepository<MarkImage> {
 
 
     private final JdbcTemplate jdbcTemplate;
+
+
 
 
     @Override
@@ -53,5 +58,8 @@ public class MarkImageRepositoryImpl implements JdbcRepository<MarkImage> {
     public void deleteAll(MarkImage entity) {
 
     }
+
+
+
 
 }

@@ -1,15 +1,20 @@
 package com.mungwithme.marking.service.marking;
 
+import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
 import com.mungwithme.user.model.entity.User;
+import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,6 +95,88 @@ public class MarkingQueryService {
         return markingQueryRepository.findNearbyMarkers(southBottomLat, northTopLat, southLeftLng, northRightLng,
             isDeleted, isTempSaved, user);
     }
+
+
+    /**
+     * 동네 마킹 검색  (회원 전용)
+     *
+     * @param lat
+     *     현재 위치
+     * @param lng
+     *     현재 위치
+     * @param sortType
+     *     정렬 기준
+     * @param isDeleted
+     * @param isTempSaved
+     * @param user
+     * @return
+     */
+    public Page<MarkingQueryDto> findNearbyMarkers(
+        User user,
+        Set<Address> addresses,
+        double lat,
+        double lng,
+        SortType sortType,
+        boolean isDeleted,
+        boolean isTempSaved,
+        int offset,
+        int pageSize
+    ) {
+        PageRequest pageRequest = PageRequest.of(offset, pageSize);
+        if (sortType.equals(SortType.RECENT)) {
+            return markingQueryRepository.findMarkersOrderByRegDtDesc(lat, lng, addresses, isDeleted, isTempSaved, user,
+                pageRequest);
+        } else if (sortType.equals(SortType.DISTANCE)) {
+            return markingQueryRepository.findMarkersOrderByDistAsc(lat, lng, addresses, isDeleted, isTempSaved, user,
+                pageRequest);
+        }
+        return markingQueryRepository.findMarkersOrderByLikesDesc(lat, lng, addresses, isDeleted, isTempSaved, user,
+            pageRequest);
+
+    }
+
+
+    /**
+     * 동네 마킹 검색  (비 회원 전용)
+     *
+     * @param lat
+     *     현재 위치
+     * @param lng
+     *     현재 위치
+     * @param sortType
+     *     정렬 기준
+     * @param isDeleted
+     * @param isTempSaved
+     * @return
+     */
+    public Page<MarkingQueryDto> findNearbyMarkers(
+        Set<Address> addresses,
+        double lat,
+        double lng,
+        SortType sortType,
+        boolean isDeleted,
+        boolean isTempSaved,
+        int offset,
+        int pageSize
+    ) {
+        PageRequest pageRequest = PageRequest.of(offset, pageSize);
+        if (sortType.equals(SortType.RECENT)) {
+            return markingQueryRepository.findMarkersOrderByRegDtDesc(lat, lng, addresses, isDeleted, isTempSaved,
+                pageRequest);
+        } else if (sortType.equals(SortType.DISTANCE)) {
+            return markingQueryRepository.findMarkersOrderByDistAsc(lat, lng, addresses, isDeleted, isTempSaved,
+                pageRequest);
+        }
+        return markingQueryRepository.findMarkersOrderByLikesDesc(lat, lng, addresses, isDeleted, isTempSaved,
+            pageRequest);
+
+    }
+
+
+
+
+
+
 
     /**
      * 주변마킹 검색 (비회원)

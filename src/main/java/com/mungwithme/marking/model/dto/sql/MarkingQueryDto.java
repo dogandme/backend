@@ -1,12 +1,11 @@
 package com.mungwithme.marking.model.dto.sql;
 
 
-import com.mungwithme.likes.model.entity.Likes;
+import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
 import java.util.Objects;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -19,7 +18,11 @@ public class MarkingQueryDto {
 
     private Pet pet;
 
-    private Likes likes;
+    private MarkingLikes markingLikes;
+
+    private long likeCount;
+    private long saveCount;
+
 
     private MarkingSaves markingSaves;
 
@@ -32,9 +35,18 @@ public class MarkingQueryDto {
     }
 
 
-    public MarkingQueryDto(Marking marking, Pet pet,double distance) {
+    public MarkingQueryDto(Marking marking, Pet pet,long likeCount,long saveCount) {
         this.marking = marking;
         this.pet = pet;
+        this.likeCount = likeCount;
+        this.saveCount = saveCount;
+    }
+
+    public MarkingQueryDto(Marking marking, Pet pet,long likeCount,long saveCount,double distance) {
+        this.marking = marking;
+        this.pet = pet;
+        this.likeCount = likeCount;
+        this.saveCount = saveCount;
         this.distance = distance;
     }
 
@@ -45,10 +57,10 @@ public class MarkingQueryDto {
         this.markingSaves = markingSaves;
     }
 
-    public MarkingQueryDto(Marking marking, Pet pet, Likes likes) {
+    public MarkingQueryDto(Marking marking, Pet pet, MarkingLikes likes) {
         this.marking = marking;
         this.pet = pet;
-        this.likes = likes;
+        this.markingLikes = likes;
     }
 
     /**

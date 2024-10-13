@@ -1,22 +1,24 @@
 package com.mungwithme.marking.service.marking;
 
+import com.mungwithme.address.model.entity.Address;
+import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.util.GeoUtils;
-import com.mungwithme.likes.model.dto.response.LikeCountResponseDto;
-import com.mungwithme.likes.model.entity.Likes;
-import com.mungwithme.likes.model.enums.ContentType;
-import com.mungwithme.likes.service.LikesService;
-import com.mungwithme.maps.dto.response.LocationBoundsDto;
+import com.mungwithme.likes.model.entity.MarkingLikes;
+import com.mungwithme.likes.service.MarkingLikesService;
+import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
+import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
+import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
-import com.mungwithme.user.service.UserService;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,51 +38,70 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class MarkingSearchService {
 
+    private final AddressQueryService addressQueryService;
     private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
-    private final LikesService likesService;
+    private final MarkingLikesService likesService;
+    private final MarkingImageQueryService markingImageQueryService;
 
     /**
      * 동네 마킹 검색 API
      * 보기 권한에 따른 쿼리 처리`
      *
-     * @param locationBoundsDto
+     * @param markingSearchDto
      * @return
      */
+    public MarkingPagingResponseDto findNearbyMarkers(MarkingSearchDto markingSearchDto, int offset,SortType sortType) {
 
-    public List<MarkingInfoResponseDto> findNearbyMarkers(LocationBoundsDto locationBoundsDto) {
-        GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
-            locationBoundsDto.getNorthRightLng());
-        GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
-            locationBoundsDto.getSouthLeftLng());
+        int pageSize = 20;
+        GeoUtils.isWithinKorea(markingSearchDto.getNorthTopLat(),
+            markingSearchDto.getNorthRightLng());
+        GeoUtils.isWithinKorea(markingSearchDto.getSouthBottomLat(),
+            markingSearchDto.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
         User currentUser = userQueryService.findCurrentUser_v2();
 
         boolean isMember = currentUser != null;
 
+        // 주소 검색
+        Set<Address> addressSet = addressQueryService.findAddressInBounds(markingSearchDto.getSouthBottomLat(),
+            markingSearchDto.getNorthTopLat(),
+            markingSearchDto.getSouthLeftLng(), markingSearchDto.getNorthRightLng());
+
+        if (addressSet.isEmpty()) {
+            throw new ResourceNotFoundException("error.notfound.markings");
+        }
+
+        Page<MarkingQueryDto> pageDto = null;
+        // 회원
         if (isMember) {
-            nearbyMarkers.addAll(markingQueryService.findNearbyMarkers(
-                locationBoundsDto.getSouthBottomLat(),
-                locationBoundsDto.getNorthTopLat(), locationBoundsDto.getSouthLeftLng(),
-                locationBoundsDto.getNorthRightLng(), false, false, currentUser));
+            pageDto = markingQueryService.findNearbyMarkers(currentUser, addressSet,
+                markingSearchDto.getLat(),
+                markingSearchDto.getLng(), sortType, false, false, offset, pageSize);
+            nearbyMarkers.addAll(pageDto.getContent());
+
+            // 비 회원
         } else {
-            nearbyMarkers.addAll(
-                markingQueryService.findNearbyMarkersOnlyPublic(locationBoundsDto.getSouthBottomLat(),
-                    locationBoundsDto.getNorthTopLat(), locationBoundsDto.getSouthLeftLng(),
-                    locationBoundsDto.getNorthRightLng(), false, false));
+            pageDto = markingQueryService.findNearbyMarkers(addressSet, markingSearchDto.getLat(),
+                markingSearchDto.getLng(), sortType, false, false, offset, pageSize);
+            nearbyMarkers.addAll(pageDto.getContent());
         }
 
         if (nearbyMarkers.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.markings");
         }
-        return findMarkingInfoResponseDtoList(isMember, currentUser, nearbyMarkers);
+
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(isMember, currentUser,
+            nearbyMarkers);
+
+        return new MarkingPagingResponseDto(markingInfoResponseDtos, pageDto.getTotalElements(),
+            pageDto.getTotalPages(), pageDto.getPageable());
     }
 
 
     /**
      * 나의 좋아요 마킹 리스트 출력 API
-     *
      */
     public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
         User myUser = userQueryService.findCurrentUser();
@@ -88,13 +110,12 @@ public class MarkingSearchService {
 
         markingQueryDtoSet.addAll(markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
 
-        return findMarkingInfoResponseDtoList(true, myUser,
+        return setMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
     }
 
     /**
      * 나의 즐겨찾기 마킹 리스트 출력 API
-     *
      */
     public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
         User myUser = userQueryService.findCurrentUser();
@@ -103,7 +124,7 @@ public class MarkingSearchService {
 
         markingQueryDtoSet.addAll(markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
 
-        return findMarkingInfoResponseDtoList(true, myUser,
+        return setMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
     }
 
@@ -131,7 +152,7 @@ public class MarkingSearchService {
             markingQueryDtoSet.addAll(markingQueryService.findAllMarkersByUser(myUser, false, false));
         }
 
-        List<MarkingInfoResponseDto> markingInfoResponseDtos = findMarkingInfoResponseDtoList(true, profileUser,
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, profileUser,
             markingQueryDtoSet);
 
         return new MyMarkingsResponseDto(isMyProfile, (long) tempMarkingList.size(),
@@ -149,13 +170,13 @@ public class MarkingSearchService {
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
             markingQueryService.findAllMarkersByUser(myUser, false, true));
 
-        List<MarkingInfoResponseDto> markingInfoResponseDtos = findMarkingInfoResponseDtoList(true, myUser,
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
 
         return new MyTempMarkingsResponseDto(markingInfoResponseDtos);
     }
 
-    private List<MarkingInfoResponseDto> findMarkingInfoResponseDtoList(boolean isMember, User currentUser,
+    private List<MarkingInfoResponseDto> setMarkingInfoResponseDtoList(boolean isMember, User currentUser,
         Set<MarkingQueryDto> nearbyMarkers) {
         List<MarkingInfoResponseDto> markingInfoList = new ArrayList<>();
 
@@ -166,33 +187,40 @@ public class MarkingSearchService {
         Map<Long, MarkingQueryDto> markingMap = nearbyMarkers.stream()
             .collect(Collectors.toMap(key -> key.getMarking().getId(), value -> value));
 
-        Map<Long, LikeCountResponseDto> likeMap = likesService.findLikeCounts(markingMap.keySet(), ContentType.MARKING)
-            .stream()
-            .collect(Collectors.toMap(LikeCountResponseDto::getContentId, value -> value));
+        List<MarkImage> markImages = markingImageQueryService.findAllByMarkingIds(markingMap.keySet());
+
+
+        Map<Long, List<MarkImage>> markImageMap = markImages.stream()
+            .collect(Collectors.groupingBy(key -> key.getMarking().getId(), Collectors.toList()));
 
         for (Map.Entry<Long, MarkingQueryDto> entry : markingMap.entrySet()) {
             Long id = entry.getKey();
-            MarkingQueryDto nearbyMarker = entry.getValue();
-            Marking marking = nearbyMarker.getMarking();
-            Pet pet = nearbyMarker.getPet();
-            // 한번에 모든 데이터를 설정하여 객체 초기화를 효율적으로 수행
-            MarkingInfoResponseDto markingInfoResponseDto ;
 
-            markingInfoResponseDto = findMarkingInfoResponseDto(entry, marking);
+
+            MarkingQueryDto markingQueryDto = entry.getValue();
+            Marking marking = markingQueryDto.getMarking();
+            Pet pet = markingQueryDto.getPet();
+            // 한번에 모든 데이터를 설정하여 객체 초기화를 효율적으로 수행
+            MarkingInfoResponseDto markingInfoResponseDto;
+
+            //
+            markingInfoResponseDto = createMarkingInfoResponseDto(entry, marking);
 
             // 작성자인지 확인
             if (isMember) {
                 markingInfoResponseDto.updateIsOwner(currentUser.getEmail().equals(marking.getUser().getEmail()));
             }
 
+            // 따로 가져온 이미지 리스트 업데이트
+            List<MarkImage> markImageList = markImageMap.get(id);
+            markingInfoResponseDto.updateImage(markImageList);
+
             // Pet 정보 업데이트
             markingInfoResponseDto.updatePet(pet);
 
-            // 좋아요 수가 있는 경우 업데이트
-            LikeCountResponseDto likeCountResponseDto = likeMap.get(id);
-            if (likeCountResponseDto != null) {
-                markingInfoResponseDto.updateLikeCount(likeCountResponseDto.getCount());
-            }
+            // 좋아요 수 및
+            markingInfoResponseDto.updateLikeCount(markingQueryDto.getLikeCount());
+            markingInfoResponseDto.updateLikeCount(markingQueryDto.getSaveCount());
 
             markingInfoList.add(markingInfoResponseDto);
         }
@@ -201,14 +229,15 @@ public class MarkingSearchService {
 
     /**
      * value 에 따른 업캐스팅 분류
+     *
      * @param entry
      * @param marking
      * @return
      */
-    private static MarkingInfoResponseDto findMarkingInfoResponseDto(Entry<Long, MarkingQueryDto> entry,
+    private static MarkingInfoResponseDto createMarkingInfoResponseDto(Entry<Long, MarkingQueryDto> entry,
         Marking marking) {
         MarkingInfoResponseDto markingInfoResponseDto;
-        Likes likes = entry.getValue().getLikes();
+        MarkingLikes likes = entry.getValue().getMarkingLikes();
         MarkingSaves markingSaves = entry.getValue().getMarkingSaves();
         markingInfoResponseDto = new MarkingInfoResponseDto(marking);
 

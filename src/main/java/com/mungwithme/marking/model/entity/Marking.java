@@ -3,6 +3,7 @@ package com.mungwithme.marking.model.entity;
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.common.util.TokenUtils;
+import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.user.model.entity.User;
@@ -87,6 +88,9 @@ public class Marking extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkingSaves> saves = new HashSet<>();   // One(marking)-to-Many(images) Join
+
+    @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
+    private Set<MarkingLikes> likes = new HashSet<>();   // One(marking)-to-Many(images) Join
 
     public static Marking create(MarkingAddDto markingAddDto, User user,Address address) {
         return Marking.builder().content(markingAddDto.getContent())

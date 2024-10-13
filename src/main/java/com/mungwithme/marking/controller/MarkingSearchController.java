@@ -4,9 +4,12 @@ package com.mungwithme.marking.controller;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
+import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
+import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -48,18 +52,25 @@ public class MarkingSearchController {
      */
 
     /**
+     *
+     * 인기순, 최신순, 가까운순
      * 동네 마킹 검색 API
      * 비회원 식별 후 검색 기능을 다르게
      * 보기 권한에 따른 쿼리
      *
-     * @param locationBoundsDto
+     * @param markingSearchDto
      * @return
      */
 //    @NoneAuthorize
     @GetMapping
-    public ResponseEntity<CommonBaseResult> getMarkingsById(@ModelAttribute @Validated LocationBoundsDto locationBoundsDto)
+    public ResponseEntity<CommonBaseResult> getMarkingsById(
+        @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
+        @RequestParam(value = "offset",defaultValue = "0") int offset,
+        @RequestParam(value = "sortType",defaultValue = "POPULARITY") SortType sortType
+
+    )
         throws IOException {
-        List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);
+        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto, offset,sortType);
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
 

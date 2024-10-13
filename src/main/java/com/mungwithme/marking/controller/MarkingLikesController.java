@@ -2,8 +2,7 @@ package com.mungwithme.marking.controller;
 
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
-import com.mungwithme.likes.model.enums.ContentType;
-import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.likes.service.MarkingLikesService;
 import jakarta.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarkingLikesController {
 
 
-    private final LikesService likesService;
+    private final MarkingLikesService markingLikesService;
     private final BaseResponse baseResponse;
 
 
@@ -38,7 +37,7 @@ public class MarkingLikesController {
     public ResponseEntity<CommonBaseResult> createLikes(@PathVariable(name = "content-id") Long contentId,
         HttpServletRequest request)
         throws IOException {
-        likesService.addLikes(contentId, ContentType.MARKING);
+        markingLikesService.addLikes(contentId);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "like.save.success", request.getLocale());
     }
 
@@ -53,7 +52,7 @@ public class MarkingLikesController {
     public ResponseEntity<CommonBaseResult> deleteLikes(@PathVariable(name = "content-id") Long contentId,
         HttpServletRequest request)
         throws IOException {
-        likesService.removeLikes(contentId, ContentType.MARKING);
+        markingLikesService.removeLikes(contentId);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "like.remove.success", request.getLocale());
     }
 

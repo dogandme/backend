@@ -34,13 +34,11 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
         new AntPathRequestMatcher(DEFAULT_LOGIN_REQUEST_URL, HTTP_METHOD); // "/login" + POST로 온 요청에 매칭된다.
 
     private final ObjectMapper objectMapper;
-    private final UserService userService;
 
     // JSON 형식의 로그인 요청을 처리하도록 커스텀
-    public CustomJsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper, UserService userService) {
+    public CustomJsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper) {
         super(DEFAULT_LOGIN_PATH_REQUEST_MATCHER); // 위에서 설정한 "login" + POST로 온 요청을 처리하기 위해 설정
         this.objectMapper = objectMapper;
-        this.userService = userService;
     }
 
     /**

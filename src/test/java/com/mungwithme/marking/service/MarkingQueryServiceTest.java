@@ -188,7 +188,7 @@ class MarkingQueryServiceTest {
         System.out.println("allLikedMarkersByUser.size() = " + allLikedMarkersByUser.size());
 
         for (MarkingQueryDto markingQueryDto : allLikedMarkersByUser) {
-            System.out.println("markingQueryDto.getLikes().getId() = " + markingQueryDto.getLikes().getId());
+            System.out.println("markingQueryDto.getLikes().getId() = " + markingQueryDto.getMarkingLikes().getId());
 
         }
 

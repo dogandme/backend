@@ -51,7 +51,6 @@ public class MarkingController {
     private final MarkingService markingService;
     private final BaseResponse baseResponse;
     private final FileStore fileStore;
-    private final ObjectMapper objectMapper;
 
     /**
      * marking 저장 API

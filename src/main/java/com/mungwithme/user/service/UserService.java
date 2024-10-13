@@ -7,7 +7,7 @@ import com.mungwithme.common.exception.CustomIllegalArgumentException;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.redis.model.RedisKeys;
 import com.mungwithme.common.util.TokenUtils;
-import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.likes.service.MarkingLikesService;
 import com.mungwithme.login.service.LoginStatusService;
 import com.mungwithme.marking.service.marking.MarkingService;
 import com.mungwithme.pet.service.PetService;
@@ -29,7 +29,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashSet;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,7 +53,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserQueryService userQueryService;
     private final MarkingService markingService;
-    private final LikesService likesService;
+    private final MarkingLikesService likesService;
 
 
     private final PetService petService;

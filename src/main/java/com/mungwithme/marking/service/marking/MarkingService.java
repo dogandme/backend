@@ -1,14 +1,11 @@
 package com.mungwithme.marking.service.marking;
 
 
-import com.mungwithme.address.model.dto.request.AddressCoordinatesDto;
-import com.mungwithme.address.model.dto.response.AddressResponseDto;
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.file.FileStore;
-import com.mungwithme.likes.model.enums.ContentType;
-import com.mungwithme.likes.service.LikesService;
+import com.mungwithme.likes.service.MarkingLikesService;
 
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.marking.model.dto.request.MarkingModifyDto;
@@ -22,7 +19,6 @@ import com.mungwithme.marking.repository.marking.MarkingRepository;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesService;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
-import com.mungwithme.user.service.UserService;
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -49,15 +45,15 @@ import org.springframework.web.multipart.MultipartFile;
 public class MarkingService {
 
 
-    private final UserQueryService userQueryService;
+    private final MarkingRepository markingRepository;
+    private final MarkImageRepository markImageRepository;
+    private final MarkImageRepositoryImpl  markImageRepositoryImpl;
 
+    private final UserQueryService userQueryService;
     private final AddressQueryService addressQueryService;
     private final MarkingQueryService markingQueryService;
     private final FileStore fileStore;
-    private final MarkImageRepository markImageRepository;
-    private final MarkingRepository markingRepository;
-    private final MarkImageRepositoryImpl markImageRepositoryImpl;
-    private final LikesService likesService;
+    private final MarkingLikesService markingLikesService;
     private final MarkingSavesService markingSavesService;
 
     public final int MAX_IMAGE_UPLOAD_SIZE = 5;
@@ -138,7 +134,7 @@ public class MarkingService {
         markImageRepository.deleteAllInBatch(images);
 
         // like 삭제
-        likesService.removeAllLikes(marking.getId(), ContentType.MARKING);
+        markingLikesService.removeAllLikes(marking.getId());
 
         markingSavesService.deleteAllSaves(marking);
 
@@ -178,7 +174,7 @@ public class MarkingService {
         markingSavesService.deleteAllSavesBatch(markings);
 
         // 좋아요 삭제
-        likesService.removeAllLikes(removeIds, ContentType.MARKING);
+        markingLikesService.removeAllLikes(removeIds);
 
         // 마킹 삭제
         markingRepository.deleteAllInBatch(markings);
@@ -323,4 +319,5 @@ public class MarkingService {
             throw new IllegalArgumentException("error.arg.image.limit");
         }
     }
+
 }

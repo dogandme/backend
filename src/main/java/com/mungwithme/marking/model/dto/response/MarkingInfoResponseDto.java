@@ -19,7 +19,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @Setter(AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -70,6 +72,7 @@ public class MarkingInfoResponseDto {
         this.markingId = marking.getId();
         this.region = marking.getRegion();
         this.userId = marking.getUser().getId();
+
         this.nickName = marking.getUser().getNickname();
         this.content = marking.getContent();
         this.lat = marking.getLat();
@@ -77,15 +80,18 @@ public class MarkingInfoResponseDto {
         this.isTempSaved = marking.getIsTempSaved();
         this.isVisible = marking.getIsVisible();
         this.regDt = marking.getRegDt();
+        this.countData = new MarkingCountDto();
+        this.isOwner = false;
+    }
+
+
+    public void updateImage (List<MarkImage> markImages) {
         List<MarkImageResponseDto> imageDtos = new java.util.ArrayList<>(
-            marking.getImages().stream().map(MarkImageResponseDto::new)
+            markImages.stream().map(MarkImageResponseDto::new)
                 .toList());
         imageDtos.sort(Comparator.comparing(MarkImageResponseDto::getLank));
         this.images = imageDtos;
 
-        this.countData = new MarkingCountDto(0L, (long) marking.getSaves().size());
-
-        this.isOwner = false;
     }
 
     public void updateIsOwner(boolean isOwner) {
