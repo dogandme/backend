@@ -236,23 +236,26 @@ public class UserService {
         // 최신 변경 일자
         LocalDateTime nickLastModDt = currentUser.getNickLastModDt();
 
-        // 닉네임 변경 가능 시작 시간
-        LocalDateTime plusMonths = nickLastModDt.plusMonths(1);
-
         // 현재 시간
         LocalDateTime now = LocalDateTime.now();
 
+        if (nickLastModDt != null ) {
+            // 닉네임 변경 가능 시작 시간
+            LocalDateTime plusMonths = nickLastModDt.plusMonths(1);
 
-        String nickname = userNicknameUpdateDto.getNickname();
 
-        // 사용자가 닉네임을 변경을 한지 한달을 초과했는지 획인을 위해
-        // 현재 시간을 가지고 와서 DB에 저장되어 있는 날짜와 비교 후 초과가 되지 않았다면 예외 발생
-        // 가입하고나서 처음 닉네임을 변경한다면 변경 가능
-        if (nickLastModDt != null && !now.isAfter(plusMonths)) {
-            // 1개월이 넘지못했다면
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd E HH:mm");
-            throw new CustomIllegalArgumentException("error.arg.nickname.ex", plusMonths.format(dateTimeFormatter));
+
+            // 사용자가 닉네임을 변경을 한지 한달을 초과했는지 획인을 위해
+            // 현재 시간을 가지고 와서 DB에 저장되어 있는 날짜와 비교 후 초과가 되지 않았다면 예외 발생
+            // 가입하고나서 처음 닉네임을 변경한다면 변경 가능
+            if (!now.isAfter(plusMonths)) {
+                // 1개월이 넘지못했다면
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd E HH:mm");
+                throw new CustomIllegalArgumentException("error.arg.nickname.ex", plusMonths.format(dateTimeFormatter));
+            }
+
         }
+        String nickname = userNicknameUpdateDto.getNickname();
         // 중복 검사
         userQueryService.duplicateNickname(nickname);
 
