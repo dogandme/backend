@@ -29,6 +29,17 @@ public class BaseResponse {
         return result;
     }
 
+
+    public CommonResult<Object> getNoContentResult() {
+        CommonResult<Object> result = new CommonResult<>();
+        result.setCode(HttpStatus.NO_CONTENT.value());
+        result.setMessage("noContent");
+        return result;
+    }
+
+
+
+
     public CommonBaseResult getSuccessResult() {
         CommonBaseResult result = new CommonBaseResult();
         result.setCode(200);
@@ -86,16 +97,35 @@ public class BaseResponse {
     }
 
     /**
-     * 정상 JSON 응답
+     * 정상 JSON 응답 (204 도 포함)
      */
     public ResponseEntity<CommonBaseResult> sendContentResponse(Object data, int statusCode) throws IOException {
-        CommonBaseResult result = getContentResult(data);
 
+
+
+        CommonBaseResult result = getContentResult(data);
         return ResponseEntity
             .status(statusCode)
             .contentType(MediaType.APPLICATION_JSON)
             .body(result);
     }
+
+
+    /**
+     * 정상 JSON 응답 (204 도 포함)
+     */
+    public ResponseEntity<CommonBaseResult> sendNoContentResponse() throws IOException {
+
+
+
+        CommonBaseResult result = getNoContentResult();
+        return ResponseEntity
+            .status(HttpStatus.NO_CONTENT)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(result);
+    }
+
+
 
     /**
      * 에러 응답

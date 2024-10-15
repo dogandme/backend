@@ -3,6 +3,7 @@ package com.mungwithme.profile.service;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.likes.service.LikesQueryService;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
+import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.marking.MarkingTempService;
 import com.mungwithme.marking.service.markingSaves.MarkingSavesQueryService;
@@ -35,7 +36,9 @@ public class ProfileQueryService {
 
     /**
      * 프로필 대시보드 조회
-     * @param nickname nickname
+     *
+     * @param nickname
+     *     nickname
      * @return 프로필 정보
      */
     public ProfileResponseDto findProfileByNickname(String nickname) {
@@ -44,7 +47,7 @@ public class ProfileQueryService {
 
         // 닉네임으로 유저 조회 (없을 시 에러 발생)
         User user = userQueryService.findByNickname(nickname)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
+            .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
         Long userId = user.getId();
 
         // 본인 프로필 조회 여부
@@ -54,38 +57,39 @@ public class ProfileQueryService {
         if (isSelf) {
             profileResponseDto.setSocialType(user.getSocialType());           // 소셜 로그인 타입
             profileResponseDto.setTempCnt(
-                    markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
+                markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
             profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
         }
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
         petQueryService.findByUser(user)
-                .ifPresent(pet -> profileResponseDto.setPet(
-                        PetInfoResponseDto.builder()
-                                .petId(pet.getId())
-                                .name(pet.getName())
-                                .description(pet.getDescription())
-                                .profile(pet.getProfile())
-                                .breed(pet.getBreed())
-                                .personalities(pet.getPersonalities())
-                                .build()
-                )); // 펫 정보
+            .ifPresent(pet -> profileResponseDto.setPet(
+                PetInfoResponseDto.builder()
+                    .petId(pet.getId())
+                    .name(pet.getName())
+                    .description(pet.getDescription())
+                    .profile(pet.getProfile())
+                    .breed(pet.getBreed())
+                    .personalities(pet.getPersonalities())
+                    .build()
+            )); // 펫 정보
         profileResponseDto.setFollowers(userFollowsQueryService.findAllFollowersByUserId(userId));    // 팔로워 목록
         profileResponseDto.setFollowings(userFollowsQueryService.findAllFollowingsByUserId(userId));  // 팔로잉 목록
         profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
 
         // 마킹 목록
-        Set<MarkingQueryDto> markingQueryDtos = markingQueryService.findAllMarkersByUser(user, false, false);
+        Set<MarkingQueryDto> markingQueryDtos = new HashSet<>(markingQueryService.findAllMarkersByUser(0.0, 0.0, user,
+            false, false, 0, 20, SortType.RECENT).getContent());
 
         List<Map<String, Object>> markings = Optional.ofNullable(markingQueryDtos)
-                .orElseGet(Collections::emptySet)
-                .stream()
-                .map(dto -> {
-                    Map<String, Object> map = new HashMap<>();
-                    map.put("id", dto.getMarking().getId());
-                    map.put("images", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
-                    return map;
-                })
-                .toList();
+            .orElseGet(Collections::emptySet)
+            .stream()
+            .map(dto -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", dto.getMarking().getId());
+                map.put("images", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
+                return map;
+            })
+            .toList();
         profileResponseDto.setMarkings(markings);
 
         return profileResponseDto;

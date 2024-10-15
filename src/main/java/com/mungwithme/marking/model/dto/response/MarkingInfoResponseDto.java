@@ -2,6 +2,8 @@ package com.mungwithme.marking.model.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.mungwithme.address.model.dto.response.AddressResponseDto;
+import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.Visibility;
@@ -34,6 +36,7 @@ public class MarkingInfoResponseDto {
 
     private LocalDateTime regDt;
 
+
     private Long userId;
 
     private String nickName;
@@ -52,7 +55,8 @@ public class MarkingInfoResponseDto {
     // 값이 널이면 json 객체에서 제외
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private MarkingSavedInfoResponseDto savedInfo;
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AddressResponseDto address;
 
     private MarkingCountDto countData;
 
@@ -73,6 +77,11 @@ public class MarkingInfoResponseDto {
         this.region = marking.getRegion();
         this.userId = marking.getUser().getId();
 
+        Address markingAddress = marking.getAddress();
+        address = AddressResponseDto.builder().id(markingAddress.getId()).subDistrict(markingAddress.getSubDistrict())
+            .district(markingAddress.getDistrict()).province(markingAddress.getProvince())
+            .cityCounty(markingAddress.getCityCounty())
+            .build();
         this.nickName = marking.getUser().getNickname();
         this.content = marking.getContent();
         this.lat = marking.getLat();
@@ -85,7 +94,7 @@ public class MarkingInfoResponseDto {
     }
 
 
-    public void updateImage (List<MarkImage> markImages) {
+    public void updateImage(List<MarkImage> markImages) {
         List<MarkImageResponseDto> imageDtos = new java.util.ArrayList<>(
             markImages.stream().map(MarkImageResponseDto::new)
                 .toList());
@@ -105,16 +114,17 @@ public class MarkingInfoResponseDto {
     public void updateLikedInfo(long likeId, LocalDateTime regDt) {
         this.likedInfo = new MarkingLikedInfoResponseDto(likeId, regDt);
     }
+
     public void updateSavedInfo(long savedId, LocalDateTime regDt) {
         this.savedInfo = new MarkingSavedInfoResponseDto(savedId, regDt);
     }
 
     public void updatePet(Pet pet) {
         this.pet = PetInfoResponseDto.builder()
-                .petId(pet.getId())
-                .name(pet.getName())
-                .profile(pet.getProfile())
-                .build();
+            .petId(pet.getId())
+            .name(pet.getName())
+            .profile(pet.getProfile())
+            .build();
     }
 
 

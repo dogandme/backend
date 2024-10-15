@@ -9,7 +9,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MarkingSearchDto extends LocationBoundsDto {
+public class MarkingSearchDto {
 
 
     @NotNull(message = "{error.NotNull}")

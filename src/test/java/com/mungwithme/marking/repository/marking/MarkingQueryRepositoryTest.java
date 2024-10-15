@@ -181,6 +181,104 @@ class MarkingQueryRepositoryTest {
 
     }
 
+
+    @Test
+    void findAllMarkersByUserRegDtDesc() throws IOException {
+
+        double lng = 129.3149;
+        double lat = 35.45662;
+
+
+
+        PageRequest of = PageRequest.of(0, 20);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
+
+        Page<MarkingQueryDto> page = markingQueryRepository.findAllMarkersByUserRegDtDesc(lat,lng, false,
+            false, user.getId(), of);
+
+        List<MarkingQueryDto> content = page.getContent();
+        for (MarkingQueryDto markingQueryDto : content) {
+
+            Marking marking = markingQueryDto.getMarking();
+            long likeCount = markingQueryDto.getLikeCount();
+            long saveCount = markingQueryDto.getSaveCount();
+            double distance = markingQueryDto.getDistance();
+            System.out.println(" ========================================= " );
+            System.out.println("marking.getId() = " + marking.getId());
+            System.out.println("marking.getRegDt() = " + marking.getRegDt());
+            System.out.println("saveCount = " + saveCount);
+            System.out.println("distance = " + distance);
+            System.out.println("likeCount = " + likeCount);
+            System.out.println(" ========================================= " );
+
+        }
+    }
+
+    @Test
+    void findAllMarkersByUserLikesDesc() throws IOException {
+
+        double lng = 129.3149;
+        double lat = 35.45662;
+
+
+
+        PageRequest of = PageRequest.of(0, 20);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
+
+        Page<MarkingQueryDto> page = markingQueryRepository.findAllMarkersByUserLikesDesc(lat,lng, false,
+            false, user.getId(), of);
+
+        List<MarkingQueryDto> content = page.getContent();
+        for (MarkingQueryDto markingQueryDto : content) {
+
+            Marking marking = markingQueryDto.getMarking();
+            long likeCount = markingQueryDto.getLikeCount();
+            long saveCount = markingQueryDto.getSaveCount();
+            double distance = markingQueryDto.getDistance();
+            System.out.println(" ========================================= " );
+            System.out.println("marking.getId() = " + marking.getId());
+            System.out.println("marking.getRegDt() = " + marking.getRegDt());
+            System.out.println("saveCount = " + saveCount);
+            System.out.println("distance = " + distance);
+            System.out.println("likeCount = " + likeCount);
+            System.out.println(" ========================================= " );
+
+        }
+    }
+
+
+    @Test
+    void findAllMarkersByUserDistAsc() throws IOException {
+
+        double lng = 129.3149;
+        double lat = 35.45662;
+
+
+
+        PageRequest of = PageRequest.of(0, 20);
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
+
+        Page<MarkingQueryDto> page = markingQueryRepository.findAllMarkersByUserDistAsc(lat,lng, false,
+            false, user.getId(), of);
+
+        List<MarkingQueryDto> content = page.getContent();
+        for (MarkingQueryDto markingQueryDto : content) {
+
+            Marking marking = markingQueryDto.getMarking();
+            long likeCount = markingQueryDto.getLikeCount();
+            long saveCount = markingQueryDto.getSaveCount();
+            double distance = markingQueryDto.getDistance();
+            System.out.println(" ========================================= " );
+            System.out.println("marking.getId() = " + marking.getId());
+            System.out.println("marking.getRegDt() = " + marking.getRegDt());
+            System.out.println("saveCount = " + saveCount);
+            System.out.println("distance = " + distance);
+            System.out.println("likeCount = " + likeCount);
+            System.out.println(" ========================================= " );
+
+        }
+    }
+
     @Test
     void findNearbyMarkers_v3() throws IOException {
 

@@ -112,10 +112,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
-
-
-
     /**
      * 인기순으로 정렬 (회원 전용)
      *
@@ -128,9 +124,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
                 + " join fetch m.user "
+                + " join fetch m.address "
                 + " join Pet p on p.user = m.user "
                 + "left join UserFollows f on f.followingUser = m.user and f.followerUser =:user "
                 + "left join MarkingSaves s on m = s.marking "
@@ -167,8 +164,9 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
+                + " join fetch m.address "
                 + " join fetch m.user "
                 + " join Pet p on p.user = m.user "
                 + "left join UserFollows f on f.followingUser = m.user and f.followerUser =:user "
@@ -181,7 +179,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
                 + " or (m.user = :user) "
                 + " or (m.user = :user and m.isVisible = 'PRIVATE' ) "
                 + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) group by m.id,p.id "
-                + " order by "+HAVERSINE_FORMULA +" asc "
+                + " order by " + HAVERSINE_FORMULA + " asc "
     )
     Page<MarkingQueryDto> findMarkersOrderByDistAsc(
         @Param("lat") double lat,
@@ -192,6 +190,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("user") User user,
         Pageable pageable
     );
+
     /**
      * 최신순으로 정렬 (회원 전용)
      *
@@ -204,10 +203,11 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
                 + " join fetch m.user "
-                + " join  Pet p on p.user = m.user "
+                + " join fetch m.address "
+                + " join Pet p on p.user = m.user "
                 + "left join UserFollows f on f.followingUser = m.user  and f.followerUser =:user "
                 + "left join MarkingSaves s on m = s.marking "
                 + "left join MarkingLikes l on m = l.marking "
@@ -230,8 +230,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
-
     /**
      * 최신순으로 정렬 (비 회원 전용)
      *
@@ -243,9 +241,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
                 + " join fetch m.user "
+                + " join fetch m.address "
                 + " join  Pet p on p.user = m.user "
                 + "left join MarkingSaves s on m = s.marking "
                 + "left join MarkingLikes l on m = l.marking "
@@ -265,9 +264,8 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
     /**
-     * 인기순으로 정렬 (회원 전용)
+     * 인기순으로 정렬 (비 회원 전용)
      *
      * @param addresses
      * @param isDeleted
@@ -277,9 +275,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
                 + " join fetch m.user "
+                + " join fetch m.address "
                 + " join Pet p on p.user = m.user "
                 + "left join MarkingSaves s on m = s.marking "
                 + "left join MarkingLikes l on m = l.marking "
@@ -300,7 +299,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
     /**
      * 가까운순 으로 정렬 ( 비 회원 전용)
      *
@@ -312,9 +310,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     @Query(
         value =
             "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
-                + HAVERSINE_FORMULA +"  ) "
+                + HAVERSINE_FORMULA + "  ) "
                 + "from Marking m "
                 + " join fetch m.user "
+                + " join fetch m.address "
                 + " join Pet p on p.user = m.user "
                 + "left join MarkingSaves s on m = s.marking "
                 + "left join MarkingLikes l on m = l.marking "
@@ -323,7 +322,7 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
                 + " and m.isDeleted =:isDeleted) "
                 + " and m.isVisible = 'PUBLIC' "
                 + " group by m.id,p.id "
-                + " order by "+HAVERSINE_FORMULA +" asc "
+                + " order by " + HAVERSINE_FORMULA + " asc "
     )
     Page<MarkingQueryDto> findMarkersOrderByDistAsc(
         @Param("lat") double lat,
@@ -336,21 +335,104 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
 
 
 
-
-
-
-
-    @Query("SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p)FROM Marking m "
-        + " join fetch m.user "
-        + " join fetch Pet p on p.user.id = :userId "
-        + " left join fetch m.images img"
-        + " left join fetch m.saves "
-        + " WHERE m.isDeleted =:isDeleted and m.isTempSaved = :isTempSaved and m.user.id =:userId "
-        + " ORDER BY img.regDt  DESC")
-    Set<MarkingQueryDto> findAllMarkersByUser(
+    /**
+     * 내 마킹 불러오기 거리 순 정렬 (내 자신 마킹)
+     *
+     * @param isDeleted
+     * @param isTempSaved
+     * @param userId
+     * @return
+     */
+    @Query(
+        value =
+            "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
+                + HAVERSINE_FORMULA + "  ) "
+                + "from Marking m "
+                + " join fetch m.user "
+                + " join fetch m.address "
+                + " join Pet p on p.user = m.user "
+                + " left join MarkingSaves s on m = s.marking "
+                + " left join MarkingLikes l on m = l.marking "
+                + " WHERE m.isTempSaved =:isTempSaved "
+                + " and m.isDeleted =:isDeleted "
+                + " and m.user.id = :userId "
+                + " group by m.id,p.id "
+                + " order by " + HAVERSINE_FORMULA + " asc ")
+    Page<MarkingQueryDto> findAllMarkersByUserDistAsc(
+        @Param("lat") double lat,
+        @Param("lng") double lng,
         @Param("isDeleted") boolean isDeleted,
         @Param("isTempSaved") boolean isTempSaved,
-        @Param("userId") long userId);
+        @Param("userId") long userId,
+        Pageable pageable
+    );
+
+
+
+    /**
+     * 내 마킹 불러오기 거리 순 정렬 (내 자신 마킹)
+     *
+     * @param isDeleted
+     * @param isTempSaved
+     * @param userId
+     * @return
+     */
+    @Query(
+        value =
+            "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
+                + HAVERSINE_FORMULA + "  ) "
+                + "from Marking m "
+                + " join fetch m.user "
+                + " join fetch m.address "
+                + " join Pet p on p.user = m.user "
+                + " left join MarkingSaves s on m = s.marking "
+                + " left join MarkingLikes l on m = l.marking "
+                + " WHERE m.isTempSaved =:isTempSaved "
+                + " and m.isDeleted =:isDeleted "
+                + " and m.user.id = :userId "
+                + " group by m.id,p.id "
+                + " order by COALESCE(count(l),0)  desc ")
+    Page<MarkingQueryDto> findAllMarkersByUserLikesDesc(
+        @Param("lat") double lat,
+        @Param("lng") double lng,
+        @Param("isDeleted") boolean isDeleted,
+        @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId,
+        Pageable pageable
+    );
+
+
+    /**
+     * 내 마킹 불러오기 최신순 정렬 (내 자신 마킹)
+     *
+     * @param isDeleted
+     * @param isTempSaved
+     * @param userId
+     * @return
+     */
+    @Query(
+        value =
+            "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, COALESCE(count(l),0)  ,COALESCE(count(s),0),"
+                + HAVERSINE_FORMULA + "  ) "
+                + "from Marking m "
+                + " join fetch m.user "
+                + " join fetch m.address "
+                + " join Pet p on p.user = m.user "
+                + " left join MarkingSaves s on m = s.marking "
+                + " left join MarkingLikes l on m = l.marking "
+                + " WHERE m.isTempSaved =:isTempSaved "
+                + " and m.isDeleted =:isDeleted "
+                + " and m.user.id = :userId "
+                + " group by m.id,p.id "
+                + " order by m.regDt desc ")
+    Page<MarkingQueryDto> findAllMarkersByUserRegDtDesc(
+        @Param("lat") double lat,
+        @Param("lng") double lng,
+        @Param("isDeleted") boolean isDeleted,
+        @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId,
+        Pageable pageable
+    );
 
 
     @Query("SELECT m FROM Marking m "
@@ -396,5 +478,10 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("userId") long userId);
 
 
+
+    @Query("select count (m.id) from Marking m where m.isDeleted = :isDeleted and m.isTempSaved = :isTempSaved and m.user.id = :userId")
+    Long findTempCount(  @Param("isDeleted") boolean isDeleted,
+        @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId);
     int countByUserId(Long userId);
 }

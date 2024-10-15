@@ -7,8 +7,6 @@ import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
-import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
-import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.io.IOException;
@@ -21,7 +19,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -52,7 +49,6 @@ public class MarkingSearchController {
      */
 
     /**
-     *
      * 인기순, 최신순, 가까운순
      * 동네 마킹 검색 API
      * 비회원 식별 후 검색 기능을 다르게
@@ -65,12 +61,18 @@ public class MarkingSearchController {
     @GetMapping
     public ResponseEntity<CommonBaseResult> getMarkingsById(
         @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
-        @RequestParam(value = "offset",defaultValue = "0") int offset,
-        @RequestParam(value = "sortType",defaultValue = "POPULARITY") SortType sortType
+        @ModelAttribute @Validated LocationBoundsDto locationBoundsDto,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
 
     )
         throws IOException {
-        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto, offset,sortType);
+        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto,locationBoundsDto, offset,
+            sortType);
+
+        if (nearbyMarkers.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
 
@@ -82,10 +84,18 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/{nickname}")
-    public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname)
+    public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname,
+        @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
+        @ModelAttribute @Validated LocationBoundsDto locationBoundsDto,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType)
         throws IOException {
-        MyMarkingsResponseDto markingsResponseDto = markingSearchService.findAllMarkersByUser(nickname);
-        return baseResponse.sendContentResponse(markingsResponseDto, HttpStatus.OK.value());
+        MarkingPagingResponseDto allMarkersByUser = markingSearchService.findAllMarkersByUser(nickname,
+            markingSearchDto, offset, sortType);
+        if (allMarkersByUser.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+        return baseResponse.sendContentResponse(allMarkersByUser, HttpStatus.OK.value());
 
     }
 
@@ -95,15 +105,20 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/temp")
-    public ResponseEntity<CommonBaseResult> getMyTempMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMyTempMarkingsByUser(
+        @RequestParam(value = "offset", defaultValue = "0") int offset)
         throws IOException {
-        MyTempMarkingsResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser();
+        MarkingPagingResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser(offset);
+        if (tempMarkersByUser.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
         return baseResponse.sendContentResponse(tempMarkersByUser, HttpStatus.OK.value());
 
     }
 
     /**
      * 좋아요 날짜
+     *
      * @return
      */
     @GetMapping("/likes")

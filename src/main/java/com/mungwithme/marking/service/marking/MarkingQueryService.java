@@ -8,7 +8,6 @@ import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
 import com.mungwithme.user.model.entity.User;
-import java.awt.print.Pageable;
 import java.util.List;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -173,11 +172,6 @@ public class MarkingQueryService {
     }
 
 
-
-
-
-
-
     /**
      * 주변마킹 검색 (비회원)
      *
@@ -214,14 +208,50 @@ public class MarkingQueryService {
      * @param user
      * @return
      */
-    public Set<MarkingQueryDto> findAllMarkersByUser(
+    public long findTempCount(
+
         User user,
         boolean isDeleted,
         boolean isTempSaved
-
     ) {
-        return markingQueryRepository.findAllMarkersByUser(isDeleted, isTempSaved, user.getId());
+
+        return markingQueryRepository.findTempCount(isDeleted, isTempSaved, user.getId());
     }
+
+
+    /**
+     * 내 마킹 정보
+     *
+     * @param isDeleted
+     * @param user
+     * @return
+     */
+    public Page<MarkingQueryDto> findAllMarkersByUser(
+        double lat,
+        double lng,
+        User user,
+        boolean isDeleted,
+        boolean isTempSaved,
+        int offset,
+        int pageSize,
+        SortType sortType
+    ) {
+
+        PageRequest pageRequest = PageRequest.of(offset, pageSize);
+
+
+        if (sortType.equals(SortType.RECENT)) {
+            return markingQueryRepository.findAllMarkersByUserRegDtDesc(lat, lng, isDeleted, isTempSaved,
+                user.getId(),pageRequest);
+        } else if (sortType.equals(SortType.DISTANCE)) {
+            return markingQueryRepository.findAllMarkersByUserDistAsc(lat, lng, isDeleted, isTempSaved,user.getId(),
+                pageRequest);
+        }
+        return markingQueryRepository.findAllMarkersByUserLikesDesc(lat, lng, isDeleted, isTempSaved,user.getId(),
+            pageRequest);
+
+    }
+
 
     /**
      * 내가 좋아요한 마킹리스트
@@ -251,7 +281,7 @@ public class MarkingQueryService {
         User user,
         boolean isDeleted
     ) {
-        return markingQueryRepository.findAll(user.getId(),isDeleted);
+        return markingQueryRepository.findAll(user.getId(), isDeleted);
     }
 
     /**
@@ -268,7 +298,6 @@ public class MarkingQueryService {
     ) {
         return markingQueryRepository.findAllSavedMarkersByUser(isDeleted, isTempSaved, user.getId());
     }
-
 
 
     /**
@@ -288,7 +317,9 @@ public class MarkingQueryService {
 
     /**
      * 유저의 마킹 수 조회
-     * @param userId 유저PK
+     *
+     * @param userId
+     *     유저PK
      * @return 마킹 수
      */
     public int countMarkingByUserId(Long userId) {

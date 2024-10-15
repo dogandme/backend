@@ -6,6 +6,7 @@ import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.util.GeoUtils;
 import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.likes.service.MarkingLikesService;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
@@ -51,13 +52,14 @@ public class MarkingSearchService {
      * @param markingSearchDto
      * @return
      */
-    public MarkingPagingResponseDto findNearbyMarkers(MarkingSearchDto markingSearchDto, int offset,SortType sortType) {
+    public MarkingPagingResponseDto findNearbyMarkers(MarkingSearchDto markingSearchDto, LocationBoundsDto locationBoundsDto, int offset,
+        SortType sortType) {
 
         int pageSize = 20;
-        GeoUtils.isWithinKorea(markingSearchDto.getNorthTopLat(),
-            markingSearchDto.getNorthRightLng());
-        GeoUtils.isWithinKorea(markingSearchDto.getSouthBottomLat(),
-            markingSearchDto.getSouthLeftLng());
+        GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
+            locationBoundsDto.getNorthRightLng());
+        GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
+            locationBoundsDto.getSouthLeftLng());
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
         User currentUser = userQueryService.findCurrentUser_v2();
@@ -65,9 +67,9 @@ public class MarkingSearchService {
         boolean isMember = currentUser != null;
 
         // 주소 검색
-        Set<Address> addressSet = addressQueryService.findAddressInBounds(markingSearchDto.getSouthBottomLat(),
-            markingSearchDto.getNorthTopLat(),
-            markingSearchDto.getSouthLeftLng(), markingSearchDto.getNorthRightLng());
+        Set<Address> addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
+            locationBoundsDto.getNorthTopLat(),
+            locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
 
         if (addressSet.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.markings");
@@ -88,10 +90,6 @@ public class MarkingSearchService {
             nearbyMarkers.addAll(pageDto.getContent());
         }
 
-        if (nearbyMarkers.isEmpty()) {
-            throw new ResourceNotFoundException("error.notfound.markings");
-        }
-
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(isMember, currentUser,
             nearbyMarkers);
 
@@ -101,14 +99,56 @@ public class MarkingSearchService {
 
 
     /**
+     * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
+     *
+     * @param nickname
+     * @return
+     */
+    public MarkingPagingResponseDto findAllMarkersByUser(String nickname, MarkingSearchDto markingSearchDto, int offset,
+        SortType sortType) {
+        int pageSize = 20;
+\
+        User myUser = userQueryService.findCurrentUser();
+        User profileUser = userQueryService.findByNickname(nickname).orElse(null);
+        if (profileUser == null) {
+            throw new ResourceNotFoundException("error.notfound.user");
+        }
+
+        Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
+        boolean isMyProfile = myUser.getEmail().equals(profileUser.getEmail());
+
+        // 임시 저장 갯수를 위해 검색
+        long tempCount = markingQueryService.findTempCount(profileUser, false, true);
+
+        Page<MarkingQueryDto> pageDto = null;
+        if (isMyProfile) {
+            pageDto = markingQueryService.findAllMarkersByUser(markingSearchDto.getLat(),
+                markingSearchDto.getLng()
+                , myUser, false, false, offset, pageSize, sortType);
+            nearbyMarkers.addAll(pageDto.getContent());
+        }
+
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, profileUser,
+            nearbyMarkers);
+
+        return MarkingPagingResponseDto.builder()
+            .markings(markingInfoResponseDtos)
+            .isMyProfile(isMyProfile)
+            .tempCount(tempCount)
+            .totalElements(pageDto.getTotalElements())
+            .totalPages(pageDto.getTotalPages())
+            .pageable(pageDto.getPageable())
+            .build();
+    }
+
+    /**
      * 나의 좋아요 마킹 리스트 출력 API
      */
     public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
         User myUser = userQueryService.findCurrentUser();
 
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
-
-        markingQueryDtoSet.addAll(markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
+        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
+            markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
 
         return setMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
@@ -120,9 +160,8 @@ public class MarkingSearchService {
     public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
         User myUser = userQueryService.findCurrentUser();
 
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
-
-        markingQueryDtoSet.addAll(markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
+        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
+            markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
 
         return setMarkingInfoResponseDtoList(true, myUser,
             markingQueryDtoSet);
@@ -130,51 +169,32 @@ public class MarkingSearchService {
 
 
     /**
-     * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
-     *
-     * @param nickname
-     * @return
-     */
-    public MyMarkingsResponseDto findAllMarkersByUser(String nickname) {
-        User myUser = userQueryService.findCurrentUser();
-        User profileUser = userQueryService.findByNickname(nickname).orElse(null);
-        if (profileUser == null) {
-            throw new ResourceNotFoundException("error.notfound.user");
-        }
-
-        boolean isMyProfile = myUser.getEmail().equals(profileUser.getEmail());
-
-        // 임시 저장 갯수를 위해 검색
-        Set<MarkingQueryDto> tempMarkingList = markingQueryService.findAllMarkersByUser(profileUser, false, true);
-
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>();
-        if (isMyProfile) {
-            markingQueryDtoSet.addAll(markingQueryService.findAllMarkersByUser(myUser, false, false));
-        }
-
-        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, profileUser,
-            markingQueryDtoSet);
-
-        return new MyMarkingsResponseDto(isMyProfile, (long) tempMarkingList.size(),
-            markingInfoResponseDtos);
-    }
-
-    /**
      * 내 임시 마킹 리스트 출력
      *
      * @return
      */
-    public MyTempMarkingsResponseDto findTempMarkersByUser() {
+    public MarkingPagingResponseDto findTempMarkersByUser(int offset) {
+
+        int pageSize = 20;
+
         User myUser = userQueryService.findCurrentUser();
 
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
-            markingQueryService.findAllMarkersByUser(myUser, false, true));
+        Page<MarkingQueryDto> pageDto = markingQueryService.findAllMarkersByUser(0.0, 0.0, myUser, false, true,
+            offset, pageSize, SortType.RECENT);
 
+        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(pageDto.getContent());
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
-            markingQueryDtoSet);
+            markingQueryDtoSet );
 
-        return new MyTempMarkingsResponseDto(markingInfoResponseDtos);
+        return MarkingPagingResponseDto.builder()
+            .markings(markingInfoResponseDtos)
+            .totalElements(pageDto.getTotalElements())
+            .totalPages(pageDto.getTotalPages())
+            .pageable(pageDto.getPageable())
+            .build();
     }
+
+
 
     private List<MarkingInfoResponseDto> setMarkingInfoResponseDtoList(boolean isMember, User currentUser,
         Set<MarkingQueryDto> nearbyMarkers) {
@@ -189,13 +209,11 @@ public class MarkingSearchService {
 
         List<MarkImage> markImages = markingImageQueryService.findAllByMarkingIds(markingMap.keySet());
 
-
         Map<Long, List<MarkImage>> markImageMap = markImages.stream()
             .collect(Collectors.groupingBy(key -> key.getMarking().getId(), Collectors.toList()));
 
         for (Map.Entry<Long, MarkingQueryDto> entry : markingMap.entrySet()) {
             Long id = entry.getKey();
-
 
             MarkingQueryDto markingQueryDto = entry.getValue();
             Marking marking = markingQueryDto.getMarking();
