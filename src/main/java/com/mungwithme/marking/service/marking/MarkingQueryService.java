@@ -326,4 +326,8 @@ public class MarkingQueryService {
         return markingQueryRepository.countByUserId(userId);
     }
 
+
+    public Set<Marking> findMarkingsByUser (boolean isDeleted,boolean isTempSaved,long userId) {
+        return markingQueryRepository.findMarkingsByUser(isDeleted, isTempSaved, userId);
+    }
 }

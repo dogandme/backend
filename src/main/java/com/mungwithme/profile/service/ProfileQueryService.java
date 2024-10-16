@@ -3,6 +3,7 @@ package com.mungwithme.profile.service;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.likes.service.LikesQueryService;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
+import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.marking.service.marking.MarkingTempService;
@@ -56,9 +57,17 @@ public class ProfileQueryService {
         // 조회하는 프로필이 본인일 경우 분기 처리
         if (isSelf) {
             profileResponseDto.setSocialType(user.getSocialType());           // 소셜 로그인 타입
-            profileResponseDto.setTempCnt(
-                markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
+//            profileResponseDto.setTempCnt(
+//                markingTempService.countTempMarkingByUserId(userId));     // 임시 저장 수
+
             profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
+
+
+            // 마킹 id 목록
+            Set<Marking> markingsByUser = markingQueryService.findMarkingsByUser(false, false, userId);
+            List<Long> markingsIds = markingsByUser.stream().map(Marking::getId).toList();
+            profileResponseDto.setMarkings(markingsIds);
+
         }
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
         petQueryService.findByUser(user)
@@ -76,21 +85,7 @@ public class ProfileQueryService {
         profileResponseDto.setFollowings(userFollowsQueryService.findAllFollowingsByUserId(userId));  // 팔로잉 목록
         profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
 
-        // 마킹 목록
-        Set<MarkingQueryDto> markingQueryDtos = new HashSet<>(markingQueryService.findAllMarkersByUser(0.0, 0.0, user,
-            false, false, 0, 20, SortType.RECENT).getContent());
 
-        List<Map<String, Object>> markings = Optional.ofNullable(markingQueryDtos)
-            .orElseGet(Collections::emptySet)
-            .stream()
-            .map(dto -> {
-                Map<String, Object> map = new HashMap<>();
-                map.put("id", dto.getMarking().getId());
-                map.put("images", dto.getMarking().getImages().get(0).getImageUrl()); // 가장 최근에 등록된 이미지 불러오기
-                return map;
-            })
-            .toList();
-        profileResponseDto.setMarkings(markings);
 
         return profileResponseDto;
     }

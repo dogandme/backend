@@ -18,6 +18,6 @@ public class ProfileResponseDto {
     private List<Long> Followings;                  // 팔로윙 userId 목록
     private List<Long> likes;                       // 좋아요 마킹 id 목록
     private List<Long> bookmarks;                   // 북마크 마킹 id 목록
-    private List<Map<String, Object>> markings;     // 마킹 id, 썸네일 목록
+    private List<Long> markings;     // 마킹 id, 썸네일 목록
 
 }

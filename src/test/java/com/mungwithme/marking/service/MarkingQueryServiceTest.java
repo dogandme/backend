@@ -62,12 +62,7 @@ class MarkingQueryServiceTest {
 
     @Test
     public void findAllMarkersByUser() {
-        User myUser = userQueryService.findByEmail("lim642666@gmail.com").orElse(null);
-        User profileUser = userQueryService.findByNickname("sky").orElse(null);
 
-        Set<MarkingQueryDto> allMarkersByUser = markingQueryService.findAllMarkersByUser(profileUser, false, false);
-
-        System.out.println(allMarkersByUser.size());
     }
 
     @Test

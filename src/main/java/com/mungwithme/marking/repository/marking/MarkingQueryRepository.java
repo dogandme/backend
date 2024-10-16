@@ -484,4 +484,9 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("isTempSaved") boolean isTempSaved,
         @Param("userId") long userId);
     int countByUserId(Long userId);
+
+
+    @Query("select m from Marking  m where m.isDeleted = :isDeleted and m.isTempSaved =:isTempSaved and m.user.id  =:userId ")
+    Set<Marking> findMarkingsByUser (@Param("isDeleted") boolean isDeleted,@Param("isTempSaved") boolean isTempSaved,@Param("userId") long userId);
+
 }

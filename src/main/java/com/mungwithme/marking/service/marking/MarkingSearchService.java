@@ -107,7 +107,7 @@ public class MarkingSearchService {
     public MarkingPagingResponseDto findAllMarkersByUser(String nickname, MarkingSearchDto markingSearchDto, int offset,
         SortType sortType) {
         int pageSize = 20;
-\
+
         User myUser = userQueryService.findCurrentUser();
         User profileUser = userQueryService.findByNickname(nickname).orElse(null);
         if (profileUser == null) {
