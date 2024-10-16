@@ -26,9 +26,6 @@ public class MarkImageRepositoryImpl implements JdbcRepository<MarkImage> {
 
     private final JdbcTemplate jdbcTemplate;
 
-
-
-
     @Override
     public void saveAll(List<MarkImage> entityList, LocalDateTime createdDateTime) {
         jdbcTemplate.batchUpdate(

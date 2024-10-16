@@ -5,6 +5,7 @@ import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.pet.model.entity.Pet;
+import com.querydsl.core.annotations.QueryProjection;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -42,6 +43,7 @@ public class MarkingQueryDto {
         this.saveCount = saveCount;
     }
 
+    @QueryProjection
     public MarkingQueryDto(Marking marking, Pet pet,long likeCount,long saveCount,double distance) {
         this.marking = marking;
         this.pet = pet;

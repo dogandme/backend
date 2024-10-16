@@ -10,13 +10,13 @@ import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
-import com.mungwithme.marking.model.dto.response.MyMarkingsResponseDto;
-import com.mungwithme.marking.model.dto.response.MyTempMarkingsResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
+import com.mungwithme.marking.model.enums.MapViewMode;
 import com.mungwithme.marking.model.enums.SortType;
+import com.mungwithme.marking.repository.marking.MarkingQueryDslRepository;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
@@ -30,6 +30,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +44,7 @@ public class MarkingSearchService {
     private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
     private final MarkingLikesService likesService;
+    private final MarkingQueryDslRepository markingQueryDslRepository;
     private final MarkingImageQueryService markingImageQueryService;
 
     /**
@@ -52,7 +54,8 @@ public class MarkingSearchService {
      * @param markingSearchDto
      * @return
      */
-    public MarkingPagingResponseDto findNearbyMarkers(MarkingSearchDto markingSearchDto, LocationBoundsDto locationBoundsDto, int offset,
+    public MarkingPagingResponseDto findNearbyMarkers(MarkingSearchDto markingSearchDto,
+        LocationBoundsDto locationBoundsDto, int offset,
         SortType sortType) {
 
         int pageSize = 20;
@@ -99,34 +102,77 @@ public class MarkingSearchService {
 
 
     /**
-     * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
+     * 내 마킹 리스트 출력
+     * <p>
+     * 전체 보기,현재위치중심,지도위치중심
+     * 인기순,거리순,최신순
+     * <p>
+     * 나의 프로필 인경우, 타 유저의 프로필 인 경우
      *
      * @param nickname
      * @return
      */
-    public MarkingPagingResponseDto findAllMarkersByUser(String nickname, MarkingSearchDto markingSearchDto, int offset,
-        SortType sortType) {
+    public MarkingPagingResponseDto findAllMarkersByUser(
+        String nickname,
+        LocationBoundsDto locationBoundsDto,
+        MarkingSearchDto markingSearchDto,
+        int offset,
+        SortType sortType,
+        MapViewMode mapViewMode) {
         int pageSize = 20;
 
-        User myUser = userQueryService.findCurrentUser();
+        PageRequest pageRequest = getPageRequest(offset, pageSize);
+
+        User currentUser = userQueryService.findCurrentUser();
         User profileUser = userQueryService.findByNickname(nickname).orElse(null);
         if (profileUser == null) {
             throw new ResourceNotFoundException("error.notfound.user");
         }
 
-        Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
-        boolean isMyProfile = myUser.getEmail().equals(profileUser.getEmail());
+        // 자신의 프로필인지 확인
+        boolean isMyProfile = currentUser.getEmail().equals(profileUser.getEmail());
 
+        Set<Address> addressSet = null;
+
+        if (!mapViewMode.equals(MapViewMode.ALL_VIEW)) {
+            // 좌표 확인
+            GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
+                locationBoundsDto.getNorthRightLng());
+            GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
+                locationBoundsDto.getSouthLeftLng());
+            addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
+                locationBoundsDto.getNorthTopLat(),
+                locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
+
+            // 주소가 없는 경우
+            if (addressSet.isEmpty()) {
+                throw new ResourceNotFoundException("error.notfound.coordinates");
+            }
+
+        }
+
+        Long tempCount = null;
         // 임시 저장 갯수를 위해 검색
-        long tempCount = markingQueryService.findTempCount(profileUser, false, true);
+        if (isMyProfile) {
+            tempCount = markingQueryService.findTempCount(profileUser, false, true);
+        }
 
         Page<MarkingQueryDto> pageDto = null;
-        if (isMyProfile) {
-            pageDto = markingQueryService.findAllMarkersByUser(markingSearchDto.getLat(),
-                markingSearchDto.getLng()
-                , myUser, false, false, offset, pageSize, sortType);
-            nearbyMarkers.addAll(pageDto.getContent());
-        }
+
+        pageDto = markingQueryDslRepository.findAllMarkersByUser(
+            addressSet,
+            markingSearchDto,
+            false,
+            false,
+            currentUser,
+            profileUser,
+            pageRequest,
+            sortType,
+            mapViewMode,
+            isMyProfile
+        );
+
+        Set<MarkingQueryDto> nearbyMarkers = new HashSet<>(pageDto.getContent());
 
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, profileUser,
             nearbyMarkers);
@@ -139,6 +185,10 @@ public class MarkingSearchService {
             .totalPages(pageDto.getTotalPages())
             .pageable(pageDto.getPageable())
             .build();
+    }
+
+    private static PageRequest getPageRequest(int offset, int pageSize) {
+        return PageRequest.of(offset, pageSize);
     }
 
     /**
@@ -184,7 +234,7 @@ public class MarkingSearchService {
 
         Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(pageDto.getContent());
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
-            markingQueryDtoSet );
+            markingQueryDtoSet);
 
         return MarkingPagingResponseDto.builder()
             .markings(markingInfoResponseDtos)
@@ -193,7 +243,6 @@ public class MarkingSearchService {
             .pageable(pageDto.getPageable())
             .build();
     }
-
 
 
     private List<MarkingInfoResponseDto> setMarkingInfoResponseDtoList(boolean isMember, User currentUser,

@@ -7,6 +7,7 @@ import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
+import com.mungwithme.marking.model.enums.MapViewMode;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.io.IOException;
@@ -79,6 +80,11 @@ public class MarkingSearchController {
     /**
      * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
      *
+     * 전체 보기,현재위치중심,지도위치중심
+     * 인기순,거리순,최신순
+     *
+     * 나의 프로필 인경우, 타 유저의 프로필 인 경우
+     *
      * @param nickname
      *     닉네임으로 검색 추후 변경할수도 있음
      * @return
@@ -86,12 +92,16 @@ public class MarkingSearchController {
     @GetMapping("/{nickname}")
     public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname,
         @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
-        @ModelAttribute @Validated LocationBoundsDto locationBoundsDto,
+        @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
-        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType)
+        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType,
+        @RequestParam(value = "mapViewMode", defaultValue = "ALL_VIEW")MapViewMode mapViewMode
+    )
         throws IOException {
-        MarkingPagingResponseDto allMarkersByUser = markingSearchService.findAllMarkersByUser(nickname,
-            markingSearchDto, offset, sortType);
+        MarkingPagingResponseDto allMarkersByUser = markingSearchService.findAllMarkersByUser(
+            nickname,
+            locationBoundsDto,
+            markingSearchDto, offset, sortType,mapViewMode);
         if (allMarkersByUser.getMarkings().isEmpty()) {
             return baseResponse.sendNoContentResponse();
         }

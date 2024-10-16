@@ -1,10 +1,13 @@
 package com.mungwithme.marking.service.marking;
 
+import static com.mungwithme.marking.model.entity.QMarking.marking;
+
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
+import com.mungwithme.marking.model.entity.QMarking;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.repository.marking.MarkingQueryRepository;
 import com.mungwithme.user.model.entity.User;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.repository.query.JpaQueryCreator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -330,4 +334,6 @@ public class MarkingQueryService {
     public Set<Marking> findMarkingsByUser (boolean isDeleted,boolean isTempSaved,long userId) {
         return markingQueryRepository.findMarkingsByUser(isDeleted, isTempSaved, userId);
     }
+
+
 }

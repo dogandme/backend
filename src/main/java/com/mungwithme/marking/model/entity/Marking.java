@@ -30,17 +30,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+
 
 /**
  * 마킹 ENTITY
  */
 @Getter
 @Setter(AccessLevel.PRIVATE)
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(indexes = {@Index(name = "idx_marking_id", columnList = "id", unique = true),
     @Index(name = "idx_marking_token", columnList = "token", unique = true)})
@@ -91,6 +88,24 @@ public class Marking extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkingLikes> likes = new HashSet<>();   // One(marking)-to-Many(images) Join
+
+
+    @Builder
+    public Marking(Long id, User user, Address address, String token, String region, Double lat, Double lng,
+        String content,
+        Boolean isTempSaved, Boolean isDeleted, Visibility isVisible) {
+        this.id = id;
+        this.user = user;
+        this.address = address;
+        this.token = token;
+        this.region = region;
+        this.lat = lat;
+        this.lng = lng;
+        this.content = content;
+        this.isTempSaved = isTempSaved;
+        this.isDeleted = isDeleted;
+        this.isVisible = isVisible;
+    }
 
     public static Marking create(MarkingAddDto markingAddDto, User user,Address address) {
         return Marking.builder().content(markingAddDto.getContent())
