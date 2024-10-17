@@ -20,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -134,6 +135,11 @@ public class PetService {
     /**
      * 펫 정보 수정
      *
+     * 사용자가 이미지만 삭제한 경우
+     * 사용자가 이미지를 삭제하고 이미지를 추가한 경우
+     * 이미지를 추가한 경우
+     *
+     *
      * @param petDtoJson
      *     수정 정보
      * @param image
@@ -141,6 +147,8 @@ public class PetService {
      */
     @Transactional
     public void editPet(String petDtoJson, MultipartFile image) throws IOException {
+        // JSON 문자열을 DTO로 변환
+        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
 
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser_v2();
@@ -148,10 +156,12 @@ public class PetService {
         // 이전 강쥐 프로필 이미지 삭제
         Pet prevPet = petQueryService.findByUser(user)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
-        fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
 
-        // JSON 문자열을 DTO로 변환
-        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
+        // 펫의 원래 이미지가 있는데 사용자가 profile 이미지를 삭제 한 경우
+        //  prevPet.getProfile != null && profile == null 인경우
+        if (StringUtils.hasText(prevPet.getProfile())  && !StringUtils.hasText(petRequestDto.getProfile())) {
+            fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
+        }
 
         // 강쥐 프로필 이미지 업로드
         String profile = null;
