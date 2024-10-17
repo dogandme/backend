@@ -95,7 +95,7 @@ public class MarkingSearchController {
         @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType,
-        @RequestParam(value = "mapViewMode", defaultValue = "ALL_VIEW")MapViewMode mapViewMode
+        @RequestParam(value = "mapViewMode", defaultValue = "ALL_VIEW" ) MapViewMode mapViewMode
     )
         throws IOException {
         MarkingPagingResponseDto allMarkersByUser = markingSearchService.findAllMarkersByUser(
@@ -132,9 +132,14 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/likes")
-    public ResponseEntity<CommonBaseResult> getMyLikedMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMyLikedMarkingsByUser(
+        @RequestParam(value = "offset", defaultValue = "0") int offset
+    )
         throws IOException {
-        List<MarkingInfoResponseDto> likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
+        MarkingPagingResponseDto likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser(offset);
+        if (likedMarkersByUser.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
         return baseResponse.sendContentResponse(likedMarkersByUser, HttpStatus.OK.value());
 
     }
@@ -145,9 +150,14 @@ public class MarkingSearchController {
      * @return
      */
     @GetMapping("/saves")
-    public ResponseEntity<CommonBaseResult> getMySavedMarkingsByUser()
+    public ResponseEntity<CommonBaseResult> getMySavedMarkingsByUser(
+        @RequestParam(value = "offset", defaultValue = "0") int offset
+    )
         throws IOException {
-        List<MarkingInfoResponseDto> savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser();
+        MarkingPagingResponseDto savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser(offset);
+        if (savedMarkersByUser.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
         return baseResponse.sendContentResponse(savedMarkersByUser, HttpStatus.OK.value());
     }
 

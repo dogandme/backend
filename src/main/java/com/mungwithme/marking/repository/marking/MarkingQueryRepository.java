@@ -334,7 +334,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     );
 
 
-
     /**
      * 내 마킹 불러오기 거리 순 정렬 (내 자신 마킹)
      *
@@ -366,7 +365,6 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
         @Param("userId") long userId,
         Pageable pageable
     );
-
 
 
     /**
@@ -442,51 +440,66 @@ public interface MarkingQueryRepository extends JpaRepository<Marking, Long> {
     Set<Marking> findAll(@Param("userId") long userId, @Param("isDeleted") boolean isDeleted);
 
 
-    @Query("SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p,l)FROM Marking m "
-        + " join fetch m.user "
-        + " join MarkingLikes l on l.marking = m and l.user.id = :userId "
-        + " join fetch Pet p on p.user.id = :userId "
-        + " left join fetch UserFollows f on f.followingUser = m.user "
-        + " left join fetch m.images "
-        + " left join fetch m.saves "
-        + " WHERE m.isDeleted =:isDeleted "
-        + "and m.isTempSaved = :isTempSaved   "
-        + "and ((m.isVisible = 'PUBLIC') "
-        + " or (m.user.id =:userId and m.isVisible = 'PRIVATE' ) "
-        + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) ")
-    Set<MarkingQueryDto> findAllLikedMarkersByUser(
+    @Query(
+        "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, l,COALESCE(count(l2),0)  ,COALESCE(count(s),0)) "
+            + " from Marking m "
+            + " join fetch m.user "
+            + " join fetch m.address "
+            + " join Pet p on p.user = m.user "
+            + " join MarkingLikes l on l.marking = m and l.user.id = :userId "
+            + " left join fetch UserFollows f on f.followingUser = m.user and f.followerUser.id = :userId "
+            + " left join MarkingSaves s on m = s.marking "
+            + " left join MarkingLikes l2 on m = l2.marking "
+            + " WHERE m.isDeleted =:isDeleted "
+            + " and m.isTempSaved = :isTempSaved   "
+            + " and ( (m.isVisible = 'PUBLIC') "
+            + " or (m.user.id = :userId) "
+            + " or (m.user.id = :userId and m.isVisible = 'PRIVATE' ) "
+            + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) group by m.id,p.id,l.id "
+            + " order by l.id desc ")
+    Page<MarkingQueryDto> findAllLikedMarkersByUser(
         @Param("isDeleted") boolean isDeleted,
         @Param("isTempSaved") boolean isTempSaved,
-        @Param("userId") long userId);
+        @Param("userId") long userId,
+        Pageable pageable
+    );
 
 
-    @Query("SELECT distinct new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p,s)FROM Marking m "
-        + " join fetch m.user "
-        + " join MarkingSaves s on s.marking.id = m.id and s.user.id = :userId "
-        + " join fetch Pet p on p.user.id = :userId "
-        + " left join fetch UserFollows f on f.followingUser = m.user "
-        + " left join fetch m.images "
-        + " left join fetch m.saves "
-        + " WHERE m.isDeleted =:isDeleted "
-        + "and m.isTempSaved = :isTempSaved   "
-        + "and ((m.isVisible = 'PUBLIC') "
-        + " or (m.user.id =:userId and m.isVisible = 'PRIVATE' ) "
-        + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) ")
-    Set<MarkingQueryDto> findAllSavedMarkersByUser(
+
+    @Query(
+        "select new com.mungwithme.marking.model.dto.sql.MarkingQueryDto(m,p, s,COALESCE(count(s1),0)  ,COALESCE(count(s1),0)) "
+            + " from Marking m "
+            + " join fetch m.user "
+            + " join fetch m.address "
+            + " join Pet p on p.user = m.user "
+            + " join MarkingSaves s on s.marking.id = m.id and s.user.id = :userId "
+            + " left join fetch UserFollows f on f.followingUser = m.user and f.followerUser.id = :userId "
+            + " left join MarkingSaves s1 on m = s1.marking "
+            + " left join MarkingLikes l on m = l.marking "
+            + " WHERE m.isDeleted =:isDeleted "
+            + " and m.isTempSaved = :isTempSaved   "
+            + " and ( (m.isVisible = 'PUBLIC') "
+            + " or (m.user.id = :userId) "
+            + " or (m.user.id = :userId and m.isVisible = 'PRIVATE' ) "
+            + " or (f.id is not null and m.isVisible = 'FOLLOWERS_ONLY' )) group by m.id,p.id,s.id "
+            + " order by s.id desc ")
+    Page<MarkingQueryDto> findAllSavedMarkersByUser(
         @Param("isDeleted") boolean isDeleted,
         @Param("isTempSaved") boolean isTempSaved,
-        @Param("userId") long userId);
-
+        @Param("userId") long userId,
+        Pageable pageable);
 
 
     @Query("select count (m.id) from Marking m where m.isDeleted = :isDeleted and m.isTempSaved = :isTempSaved and m.user.id = :userId")
-    Long findTempCount(  @Param("isDeleted") boolean isDeleted,
+    Long findTempCount(@Param("isDeleted") boolean isDeleted,
         @Param("isTempSaved") boolean isTempSaved,
         @Param("userId") long userId);
+
     int countByUserId(Long userId);
 
 
     @Query("select m from Marking  m where m.isDeleted = :isDeleted and m.isTempSaved =:isTempSaved and m.user.id  =:userId ")
-    Set<Marking> findMarkingsByUser (@Param("isDeleted") boolean isDeleted,@Param("isTempSaved") boolean isTempSaved,@Param("userId") long userId);
+    Set<Marking> findMarkingsByUser(@Param("isDeleted") boolean isDeleted, @Param("isTempSaved") boolean isTempSaved,
+        @Param("userId") long userId);
 
 }

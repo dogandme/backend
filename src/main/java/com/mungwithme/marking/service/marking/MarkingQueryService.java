@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.query.JpaQueryCreator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -264,13 +265,14 @@ public class MarkingQueryService {
      * @param user
      * @return
      */
-    public Set<MarkingQueryDto> findAllLikedMarkersByUser(
+    public Page<MarkingQueryDto> findAllLikedMarkersByUser(
         User user,
         boolean isDeleted,
-        boolean isTempSaved
+        boolean isTempSaved,
+        PageRequest pageRequest
 
     ) {
-        return markingQueryRepository.findAllLikedMarkersByUser(isDeleted, isTempSaved, user.getId());
+        return markingQueryRepository.findAllLikedMarkersByUser(isDeleted, isTempSaved, user.getId(),pageRequest);
     }
 
 
@@ -295,12 +297,13 @@ public class MarkingQueryService {
      * @param user
      * @return
      */
-    public Set<MarkingQueryDto> findAllSavedMarkersByUser(
+    public Page<MarkingQueryDto> findAllSavedMarkersByUser(
         User user,
         boolean isDeleted,
-        boolean isTempSaved
+        boolean isTempSaved,
+        PageRequest pageRequest
     ) {
-        return markingQueryRepository.findAllSavedMarkersByUser(isDeleted, isTempSaved, user.getId());
+        return markingQueryRepository.findAllSavedMarkersByUser(isDeleted, isTempSaved, user.getId(),pageRequest);
     }
 
 

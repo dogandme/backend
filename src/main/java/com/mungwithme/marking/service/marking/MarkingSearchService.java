@@ -134,6 +134,8 @@ public class MarkingSearchService {
 
         Set<Address> addressSet = null;
 
+        log.info("mapViewMode = {}", mapViewMode);
+
         if (!mapViewMode.equals(MapViewMode.ALL_VIEW)) {
             // 좌표 확인
             GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
@@ -143,6 +145,7 @@ public class MarkingSearchService {
             addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
                 locationBoundsDto.getNorthTopLat(),
                 locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
+            log.info("addressSet = {}", addressSet);
 
             // 주소가 없는 경우
             if (addressSet.isEmpty()) {
@@ -194,27 +197,47 @@ public class MarkingSearchService {
     /**
      * 나의 좋아요 마킹 리스트 출력 API
      */
-    public List<MarkingInfoResponseDto> findAllLikedMarkersByUser() {
+    public MarkingPagingResponseDto findAllLikedMarkersByUser(int offset) {
         User myUser = userQueryService.findCurrentUser();
 
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
-            markingQueryService.findAllLikedMarkersByUser(myUser, false, false));
+        PageRequest pageRequest = getPageRequest(offset, 20);
 
-        return setMarkingInfoResponseDtoList(true, myUser,
-            markingQueryDtoSet);
+        Page<MarkingQueryDto> pageDto = markingQueryService.findAllLikedMarkersByUser(myUser, false,
+            false, pageRequest);
+
+        Set<MarkingQueryDto> likesMarkers = new HashSet<>(pageDto.getContent());
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
+            likesMarkers);
+
+        return  MarkingPagingResponseDto.builder()
+            .markings(markingInfoResponseDtos)
+            .totalElements(pageDto.getTotalElements())
+            .totalPages(pageDto.getTotalPages())
+            .pageable(pageDto.getPageable())
+            .build();
+
+
     }
 
     /**
      * 나의 즐겨찾기 마킹 리스트 출력 API
      */
-    public List<MarkingInfoResponseDto> findAllSavedMarkersByUser() {
+    public MarkingPagingResponseDto findAllSavedMarkersByUser(int offset ) {
         User myUser = userQueryService.findCurrentUser();
+        PageRequest pageRequest = getPageRequest(offset, 20);
 
-        Set<MarkingQueryDto> markingQueryDtoSet = new HashSet<>(
-            markingQueryService.findAllSavedMarkersByUser(myUser, false, false));
+        Page<MarkingQueryDto> pageDto = markingQueryService.findAllSavedMarkersByUser(myUser, false,
+            false, pageRequest);
 
-        return setMarkingInfoResponseDtoList(true, myUser,
-            markingQueryDtoSet);
+        Set<MarkingQueryDto> savesMarkers = new HashSet<>(pageDto.getContent());
+        List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
+            savesMarkers);
+        return  MarkingPagingResponseDto.builder()
+            .markings(markingInfoResponseDtos)
+            .totalElements(pageDto.getTotalElements())
+            .totalPages(pageDto.getTotalPages())
+            .pageable(pageDto.getPageable())
+            .build();
     }
 
 

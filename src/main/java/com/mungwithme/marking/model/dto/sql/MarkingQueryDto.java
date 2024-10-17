@@ -15,6 +15,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class MarkingQueryDto {
+
     private Marking marking;
 
     private Pet pet;
@@ -36,7 +37,7 @@ public class MarkingQueryDto {
     }
 
 
-    public MarkingQueryDto(Marking marking, Pet pet,long likeCount,long saveCount) {
+    public MarkingQueryDto(Marking marking, Pet pet, long likeCount, long saveCount) {
         this.marking = marking;
         this.pet = pet;
         this.likeCount = likeCount;
@@ -44,7 +45,7 @@ public class MarkingQueryDto {
     }
 
     @QueryProjection
-    public MarkingQueryDto(Marking marking, Pet pet,long likeCount,long saveCount,double distance) {
+    public MarkingQueryDto(Marking marking, Pet pet, long likeCount, long saveCount, double distance) {
         this.marking = marking;
         this.pet = pet;
         this.likeCount = likeCount;
@@ -59,21 +60,36 @@ public class MarkingQueryDto {
         this.markingSaves = markingSaves;
     }
 
-    public MarkingQueryDto(Marking marking, Pet pet, MarkingLikes likes) {
+    public MarkingQueryDto(Marking marking, Pet pet, MarkingLikes likes, long likeCount, long saveCount) {
         this.marking = marking;
         this.pet = pet;
         this.markingLikes = likes;
+        this.likeCount = likeCount;
+        this.saveCount = saveCount;
+    }
+
+    public MarkingQueryDto(Marking marking, Pet pet, MarkingSaves markingSaves, long likeCount, long saveCount) {
+        this.marking = marking;
+        this.pet = pet;
+        this.markingSaves = markingSaves;
+        this.likeCount = likeCount;
+        this.saveCount = saveCount;
     }
 
     /**
      * *equals**와 hashCode 메서드를 올바르게 구현하면, Set 자료구조에서 중복된 DTO 객체들이 제거됩니다.
+     *
      * @param o
      * @return
      */
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         MarkingQueryDto that = (MarkingQueryDto) o;
         return Objects.equals(marking, that.marking) && Objects.equals(pet, that.pet);
     }
