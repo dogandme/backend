@@ -14,10 +14,10 @@ import lombok.Setter;
 @NoArgsConstructor
 //@AllArgsConstructor
 public class UserAddressUpdateDto {
-
-    // 삭제 주소 ids
-    @NotNull(message = "{error.arg}")
-    private Set<Long> removeIds;
+//
+//    // 삭제 주소 ids
+//    @NotNull(message = "{error.arg}")
+//    private Set<Long> removeIds;
 
     // 추가 ids
     @NotNull(message = "{error.arg}")

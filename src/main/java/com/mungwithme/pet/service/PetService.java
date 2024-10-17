@@ -158,8 +158,8 @@ public class PetService {
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
 
         // 펫의 원래 이미지가 있는데 사용자가 profile 이미지를 삭제 한 경우
-        //  prevPet.getProfile != null && profile == null 인경우
-        if (StringUtils.hasText(prevPet.getProfile())  && !StringUtils.hasText(petRequestDto.getProfile())) {
+        //  prevPet.getProfile != null && isProfile true 인경우
+        if (StringUtils.hasText(prevPet.getProfile())  && petRequestDto.getIsProfile()) {
             fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
         }
 
@@ -169,15 +169,24 @@ public class PetService {
             profile = fileStore.uploadFile(image, FileStore.PET_DIR);
         }
 
+//        PetBuilder builder = Pet.builder()
+//            .id(prevPet.getId())
+//            .name(petRequestDto.getName())
+//            .description(petRequestDto.getDescription())
+//            .personalities(petRequestDto.getPersonalities())
+//            .breed(petRequestDto.getBreed())
+//            .user(user);
+//
+        prevPet.updateBreed(petRequestDto.getBreed());
+        prevPet.updateName(petRequestDto.getName());
+        prevPet.updatePersonalities(petRequestDto.getPersonalities());
+        prevPet.updateDescription(petRequestDto.getDescription());
+
+        // Profile 사진을 변경 했을 경우
+        if (petRequestDto.getIsProfile()) {
+            prevPet.updateProfile(profile);
+        }
+
         // 강쥐 DB 저장
-        petRepository.save(Pet.builder()
-            .id(prevPet.getId())
-            .name(petRequestDto.getName())
-            .description(petRequestDto.getDescription())
-            .personalities(petRequestDto.getPersonalities())
-            .profile(profile)
-            .breed(petRequestDto.getBreed())
-            .user(user)
-            .build());
     }
 }

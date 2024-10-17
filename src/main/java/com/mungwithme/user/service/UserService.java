@@ -146,7 +146,7 @@ public class UserService {
         // region ID를 기반으로 Address 엔터티 조회
         Set<Address> addresses = regionIds.stream()
             .map(addressId -> addressQueryService.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
+                .orElseThrow(() -> new IllegalArgumentException("error.arg.address")))
             .collect(Collectors.toSet());
 
         Set<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
@@ -298,63 +298,32 @@ public class UserService {
      */
     @Transactional
     public void editAddress(UserAddressUpdateDto userAddressUpdateDto) {
-
-        // 삭제할 주소 ID 목록
-        Set<Long> removeIds = userAddressUpdateDto.getRemoveIds();
-
-        // 추가할 주소 ID 목록
         Set<Long> addIds = userAddressUpdateDto.getAddIds();
 
-        if (removeIds.isEmpty() && addIds.isEmpty()) {
-            throw new IllegalArgumentException("error.arg");
-        }
-
-        // 현재 사용자 가져오기
         User currentUser = userQueryService.findCurrentUser();
 
-        // 사용자의 현재 주소 목록
-        Set<UserAddress> userAddresses = currentUser.getUserAddresses();
-
-        // 삭제할 Address 객체 목록
-        Set<UserAddress> removeAddress = userAddresses.stream()
-            .filter(address -> removeIds.contains(address.getAddress().getId()))
-            .collect(Collectors.toSet());
-
-        // 중복 주소 필터링
-        Set<UserAddress> duplicateAddresses = userAddresses.stream()
-            .filter(region -> addIds.contains(region.getAddress().getId()))
-            .collect(Collectors.toSet());
-
-        // 총 추가할 주소 개수에서 중복되는 주소 개수 제외
-        int addSize = addIds.size() - duplicateAddresses.size();
-
-        // 최종 주소 개수 (기존 주소 + 추가할 주소)
-        int finalRegionSize = userAddresses.size() + addSize;
-
         // 유효성 검사: 1~5개의 주소만 허용
-        if (finalRegionSize < 1 || finalRegionSize > 5) {
+        if (addIds.isEmpty() || addIds.size() > 5) {
             throw new IllegalArgumentException("error.arg.address.limit");
         }
 
-        // Transactional
-        userAddressService.removeSet(removeAddress);
+        List<Address> addresses = addressQueryService.findByIds(addIds);
 
-        // 중복제거
-        duplicateAddresses.stream()
-            .map(data -> data.getAddress().getId())
-            .forEach(addIds::remove);
-
-        // 추가할 Address 객체를 데이터베이스에서 조회
-        List<Address> addressList = addressQueryService.findByIds(addIds);
+        if (addresses.isEmpty()) {
+            throw new IllegalArgumentException("error.arg.address");
+        }
 
 
-        // 중복되지 않는 주소만 추가
-        Set<UserAddress> addressSet = addressList.stream().map(address -> UserAddress.create(currentUser, address))
-            .collect(Collectors.toSet());
 
-        // Transactional
-        // 업데이트된 주소를 사용자 객체에 설정
-        userAddressService.addSet(addressSet);
+        List<UserAddress> newAddress = addresses.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toList());
+
+        userAddressService.removeAllByUser(currentUser);
+
+        userAddressService.saveAll(newAddress,LocalDateTime.now());
+
+
+
     }
 
 
