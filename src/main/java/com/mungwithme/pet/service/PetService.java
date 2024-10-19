@@ -15,6 +15,7 @@ import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -49,7 +50,8 @@ public class PetService {
      *     애완동물정보
      */
     @Transactional
-    public UserResponseDto addPet(PetSignUpDto petSignUpDto, MultipartFile image, HttpServletRequest request)
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, MultipartFile image, HttpServletRequest request,
+        HttpServletResponse response)
         throws IOException {
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser();
@@ -82,8 +84,16 @@ public class PetService {
             String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(), redisAuthToken);
             userResponseDto.setAuthorization(accessToken);
         }
+
         userResponseDto.setNickname(user.getNickname());
         userResponseDto.setRole(user.getRole().getKey());
+
+        String refreshToken = jwtService.createRefreshToken(user.getEmail(), Role.USER.getKey(),
+            redisAuthToken)
+            ;
+        // RefreshToken 발급
+        jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
+
         return userResponseDto;
     }
 

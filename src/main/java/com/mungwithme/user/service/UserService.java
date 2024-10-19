@@ -132,7 +132,7 @@ public class UserService {
      *     추가 회원정보
      */
     @Transactional
-    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request) throws Exception {
+    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request,HttpServletResponse response) throws Exception {
 
         // 닉네임 중복 확인
         userQueryService.duplicateNickname(userSignUpDto.getNickname());
@@ -167,6 +167,13 @@ public class UserService {
 
         String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey(),
             redisAuthToken);
+
+        String refreshToken = jwtService.createRefreshToken(currentUser.getEmail(), Role.GUEST.getKey(),
+            redisAuthToken)
+            ;
+        // RefreshToken 발급
+        jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
+
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(currentUser.getRole().getKey());
         userResponseDto.setNickname(currentUser.getNickname());

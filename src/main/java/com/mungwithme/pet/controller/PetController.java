@@ -11,6 +11,7 @@ import com.mungwithme.pet.service.PetQueryService;
 import com.mungwithme.pet.service.PetService;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -50,11 +51,12 @@ public class PetController {
     @PostMapping("")
     public ResponseEntity<CommonBaseResult> createPet(
         @RequestPart(name = "petSignUpDto") String petSignUpDtoJson,
-        @RequestPart(name = "image", required = false) MultipartFile image, HttpServletRequest request) throws Exception {
+        @RequestPart(name = "image", required = false) MultipartFile image, HttpServletRequest request,
+        HttpServletResponse response) throws Exception {
 
         PetSignUpDto petSignUpDto = objectMapper.readValue(petSignUpDtoJson, PetSignUpDto.class);   // JSON 문자열을 DTO로 변환
 
-        UserResponseDto userResponseDto = petService.addPet(petSignUpDto, image, request);
+        UserResponseDto userResponseDto = petService.addPet(petSignUpDto, image, request,response);
 
         return baseResponse.sendContentResponse(userResponseDto, HttpStatus.OK.value());
 
