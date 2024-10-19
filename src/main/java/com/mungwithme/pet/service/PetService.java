@@ -169,7 +169,7 @@ public class PetService {
 
         // 펫의 원래 이미지가 있는데 사용자가 profile 이미지를 삭제 한 경우
         //  prevPet.getProfile != null && isProfile true 인경우
-        if (StringUtils.hasText(prevPet.getProfile())  && petRequestDto.getIsProfile()) {
+        if (StringUtils.hasText(prevPet.getProfile())  && petRequestDto.getIsChaProfile()) {
             fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
         }
 
@@ -193,7 +193,7 @@ public class PetService {
         prevPet.updateDescription(petRequestDto.getDescription());
 
         // Profile 사진을 변경 했을 경우
-        if (petRequestDto.getIsProfile()) {
+        if (petRequestDto.getIsChaProfile()) {
             prevPet.updateProfile(profile);
         }
 

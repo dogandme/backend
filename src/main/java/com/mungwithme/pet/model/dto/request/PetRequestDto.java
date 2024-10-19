@@ -10,5 +10,5 @@ public class PetRequestDto {
     private List<String> personalities;
     private String description;
     private String breed;
-    private Boolean isProfile;
+    private Boolean isChaProfile;
 }

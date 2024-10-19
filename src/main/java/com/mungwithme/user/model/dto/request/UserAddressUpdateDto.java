@@ -21,5 +21,5 @@ public class UserAddressUpdateDto {
 
     // 추가 ids
     @NotNull(message = "{error.arg}")
-    private Set<Long> addIds;
+    private Set<Long> newIds;
 }

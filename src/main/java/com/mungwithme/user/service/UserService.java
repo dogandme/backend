@@ -305,7 +305,7 @@ public class UserService {
      */
     @Transactional
     public void editAddress(UserAddressUpdateDto userAddressUpdateDto) {
-        Set<Long> addIds = userAddressUpdateDto.getAddIds();
+        Set<Long> addIds = userAddressUpdateDto.getNewIds();
 
         User currentUser = userQueryService.findCurrentUser();
 
