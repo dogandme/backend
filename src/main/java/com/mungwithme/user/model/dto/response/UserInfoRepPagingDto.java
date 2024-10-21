@@ -16,6 +16,6 @@ public class UserInfoRepPagingDto {
     private List<UserInfoResponseDto> userInfos;
     private Long totalElements;
     private int totalPages;
-    private Pageable pageable;
+    private Pageable pageAble;
 
 }
