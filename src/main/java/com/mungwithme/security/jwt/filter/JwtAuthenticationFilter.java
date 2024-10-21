@@ -56,6 +56,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
+    // 이번주 까지 화상면접
+    // 다음주에는 임원 면접
 
     /**
      * Access Token 체크 & 인증 처리 메소드

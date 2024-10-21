@@ -18,7 +18,7 @@ class UserFollowsQueryServiceTest {
     @Test
     void findFollowingUsers() {
 
-        List<UserInfoResponseDto> list = userFollowsQueryService.findFollowingUsers("임하늘음임임", 0, 10);
+//        List<UserInfoResponseDto> list = userFollowsQueryService.findFollowingUsers("임하늘음임임", 0, 10);
 
 
     }

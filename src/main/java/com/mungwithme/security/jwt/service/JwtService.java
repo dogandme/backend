@@ -127,6 +127,9 @@ public class JwtService {
      * @modification.details 쿠키 토큰 추출 -> 헤더 토큰 추출
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
+
+        log.info("request.getHeader(\"Authorization\") = {}", request.getHeader("Authorization"));
+
         return Optional.ofNullable(request.getHeader("Authorization"))        // Authorization 헤더를 가져옵니다.
             .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
             .map(header -> header.replace(BEARER, ""))             // "BEARER "를 제거하고 추출합니다.
@@ -228,6 +231,8 @@ public class JwtService {
      */
     public boolean tokenValid(String token) {
 
+        log.info("token = {}", token)
+        ;
         Map<String, Claim> jwtClaim = getJwtClaim(token);
 
         String email = jwtClaim.get(JwtService.EMAIL_CLAIM).asString();
