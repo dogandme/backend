@@ -1,6 +1,7 @@
 package com.mungwithme.common.util;
 
 import com.mungwithme.common.exception.ResourceNotFoundException;
+import com.mungwithme.maps.dto.response.LocationBoundsDto;
 
 public class GeoUtils {
 
@@ -26,5 +27,12 @@ public class GeoUtils {
         if (!isKorea){
             throw new ResourceNotFoundException("error.notfound.coordinates");
         }
+    }
+
+    public static void checkLocationBoundsDto(LocationBoundsDto locationBoundsDto) {
+        GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
+            locationBoundsDto.getNorthRightLng());
+        GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
+            locationBoundsDto.getSouthLeftLng());
     }
 }

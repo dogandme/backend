@@ -39,8 +39,6 @@ class AddressRepositoryTest {
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
 
-        LocationBoundsDto locationBoundsDto = new LocationBoundsDto(southBottomLat, northTopLat, southLeftLng,
-            northRightLng);
 
 
 

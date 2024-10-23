@@ -5,7 +5,7 @@ import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
-import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.enums.MapViewMode;
 import com.mungwithme.marking.model.enums.SortType;
@@ -39,17 +39,6 @@ public class MarkingSearchController {
     private final BaseResponse baseResponse;
 
     /**
-     * 내 위치 중심
-     * 현재 지도 중심
-     *
-     *
-     * 인기순
-     * 최신순
-     * 가까운순
-     *
-     */
-
-    /**
      * 인기순, 최신순, 가까운순
      * 동네 마킹 검색 API
      * 비회원 식별 후 검색 기능을 다르게
@@ -61,14 +50,15 @@ public class MarkingSearchController {
 //    @NoneAuthorize
     @GetMapping
     public ResponseEntity<CommonBaseResult> getMarkingsById(
-        @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
-        @ModelAttribute @Validated LocationBoundsDto locationBoundsDto,
+        @ModelAttribute MarkingSearchDto markingSearchDto,
+        @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
 
     )
         throws IOException {
-        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto,locationBoundsDto, offset,
+        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto,
+            locationBoundsDto, offset,
             sortType);
 
         if (nearbyMarkers.getMarkings().isEmpty()) {
@@ -78,11 +68,11 @@ public class MarkingSearchController {
     }
 
     /**
-     * 내 마킹 리스트 출력 (후에 타 사용자 마킹리스트 출력 업데이트 될 예정)
-     *
+     * 유저 마킹 리스트 출력
+     * <p>
      * 전체 보기,현재위치중심,지도위치중심
      * 인기순,거리순,최신순
-     *
+     * <p>
      * 나의 프로필 인경우, 타 유저의 프로필 인 경우
      *
      * @param nickname
@@ -91,17 +81,17 @@ public class MarkingSearchController {
      */
     @GetMapping("/{nickname}")
     public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname,
-        @ModelAttribute @Validated MarkingSearchDto markingSearchDto,
+        @ModelAttribute MarkingSearchDto markingSearchDto,
         @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
         @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType,
-        @RequestParam(value = "mapViewMode", defaultValue = "ALL_VIEW" ) MapViewMode mapViewMode
+        @RequestParam(value = "mapViewMode", defaultValue = "ALL_VIEW") MapViewMode mapViewMode
     )
         throws IOException {
         MarkingPagingResponseDto allMarkersByUser = markingSearchService.findAllMarkersByUser(
             nickname,
             locationBoundsDto,
-            markingSearchDto, offset, sortType,mapViewMode);
+            markingSearchDto, offset, sortType, mapViewMode);
         if (allMarkersByUser.getMarkings().isEmpty()) {
             return baseResponse.sendNoContentResponse();
         }
@@ -160,5 +150,24 @@ public class MarkingSearchController {
         }
         return baseResponse.sendContentResponse(savedMarkersByUser, HttpStatus.OK.value());
     }
+
+    /**
+     * 읍면동 별 마커 갯수 출력
+     */
+    @GetMapping("/district/count")
+    public ResponseEntity<CommonBaseResult> getCountBySubDistrict(
+        @ModelAttribute LocationBoundsDto locationBoundsDto
+    ) throws IOException {
+
+        List<MarkingDistWithCountRepDto> countBySubDistrict = markingSearchService.findCountBySubDistrict(
+            locationBoundsDto);
+
+        if (!countBySubDistrict.isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+
+        return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
+    }
+
 
 }

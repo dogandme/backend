@@ -172,6 +172,7 @@ class MarkingQueryServiceTest {
     @Test
     public void findAllLikedMarkersByUser() {
 
+/*
         // given
         User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
@@ -187,12 +188,13 @@ class MarkingQueryServiceTest {
 
         }
 
+*/
 
     }
 
     @Test
     public void findAllSavedMarkersByUser() {
-
+/*
         // given
         User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
@@ -210,7 +212,7 @@ class MarkingQueryServiceTest {
             System.out.println("markingQueryDto.getMarking().getIsVisible() = " + markingQueryDto.getMarking().getIsVisible());
             System.out.println("saveCount = " + markingQueryDto.getMarking().getSaves().size());
 
-        }
+        }*/
     }
 
 

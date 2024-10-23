@@ -4,8 +4,10 @@ package com.mungwithme.marking.model.dto.sql;
 import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
+import com.mungwithme.marking.model.entity.QMarking;
 import com.mungwithme.pet.model.entity.Pet;
 import com.querydsl.core.annotations.QueryProjection;
+import com.querydsl.core.types.dsl.NumberExpression;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,6 +20,7 @@ public class MarkingQueryDto {
 
     private Marking marking;
 
+    private Long addressId;
     private Pet pet;
 
     private MarkingLikes markingLikes;
@@ -25,6 +28,7 @@ public class MarkingQueryDto {
     private long likeCount;
     private long saveCount;
 
+    private long totalCount;
 
     private MarkingSaves markingSaves;
 
@@ -36,6 +40,12 @@ public class MarkingQueryDto {
         this.pet = pet;
     }
 
+
+    @QueryProjection
+    public MarkingQueryDto(Long addressId, Long totalCount) {
+        this.addressId = addressId;
+        this.totalCount = totalCount;
+    }
 
     public MarkingQueryDto(Marking marking, Pet pet, long likeCount, long saveCount) {
         this.marking = marking;
@@ -53,6 +63,10 @@ public class MarkingQueryDto {
         this.distance = distance;
     }
 
+    public MarkingQueryDto(Marking marking, Long totalCount) {
+        this.marking = marking;
+        this.totalCount = totalCount;
+    }
 
     public MarkingQueryDto(Marking marking, Pet pet, MarkingSaves markingSaves) {
         this.marking = marking;
@@ -75,6 +89,8 @@ public class MarkingQueryDto {
         this.likeCount = likeCount;
         this.saveCount = saveCount;
     }
+
+
 
     /**
      * *equals**와 hashCode 메서드를 올바르게 구현하면, Set 자료구조에서 중복된 DTO 객체들이 제거됩니다.

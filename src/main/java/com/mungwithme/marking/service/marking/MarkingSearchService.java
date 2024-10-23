@@ -8,6 +8,7 @@ import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.likes.service.MarkingLikesService;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
@@ -59,10 +60,7 @@ public class MarkingSearchService {
         SortType sortType) {
 
         int pageSize = 20;
-        GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
-            locationBoundsDto.getNorthRightLng());
-        GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
-            locationBoundsDto.getSouthLeftLng());
+        GeoUtils.checkLocationBoundsDto(locationBoundsDto);
 
         Set<MarkingQueryDto> nearbyMarkers = new HashSet<>();
         User currentUser = userQueryService.findCurrentUser_v2();
@@ -134,18 +132,12 @@ public class MarkingSearchService {
 
         Set<Address> addressSet = null;
 
-        log.info("mapViewMode = {}", mapViewMode);
-
         if (!mapViewMode.equals(MapViewMode.ALL_VIEW)) {
             // 좌표 확인
-            GeoUtils.isWithinKorea(locationBoundsDto.getNorthTopLat(),
-                locationBoundsDto.getNorthRightLng());
-            GeoUtils.isWithinKorea(locationBoundsDto.getSouthBottomLat(),
-                locationBoundsDto.getSouthLeftLng());
+            GeoUtils.checkLocationBoundsDto(locationBoundsDto);
             addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
                 locationBoundsDto.getNorthTopLat(),
                 locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
-            log.info("addressSet = {}", addressSet);
 
             // 주소가 없는 경우
             if (addressSet.isEmpty()) {
@@ -209,7 +201,7 @@ public class MarkingSearchService {
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
             likesMarkers);
 
-        return  MarkingPagingResponseDto.builder()
+        return MarkingPagingResponseDto.builder()
             .markings(markingInfoResponseDtos)
             .totalElements(pageDto.getTotalElements())
             .totalPages(pageDto.getTotalPages())
@@ -222,7 +214,7 @@ public class MarkingSearchService {
     /**
      * 나의 즐겨찾기 마킹 리스트 출력 API
      */
-    public MarkingPagingResponseDto findAllSavedMarkersByUser(int offset ) {
+    public MarkingPagingResponseDto findAllSavedMarkersByUser(int offset) {
         User myUser = userQueryService.findCurrentUser();
         PageRequest pageRequest = getPageRequest(offset, 20);
 
@@ -232,12 +224,51 @@ public class MarkingSearchService {
         Set<MarkingQueryDto> savesMarkers = new HashSet<>(pageDto.getContent());
         List<MarkingInfoResponseDto> markingInfoResponseDtos = setMarkingInfoResponseDtoList(true, myUser,
             savesMarkers);
-        return  MarkingPagingResponseDto.builder()
+        return MarkingPagingResponseDto.builder()
             .markings(markingInfoResponseDtos)
             .totalElements(pageDto.getTotalElements())
             .totalPages(pageDto.getTotalPages())
             .pageable(pageDto.getPageable())
             .build();
+    }
+
+    /**
+     * 읍면동 별 마커 갯수 가져오기
+     *
+     * @param locationBoundsDto
+     */
+    public List<MarkingDistWithCountRepDto> findCountBySubDistrict(LocationBoundsDto locationBoundsDto) {
+
+        GeoUtils.checkLocationBoundsDto(locationBoundsDto);
+
+        User currentUser = userQueryService.findCurrentUser_v2();
+
+
+
+        Set<Address> addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
+            locationBoundsDto.getNorthTopLat(),
+            locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
+
+        if (addressSet.isEmpty()) {
+            throw new ResourceNotFoundException("error.notfound.coordinates");
+        }
+        List<MarkingDistWithCountRepDto> withDtoList = new ArrayList<>();
+
+        Map<Long, Address> addressMap = addressSet.stream().collect(Collectors.toMap(Address::getId, value -> value));
+
+        List<MarkingQueryDto> countBySubDistrict = markingQueryDslRepository.findCountBySubDistrict(currentUser,
+            addressSet);
+
+        for (MarkingQueryDto markingQueryDto : countBySubDistrict) {
+            Address address = addressMap.get(markingQueryDto.getAddressId());
+
+            MarkingDistWithCountRepDto markingDistWithCountRepDto = new MarkingDistWithCountRepDto(
+                address, markingQueryDto.getTotalCount()
+            );
+            withDtoList.add(markingDistWithCountRepDto);
+        }
+
+        return withDtoList;
     }
 
 

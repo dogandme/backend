@@ -11,18 +11,18 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class LocationBoundsDto {
 
 
-    @NotNull(message = "{error.NotNull}")
     private Double southBottomLat;
-    @NotNull(message = "{error.NotNull}")
     private Double northTopLat;
-    @NotNull(message = "{error.NotNull}")
     private Double southLeftLng;
-    @NotNull(message = "{error.NotNull}")
     private Double northRightLng;
 
+    public LocationBoundsDto(){
+        this.southBottomLat = 0.0;
+        this.northTopLat = 0.0;
+        this.southLeftLng = 0.0;
+        this.northRightLng = 0.0;
+    }
 }
