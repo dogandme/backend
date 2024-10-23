@@ -11,6 +11,8 @@ import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.support.Querydsl5RepositorySupport;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkRepDto;
+import com.mungwithme.marking.model.dto.response.QMarkRepDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.dto.sql.QMarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
@@ -132,9 +134,10 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         JPAQuery<MarkingQueryDto> contentQuery = getQueryFactory().select(
             new QMarkingQueryDto(marking.address.id, marking.id.count())).from(marking);
 
-        applyFilters(false, false);
+        contentQuery.where(applyFilters(false, false));
 
         contentQuery.where(marking.address.in(addressSet));
+
         // 회원인 경우
         if (currentUser != null) {
             applyUserFollowsLeftJoin(contentQuery, currentUser);
@@ -152,16 +155,35 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
     }
 
 
-    //
-    public List<MarkingQueryDto> findMarkByBounds(LocationBoundsDto locationBoundsDto, User currentUser) {
+    /**
+     * 바운더리 안에 있는 마커 출력 API
+     *
+     * @param locationBoundsDto
+     * @param currentUser
+     * @return
+     */
+    public List<MarkRepDto> findMarksByBound(LocationBoundsDto locationBoundsDto, User currentUser) {
 
-        getQueryFactory().select(
-            new QMarkingQueryDto(marking)
+        JPAQuery<MarkRepDto> contentQuery = getQueryFactory().select(
+            new QMarkRepDto(marking.id, marking.previewImage, marking.lat, marking.lng)
         ).from(marking);
 
-        applyFilters(false, false);
+        if (currentUser != null) {
+            applyUserFollowsLeftJoin(contentQuery, currentUser);
+            contentQuery.where(
+                isVisibleCondition()
+            );
+        } else {
+            contentQuery.where(
+                marking.isVisible.eq(Visibility.PUBLIC)
+            );
+        }
+        contentQuery.where(applyFilters(false, false).and(
+            marking.lat.between(locationBoundsDto.getSouthBottomLat(),locationBoundsDto.getNorthTopLat())
+                .and(marking.lng.between(locationBoundsDto.getSouthLeftLng(),locationBoundsDto.getNorthRightLng()))
+        ));
 
-        return null;
+        return contentQuery.fetch();
     }
 
     /**
@@ -169,7 +191,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
      *
      * @return
      */
-    public static BooleanExpression isVisibleCondition() {
+    public BooleanExpression isVisibleCondition() {
         return marking.isVisible.ne(Visibility.PRIVATE)
             .and(marking.isVisible.eq(Visibility.PUBLIC)
                 .or(userFollows.id.isNotNull().and(marking.isVisible.eq(Visibility.FOLLOWERS_ONLY))));

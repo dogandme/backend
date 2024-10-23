@@ -6,6 +6,7 @@ import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.service.AddressQueryService;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.sql.MarkingQueryDto;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.enums.MapViewMode;
@@ -35,11 +36,38 @@ class MarkingQueryDslRepositoryTest {
     AddressQueryService addressQueryService;
 
 
+    @Test
+    public void findMarkByBounds() {
+
+        // given
+        double northTopLat = 35.545047500080756;
+        //현재 경도 좌표 (x 좌표)
+        double northRightLng = 129.3521825968079;
+
+        //현재 위도 좌표 (y 좌표)
+        double southBottomLat = 35.520204401760736;
+        //현재 경도 좌표 (x 좌표)
+        double southLeftLng = 129.32615169340926;
+
+        LocationBoundsDto locationBoundsDto = new LocationBoundsDto();
+//        User user = null;
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
+        locationBoundsDto.setNorthRightLng(northRightLng);
+        locationBoundsDto.setNorthTopLat(northTopLat);
+        locationBoundsDto.setSouthBottomLat(southBottomLat);
+        locationBoundsDto.setSouthLeftLng(southLeftLng);
+
+        List<MarkRepDto> markByBounds = markingQueryDslRepository.findMarksByBound(locationBoundsDto, user);
+
+        System.out.println("markByBounds.size() = " + markByBounds.size());
+
+
+    }
 
     @Test
-    public void findCountBySubDistrict () {
+    public void findCountBySubDistrict() {
 
-    // given
+        // given
         double northTopLat = 35.545047500080756;
         //현재 경도 좌표 (x 좌표)
         double northRightLng = 129.3521825968079;
@@ -70,13 +98,13 @@ class MarkingQueryDslRepositoryTest {
         addressSet.add(address);
         addressSet.add(address2);
 
-
         markingQueryDslRepository.findCountBySubDistrict(user,
             addressSet);
 
         // then
 
     }
+
     @Test
     public void findAllMarkersByUserDesc() {
         double lng = 129.3149;

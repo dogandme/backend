@@ -8,6 +8,7 @@ import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.likes.service.MarkingLikesService;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
@@ -270,15 +271,21 @@ public class MarkingSearchService {
     }
 
 
-    public void findMarkByBounds(LocationBoundsDto locationBoundsDto) {
+    /***
+     *
+     * 바운더리 안에 있는 마커 불러오기
+     *
+     * @param locationBoundsDto
+     * @return
+     */
+    public List<MarkRepDto> findMarksByBound(LocationBoundsDto locationBoundsDto) {
         GeoUtils.checkLocationBoundsDto(locationBoundsDto);
 
         User currentUser = userQueryService.findCurrentUser_v2();
 
-
-
-
+        return markingQueryDslRepository.findMarksByBound(locationBoundsDto, currentUser);
     }
+
 
 
     /**

@@ -20,6 +20,8 @@ public class MarkingQueryDto {
 
     private Marking marking;
 
+
+
     private Long addressId;
     private Pet pet;
 
@@ -27,7 +29,6 @@ public class MarkingQueryDto {
 
     private long likeCount;
     private long saveCount;
-
     private long totalCount;
 
     private MarkingSaves markingSaves;

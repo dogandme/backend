@@ -5,6 +5,7 @@ import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.enums.MapViewMode;
@@ -174,24 +175,44 @@ public class MarkingSearchController {
     }
     /**
      *
-     *  마커 불러오기
+     *  바운더리 내에 마커 불러오기
      *
      *
      */
-
     @GetMapping("/marks")
-    public ResponseEntity<CommonBaseResult> getMarkByBounds(
+    public ResponseEntity<CommonBaseResult> getMarksByBounds(
         @ModelAttribute LocationBoundsDto locationBoundsDto
     ) throws IOException {
 
-        List<MarkingDistWithCountRepDto> countBySubDistrict = markingSearchService.findCountBySubDistrict(
+        List<MarkRepDto> markByBound = markingSearchService.findMarksByBound(
             locationBoundsDto);
 
-        if (countBySubDistrict.isEmpty()) {
+        if (markByBound.isEmpty()) {
             return baseResponse.sendNoContentResponse();
         }
 
-        return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
+    }
+
+    /**
+     *
+     *  내 마커 불러오기
+     *
+     *
+     */
+    @GetMapping("/my-marks")
+    public ResponseEntity<CommonBaseResult> getMyMarksByBounds(
+        @ModelAttribute LocationBoundsDto locationBoundsDto
+    ) throws IOException {
+
+        List<MarkRepDto> markByBound = markingSearchService.findMarksByBound(
+            locationBoundsDto);
+
+        if (markByBound.isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+
+        return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
     }
 
 
