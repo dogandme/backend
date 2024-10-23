@@ -80,6 +80,8 @@ public class Marking extends BaseTimeEntity {
     private Visibility isVisible;   // 마킹 권한 보기 설정
 
 
+    private String previewImage; // 썸네일 및 마커 이미지
+
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private List<MarkImage> images = new ArrayList<>();   // One(marking)-to-Many(images) Join
 
@@ -93,7 +95,7 @@ public class Marking extends BaseTimeEntity {
     @Builder
     public Marking(Long id, User user, Address address, String token, String region, Double lat, Double lng,
         String content,
-        Boolean isTempSaved, Boolean isDeleted, Visibility isVisible) {
+        Boolean isTempSaved, Boolean isDeleted, Visibility isVisible,String previewImage) {
         this.id = id;
         this.user = user;
         this.address = address;
@@ -105,6 +107,7 @@ public class Marking extends BaseTimeEntity {
         this.isTempSaved = isTempSaved;
         this.isDeleted = isDeleted;
         this.isVisible = isVisible;
+        this.previewImage = previewImage;
     }
 
     public static Marking create(MarkingAddDto markingAddDto, User user,Address address) {
@@ -117,6 +120,10 @@ public class Marking extends BaseTimeEntity {
             .token(TokenUtils.getToken())
             .isVisible(markingAddDto.getIsVisible())
             .user(user).build();
+    }
+
+    public void updatePreviewImage(String previewImage) {
+        this.previewImage = previewImage;
     }
 
     public void updateIsTempSaved(boolean isTempSaved) {

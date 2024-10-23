@@ -75,7 +75,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         JPAQuery<Long> countQuery = getQueryFactory().select(
                 marking.id.count())
             .from(marking)
-            .where(applyFilters(isTempSaved, isDeleted, profileUser));
+            .where(applyFilters(isTempSaved, isDeleted).and(getUserMarkingFilter(profileUser)));
 
         addJoin(contentQuery)
             .leftJoin(markingSaves).on(marking.eq(markingSaves.marking))
@@ -92,7 +92,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         }
 
         // userId,삭제여부,임시저장 여부 체크
-        contentQuery.where(applyFilters(isTempSaved, isDeleted, profileUser));
+        contentQuery.where(applyFilters(isTempSaved, isDeleted).and(getUserMarkingFilter(profileUser)));
 
         // 나의 프로필이 아닌 경우
         // Follow 여부 확인 및 공개 권한 여부 쿼리 추가
@@ -132,7 +132,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         JPAQuery<MarkingQueryDto> contentQuery = getQueryFactory().select(
             new QMarkingQueryDto(marking.address.id, marking.id.count())).from(marking);
 
-        applyFilters(false, false, currentUser);
+        applyFilters(false, false);
 
         contentQuery.where(marking.address.in(addressSet));
         // 회원인 경우
@@ -149,6 +149,19 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         }
 
         return contentQuery.groupBy(marking.address).fetch();
+    }
+
+
+    //
+    public List<MarkingQueryDto> findMarkByBounds(LocationBoundsDto locationBoundsDto, User currentUser) {
+
+        getQueryFactory().select(
+            new QMarkingQueryDto(marking)
+        ).from(marking);
+
+        applyFilters(false, false);
+
+        return null;
     }
 
     /**
@@ -177,20 +190,23 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
     }
 
     /**
-     * 임시저장,삭제여부,userId
+     * 임시저장,삭제여부
      *
      * @param isTempSaved
      * @param isDeleted
-     * @param user
      * @return
      */
-    private BooleanBuilder applyFilters(Boolean isTempSaved, Boolean isDeleted, User user) {
+    private BooleanBuilder applyFilters(Boolean isTempSaved, Boolean isDeleted) {
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(getBooleanEq(marking.isTempSaved, isTempSaved))
             .and(getBooleanEq(marking.isDeleted, isDeleted));
+        return builder;
+    }
 
+    private BooleanBuilder getUserMarkingFilter(User user) {
+        BooleanBuilder builder = new BooleanBuilder();
         if (user != null) {
-            builder.and(getUserEq(user.getId()));
+            return builder.and(getUserEq(user.getId()));
         }
         return builder;
     }

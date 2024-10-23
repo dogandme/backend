@@ -12,6 +12,7 @@ import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -36,6 +37,7 @@ public class MarkingInfoResponseDto {
 
     private LocalDateTime regDt;
 
+    private String previewImage;
 
     private Long userId;
 
@@ -64,6 +66,7 @@ public class MarkingInfoResponseDto {
 
     private List<MarkImageResponseDto> images;
 
+
     /**
      * 회원이 조회를 했을경우
      */
@@ -91,6 +94,8 @@ public class MarkingInfoResponseDto {
         this.regDt = marking.getRegDt();
         this.countData = new MarkingCountDto();
         this.isOwner = false;
+        this.previewImage = marking.getPreviewImage();
+        this.images = new ArrayList<>();
     }
 
 
@@ -99,7 +104,7 @@ public class MarkingInfoResponseDto {
             markImages.stream().map(MarkImageResponseDto::new)
                 .toList());
         imageDtos.sort(Comparator.comparing(MarkImageResponseDto::getLank));
-        this.images = imageDtos;
+        this.images.addAll(imageDtos);
 
     }
 
@@ -109,6 +114,10 @@ public class MarkingInfoResponseDto {
 
     public void updateLikeCount(long count) {
         this.countData.updateLikedCount(count);
+    }
+
+    public void updateSaveCount(long count) {
+        this.countData.updateSavedCount(count);
     }
 
     public void updateLikedInfo(long likeId, LocalDateTime regDt) {
@@ -123,7 +132,10 @@ public class MarkingInfoResponseDto {
         this.pet = PetInfoResponseDto.builder()
             .petId(pet.getId())
             .name(pet.getName())
+            .description(pet.getDescription())
             .profile(pet.getProfile())
+            .breed(pet.getBreed())
+            .personalities(pet.getPersonalities())
             .build();
     }
 

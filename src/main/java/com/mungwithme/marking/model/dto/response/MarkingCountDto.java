@@ -23,5 +23,8 @@ public class MarkingCountDto {
         this.likedCount = likedCount;
     }
 
+    public void updateSavedCount (long savedCount) {
+        this.savedCount = savedCount;
+    }
 
 }

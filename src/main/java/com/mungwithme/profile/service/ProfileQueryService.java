@@ -51,6 +51,8 @@ public class ProfileQueryService {
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.nickname"));
         Long userId = user.getId();
 
+
+
         // 본인 프로필 조회 여부
         boolean isSelf = user.getId().equals(userQueryService.findCurrentUser_v2().getId());
 
@@ -66,6 +68,7 @@ public class ProfileQueryService {
             // 마킹 id 목록
             Set<Marking> markingsByUser = markingQueryService.findMarkingsByUser(false, false, userId);
             List<Long> markingsIds = markingsByUser.stream().map(Marking::getId).toList();
+            profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
             profileResponseDto.setMarkings(markingsIds);
 
         }
@@ -81,9 +84,8 @@ public class ProfileQueryService {
                     .personalities(pet.getPersonalities())
                     .build()
             )); // 펫 정보
-        profileResponseDto.setFollowers(userFollowsQueryService.findAllFollowersByUserId(userId));    // 팔로워 목록
-        profileResponseDto.setFollowings(userFollowsQueryService.findAllFollowingsByUserId(userId));  // 팔로잉 목록
-        profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
+        profileResponseDto.setFollowersIds(userFollowsQueryService.findAllFollowersByUserId(userId));    // 팔로워 목록
+        profileResponseDto.setFollowingsIds(userFollowsQueryService.findAllFollowingsByUserId(userId));  // 팔로잉 목록
 
 
 

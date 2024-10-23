@@ -26,6 +26,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -44,7 +45,6 @@ public class MarkingSearchService {
     private final AddressQueryService addressQueryService;
     private final UserQueryService userQueryService;
     private final MarkingQueryService markingQueryService;
-    private final MarkingLikesService likesService;
     private final MarkingQueryDslRepository markingQueryDslRepository;
     private final MarkingImageQueryService markingImageQueryService;
 
@@ -243,8 +243,6 @@ public class MarkingSearchService {
 
         User currentUser = userQueryService.findCurrentUser_v2();
 
-
-
         Set<Address> addressSet = addressQueryService.findAddressInBounds(locationBoundsDto.getSouthBottomLat(),
             locationBoundsDto.getNorthTopLat(),
             locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng());
@@ -269,6 +267,17 @@ public class MarkingSearchService {
         }
 
         return withDtoList;
+    }
+
+
+    public void findMarkByBounds(LocationBoundsDto locationBoundsDto) {
+        GeoUtils.checkLocationBoundsDto(locationBoundsDto);
+
+        User currentUser = userQueryService.findCurrentUser_v2();
+
+
+
+
     }
 
 
@@ -310,10 +319,14 @@ public class MarkingSearchService {
         Map<Long, MarkingQueryDto> markingMap = nearbyMarkers.stream()
             .collect(Collectors.toMap(key -> key.getMarking().getId(), value -> value));
 
+        Map<Long, List<MarkImage>> markImageMap = null;
         List<MarkImage> markImages = markingImageQueryService.findAllByMarkingIds(markingMap.keySet());
 
-        Map<Long, List<MarkImage>> markImageMap = markImages.stream()
-            .collect(Collectors.groupingBy(key -> key.getMarking().getId(), Collectors.toList()));
+        if (!markImages.isEmpty()) {
+            markImageMap = markImages.stream()
+                .collect(Collectors.groupingBy(key -> key.getMarking().getId(), Collectors.toList()));
+        }
+
 
         for (Map.Entry<Long, MarkingQueryDto> entry : markingMap.entrySet()) {
             Long id = entry.getKey();
@@ -333,15 +346,20 @@ public class MarkingSearchService {
             }
 
             // 따로 가져온 이미지 리스트 업데이트
-            List<MarkImage> markImageList = markImageMap.get(id);
-            markingInfoResponseDto.updateImage(markImageList);
+
+            if (markImageMap != null) {
+                List<MarkImage> markImageList = markImageMap.get(id);
+
+                markingInfoResponseDto.updateImage(markImageList);
+            }
+
 
             // Pet 정보 업데이트
             markingInfoResponseDto.updatePet(pet);
 
             // 좋아요 수 및
             markingInfoResponseDto.updateLikeCount(markingQueryDto.getLikeCount());
-            markingInfoResponseDto.updateLikeCount(markingQueryDto.getSaveCount());
+            markingInfoResponseDto.updateSaveCount(markingQueryDto.getSaveCount());
 
             markingInfoList.add(markingInfoResponseDto);
         }

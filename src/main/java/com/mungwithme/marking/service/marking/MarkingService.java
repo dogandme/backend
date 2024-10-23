@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import lombok.RequiredArgsConstructor;
@@ -47,7 +48,7 @@ public class MarkingService {
 
     private final MarkingRepository markingRepository;
     private final MarkImageRepository markImageRepository;
-    private final MarkImageRepositoryImpl  markImageRepositoryImpl;
+    private final MarkImageRepositoryImpl markImageRepositoryImpl;
 
     private final UserQueryService userQueryService;
     private final AddressQueryService addressQueryService;
@@ -55,6 +56,7 @@ public class MarkingService {
     private final FileStore fileStore;
     private final MarkingLikesService markingLikesService;
     private final MarkingSavesService markingSavesService;
+    private final MarkingImageQueryService markingImageQueryService;
 
     public final int MAX_IMAGE_UPLOAD_SIZE = 5;
 
@@ -85,6 +87,10 @@ public class MarkingService {
         // 임시저장 여부
         marking.updateIsTempSaved(isTempSaved);
 
+        // 프리뷰 이미지 이름 생성
+        String previewImageName = UUID.randomUUID().toString();
+        marking.updatePreviewImage(previewImageName);
+
         markingRepository.save(marking);
 
         try {
@@ -96,6 +102,15 @@ public class MarkingService {
             List<MarkImage> markImages = IntStream.range(0, fileNames.size())
                 .mapToObj(i -> MarkImage.create(marking, fileNames.get(i), i))
                 .collect(Collectors.toList());
+
+            // 마커용 프리뷰 이미지는 이름이 고정적
+            // 마커용 프리뷰 이미지 생성
+            if (!images.isEmpty()) {
+                fileStore.updatePreviewFile(500, images.get(0),
+                    FileStore.PREVIEW_DIR + File.separator + marking.getId(), previewImageName
+                );
+
+            }
 
             // MarkImage 리스트와 현재 시간을 데이터베이스에 저장
             markImageRepositoryImpl.saveAll(markImages, LocalDateTime.now());
@@ -126,6 +141,7 @@ public class MarkingService {
         List<MarkImage> images = marking.getImages();
 
         fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
+        fileStore.deleteFolder(FileStore.PREVIEW_DIR + File.separator + marking.getId());
 
         // isDeleted true 로 업데이트
         marking.updateIsDeleted(true);
@@ -163,6 +179,7 @@ public class MarkingService {
         for (Marking marking : markings) {
             // 이미지 삭제
             fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
+            fileStore.deleteFolder(FileStore.PREVIEW_DIR + File.separator + marking.getId());
 
             removeIds.add(marking.getId());
         }
@@ -182,6 +199,7 @@ public class MarkingService {
 
     /**
      * marking 수정 API
+     * 프리뷰 이미지 설정
      *
      * @param markingModifyDto
      *     수정할 내용
@@ -280,10 +298,40 @@ public class MarkingService {
 
             // MarkImage 리스트와 현재 시간을 데이터베이스에 저장
             markImageRepositoryImpl.saveAll(markImages, LocalDateTime.now());
+
         } catch (IOException e) {
             // 예외 발생 시 로그 메시지를 error 수준으로 출력
             log.error("File upload failed: {}", e.getMessage(), e);
         }
+
+        // 프리뷰이미지 설정
+        List<MarkImage> savedMarkings = markingImageQueryService.findAllByMarkingId(marking.getId());
+
+        if (!savedMarkings.isEmpty()) {
+            String previewImage = marking.getPreviewImage();
+            String filePath = FileStore.PREVIEW_DIR + File.separator + marking.getId();
+            // 기존 썸네일 이미지 삭제
+            if (previewImage != null) {
+                fileStore.deleteFile(FileStore.PREVIEW_DIR + File.separator + marking.getId(), marking.getPreviewImage());
+            } else {
+                // 썸네일이미지가 애초에 없다면
+                previewImage = UUID.randomUUID().toString();
+            }
+
+            MarkImage markImage = savedMarkings.get(0);
+
+            // 새로운 썸네일 등록
+            MultipartFile previewFile = fileStore.convertUrlResourceToMultipartFile(markImage.getImageUrl(),
+                FileStore.MARKING_DIR + File.separator + marking.getId());
+            try {
+                // 기존의 이름과 동일하게
+                fileStore.updatePreviewFile(500, previewFile, filePath, previewImage);
+            } catch (IOException e) {
+                log.error("File upload failed: {}", e.getMessage(), e);
+            }
+        }
+
+
     }
 
 
@@ -310,12 +358,16 @@ public class MarkingService {
      */
     private void imageSizeCheck(List<MultipartFile> images, boolean isTempSaved) {
 
+        if (!isTempSaved && (images == null || images.isEmpty())) {
+            throw new IllegalArgumentException("error.arg.image.limit");
+        }
+
         // 임시저장이면서 isEmpty 일경우에는 return
         if (isTempSaved && images.isEmpty()) {
             return;
         }
 
-        if (images.size() > MAX_IMAGE_UPLOAD_SIZE || (!isTempSaved && images.isEmpty())) {
+        if (images.size() > MAX_IMAGE_UPLOAD_SIZE) {
             throw new IllegalArgumentException("error.arg.image.limit");
         }
     }

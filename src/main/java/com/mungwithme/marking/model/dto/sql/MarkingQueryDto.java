@@ -42,6 +42,12 @@ public class MarkingQueryDto {
 
 
     @QueryProjection
+    public MarkingQueryDto(Marking marking) {
+        this.marking = marking;
+    }
+
+
+    @QueryProjection
     public MarkingQueryDto(Long addressId, Long totalCount) {
         this.addressId = addressId;
         this.totalCount = totalCount;

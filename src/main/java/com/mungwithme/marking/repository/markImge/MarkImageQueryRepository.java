@@ -13,4 +13,7 @@ public interface MarkImageQueryRepository extends JpaRepository<MarkImage,Long> 
     @Query("select i from MarkImage i where i.marking.id in (:markingIds) order by i.id asc ")
     List<MarkImage> findAllByMarkingIds(@Param("markingIds") Set<Long> markingIds);
 
+
+    @Query("select i from MarkImage i where i.marking.id = :markingId order by i.id asc ")
+    List<MarkImage> findAllByMarkingId(@Param("markingId") Long markingId);
 }

@@ -23,4 +23,9 @@ public class MarkingImageQueryService {
         return markImageQueryRepository.findAllByMarkingIds(markingIds);
     }
 
+    public List<MarkImage> findAllByMarkingId(Long markingId) {
+        return markImageQueryRepository.findAllByMarkingId(markingId);
+    }
+
+
 }

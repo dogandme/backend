@@ -153,6 +153,10 @@ public class MarkingSearchController {
 
     /**
      * 읍면동 별 마커 갯수 출력
+     *
+     * @param locationBoundsDto
+     * @return
+     * @throws IOException
      */
     @GetMapping("/district/count")
     public ResponseEntity<CommonBaseResult> getCountBySubDistrict(
@@ -168,6 +172,28 @@ public class MarkingSearchController {
 
         return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
     }
+    /**
+     *
+     *  마커 불러오기
+     *
+     *
+     */
+
+    @GetMapping("/marks")
+    public ResponseEntity<CommonBaseResult> getMarkByBounds(
+        @ModelAttribute LocationBoundsDto locationBoundsDto
+    ) throws IOException {
+
+        List<MarkingDistWithCountRepDto> countBySubDistrict = markingSearchService.findCountBySubDistrict(
+            locationBoundsDto);
+
+        if (countBySubDistrict.isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+
+        return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
+    }
+
 
 
 }
