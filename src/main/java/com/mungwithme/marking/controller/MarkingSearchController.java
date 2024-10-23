@@ -162,7 +162,7 @@ public class MarkingSearchController {
         List<MarkingDistWithCountRepDto> countBySubDistrict = markingSearchService.findCountBySubDistrict(
             locationBoundsDto);
 
-        if (!countBySubDistrict.isEmpty()) {
+        if (countBySubDistrict.isEmpty()) {
             return baseResponse.sendNoContentResponse();
         }
 
