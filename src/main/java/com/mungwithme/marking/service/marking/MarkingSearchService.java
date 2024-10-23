@@ -8,6 +8,7 @@ import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.likes.service.MarkingLikesService;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkPagingRepDto;
 import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
@@ -286,6 +287,49 @@ public class MarkingSearchService {
         return markingQueryDslRepository.findMarksByBound(locationBoundsDto, currentUser);
     }
 
+    /***
+     *
+     * 바운더리 안에 있는 마커 불러오기
+     *
+     * @return
+     */
+    public MarkPagingRepDto findAllMarksByUser(String nickname, int offset) {
+
+        PageRequest pageRequest = getPageRequest(offset, 20);
+
+        User currentUser = userQueryService.findCurrentUser();
+
+        User profileUser = null;
+
+        boolean isMyProfile = currentUser.getNickname().equals(nickname);
+        if (isMyProfile) {
+            profileUser = currentUser;
+        } else {
+            profileUser = userQueryService.findByNickname(nickname)
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+        }
+
+        Page<MarkRepDto> pageDto = markingQueryDslRepository.findAllMarksByUser(false, false, currentUser,
+            profileUser, pageRequest, isMyProfile);
+
+        return new MarkPagingRepDto(pageDto.getContent(), pageDto.getTotalElements(), pageDto.getTotalPages(),
+            pageDto.getPageable());
+    }
+
+
+    /***
+     *
+     * 바운더리 안에 있는 마커 불러오기
+     *
+     //     * @param locationBoundsDto
+     * @return
+     */
+    public List<MarkRepDto> findMyMarksByBound() {
+
+        User currentUser = userQueryService.findCurrentUser();
+
+        return markingQueryDslRepository.findMyMarksByBound(currentUser);
+    }
 
 
     /**
@@ -334,7 +378,6 @@ public class MarkingSearchService {
                 .collect(Collectors.groupingBy(key -> key.getMarking().getId(), Collectors.toList()));
         }
 
-
         for (Map.Entry<Long, MarkingQueryDto> entry : markingMap.entrySet()) {
             Long id = entry.getKey();
 
@@ -359,7 +402,6 @@ public class MarkingSearchService {
 
                 markingInfoResponseDto.updateImage(markImageList);
             }
-
 
             // Pet 정보 업데이트
             markingInfoResponseDto.updatePet(pet);

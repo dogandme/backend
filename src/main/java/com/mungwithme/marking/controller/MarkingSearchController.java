@@ -5,6 +5,7 @@ import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
 import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
+import com.mungwithme.marking.model.dto.response.MarkPagingRepDto;
 import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
@@ -196,7 +197,7 @@ public class MarkingSearchController {
 
     /**
      *
-     *  내 마커 불러오기
+     *  나의 마커 전체 불러오기
      *
      *
      */
@@ -205,8 +206,7 @@ public class MarkingSearchController {
         @ModelAttribute LocationBoundsDto locationBoundsDto
     ) throws IOException {
 
-        List<MarkRepDto> markByBound = markingSearchService.findMarksByBound(
-            locationBoundsDto);
+        List<MarkRepDto> markByBound = markingSearchService.findMyMarksByBound();
 
         if (markByBound.isEmpty()) {
             return baseResponse.sendNoContentResponse();
@@ -215,6 +215,25 @@ public class MarkingSearchController {
         return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
     }
 
+    /**
+     *
+     *  닉네임 해당되는 마커 출력 API
+     *
+     *
+     */
+    @GetMapping("/marks/{nickname}")
+    public ResponseEntity<CommonBaseResult> getMarksByNickname(
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @PathVariable(name = "nickname") String nickname
+    ) throws IOException {
+
+        MarkPagingRepDto markPagingRepDto = markingSearchService.findAllMarksByUser(nickname, offset);
+
+        if (markPagingRepDto.getMarks().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+        return baseResponse.sendContentResponse(markPagingRepDto, HttpStatus.OK.value());
+    }
 
 
 }

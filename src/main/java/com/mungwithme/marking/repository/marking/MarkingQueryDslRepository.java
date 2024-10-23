@@ -116,9 +116,73 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         contentQuery.groupBy(marking.id, pet.id);
         // Order By
         setOrderSortType(lat, lng, sortType, contentQuery);
-
+        contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
         return applyPagination(pageable, contentQuery, countQuery);
     }
+
+
+
+
+
+
+
+
+
+
+    /**
+     *
+     *
+     * 내 마킹 혹은 상대 마킹 (간략하게)
+     *
+     *
+     *
+     *
+     * */
+    public Page<MarkRepDto> findAllMarksByUser(
+        Boolean isDeleted,
+        Boolean isTempSaved,
+        User currentUser,
+        User profileUser,
+        Pageable pageable,
+        boolean isMyProfile
+    ) {
+        JPAQuery<MarkRepDto> contentQuery = getQueryFactory().select(
+            new QMarkRepDto(marking.id, marking.previewImage, marking.lat, marking.lng)
+        ).from(marking);
+
+
+        // 카운트 쿼리 생성
+        JPAQuery<Long> countQuery = getQueryFactory().select(
+                marking.id.count())
+            .from(marking)
+            .where(applyFilters(isTempSaved, isDeleted).and(getUserMarkingFilter(profileUser)));
+
+
+        // userId,삭제여부,임시저장 여부 체크
+        contentQuery.where(applyFilters(isTempSaved, isDeleted).and(getUserMarkingFilter(profileUser)));
+
+        // 나의 프로필이 아닌 경우
+        // Follow 여부 확인 및 공개 권한 여부 쿼리 추가
+        if (!isMyProfile) {
+
+            applyUserFollowsLeftJoin(contentQuery, currentUser);
+            applyUserFollowsLeftJoin(countQuery, currentUser);
+
+            // 비공개가 아니며 팔로우 되어있는 경우
+            // 혹은 public 인 경우
+            contentQuery.where(
+                isVisibleCondition()
+            );
+
+            countQuery.where(
+                isVisibleCondition()
+            );
+        }
+        contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
+        return applyPagination(pageable, contentQuery, countQuery);
+    }
+
+
 
 
     /**
@@ -179,12 +243,33 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             );
         }
         contentQuery.where(applyFilters(false, false).and(
-            marking.lat.between(locationBoundsDto.getSouthBottomLat(),locationBoundsDto.getNorthTopLat())
-                .and(marking.lng.between(locationBoundsDto.getSouthLeftLng(),locationBoundsDto.getNorthRightLng()))
+            marking.lat.between(locationBoundsDto.getSouthBottomLat(), locationBoundsDto.getNorthTopLat())
+                .and(marking.lng.between(locationBoundsDto.getSouthLeftLng(), locationBoundsDto.getNorthRightLng()))
         ));
 
         return contentQuery.fetch();
     }
+
+
+    /**
+     * 내 마커 출력 API
+     *
+     * @param currentUser
+     * @return
+     */
+    public List<MarkRepDto> findMyMarksByBound(User currentUser) {
+
+        JPAQuery<MarkRepDto> contentQuery = getQueryFactory().select(
+            new QMarkRepDto(marking.id, marking.previewImage, marking.lat, marking.lng)
+        ).from(marking);
+
+        contentQuery.where(applyFilters(false, false).and(
+            marking.user.eq(currentUser)
+        ));
+
+        return contentQuery.fetch();
+    }
+
 
     /**
      * isVisible 확인 query

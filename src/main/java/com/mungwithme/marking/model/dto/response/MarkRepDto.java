@@ -13,16 +13,16 @@ public class MarkRepDto {
 
     private Long markingId;
 
-    private String previewDto;
+    private String previewImage;
 
     private Double lat;
 
     private Double lng;
 
     @QueryProjection
-    public MarkRepDto(Long markingId, String previewDto, Double lat, Double lng) {
+    public MarkRepDto(Long markingId, String previewImage, Double lat, Double lng) {
         this.markingId = markingId;
-        this.previewDto = previewDto;
+        this.previewImage = previewImage;
         this.lat = lat;
         this.lng = lng;
     }
