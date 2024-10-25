@@ -105,9 +105,10 @@ public class SecurityConfig {
                         "/users/follows/followings"
                         , "/users/follows/followers",
                         "/swagger-ui.html",
-                        "/markings/search",
-                        "/markings/search/marks",
-                        "/markings/search/district/count",
+                        "/markings/marks",
+                        "/markings/nearby",
+                        "/markings/location",
+                        "/markings/district/count",
                         "/health",
                         "/pets/image/**",
                         "/markings/image/**",
