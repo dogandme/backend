@@ -4,10 +4,8 @@ package com.mungwithme.marking.model.dto.sql;
 import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
-import com.mungwithme.marking.model.entity.QMarking;
 import com.mungwithme.pet.model.entity.Pet;
 import com.querydsl.core.annotations.QueryProjection;
-import com.querydsl.core.types.dsl.NumberExpression;
 import java.util.Objects;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,6 +52,7 @@ public class MarkingQueryDto {
         this.totalCount = totalCount;
     }
 
+    @QueryProjection
     public MarkingQueryDto(Marking marking, Pet pet, long likeCount, long saveCount) {
         this.marking = marking;
         this.pet = pet;
@@ -81,6 +80,7 @@ public class MarkingQueryDto {
         this.markingSaves = markingSaves;
     }
 
+    @QueryProjection
     public MarkingQueryDto(Marking marking, Pet pet, MarkingLikes likes, long likeCount, long saveCount) {
         this.marking = marking;
         this.pet = pet;
@@ -89,6 +89,7 @@ public class MarkingQueryDto {
         this.saveCount = saveCount;
     }
 
+    @QueryProjection
     public MarkingQueryDto(Marking marking, Pet pet, MarkingSaves markingSaves, long likeCount, long saveCount) {
         this.marking = marking;
         this.pet = pet;

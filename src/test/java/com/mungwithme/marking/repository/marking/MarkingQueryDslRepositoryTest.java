@@ -107,49 +107,6 @@ class MarkingQueryDslRepositoryTest {
 
     @Test
     public void findAllMarkersByUserDesc() {
-        double lng = 129.3149;
-        double lat = 35.45662;
-
-        PageRequest of = PageRequest.of(0, 20);
-        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
-
-        MarkingSearchDto markingSearchDto = new MarkingSearchDto();
-
-        markingSearchDto.setLat(lat);
-        markingSearchDto.setLng(lng);
-
-        Set<Long> addressIds = new HashSet<>();
-        addressIds.add(1L);
-        addressIds.add(2L);
-
-        List<Address> addresses = addressQueryService.findByIds(addressIds);
-
-        Page<MarkingQueryDto> page = markingQueryDslRepository.findAllMarkersByUser(
-            new HashSet<>(addresses)
-            , markingSearchDto,
-            false,
-            false,
-            user,
-            user,
-            of,
-            SortType.DISTANCE, MapViewMode.ALL_VIEW, false);
-
-        List<MarkingQueryDto> content = page.getContent();
-        for (MarkingQueryDto markingQueryDto : content) {
-
-            Marking marking = markingQueryDto.getMarking();
-            long likeCount = markingQueryDto.getLikeCount();
-            long saveCount = markingQueryDto.getSaveCount();
-            double distance = markingQueryDto.getDistance();
-            System.out.println(" ========================================= ");
-            System.out.println("marking.getId() = " + marking.getId());
-            System.out.println("marking.getRegDt() = " + marking.getRegDt());
-            System.out.println("saveCount = " + saveCount);
-            System.out.println("distance = " + distance);
-            System.out.println("likeCount = " + likeCount);
-            System.out.println(" ========================================= ");
-
-        }
 
 
     }

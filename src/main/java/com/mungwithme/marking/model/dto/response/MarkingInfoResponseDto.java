@@ -62,6 +62,8 @@ public class MarkingInfoResponseDto {
 
     private MarkingCountDto countData;
 
+    // 값이 널이면 json 객체에서 제외
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private PetInfoResponseDto pet;
 
     private List<MarkImageResponseDto> images;
@@ -100,6 +102,10 @@ public class MarkingInfoResponseDto {
 
 
     public void updateImage(List<MarkImage> markImages) {
+        if (markImages == null) {
+            return;
+        }
+
         List<MarkImageResponseDto> imageDtos = new java.util.ArrayList<>(
             markImages.stream().map(MarkImageResponseDto::new)
                 .toList());
@@ -129,6 +135,9 @@ public class MarkingInfoResponseDto {
     }
 
     public void updatePet(Pet pet) {
+        if (pet == null) {
+            return;
+        }
         this.pet = PetInfoResponseDto.builder()
             .petId(pet.getId())
             .name(pet.getName())

@@ -81,14 +81,14 @@ public class MarkingSearchController {
         @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
     )
         throws IOException {
-        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findLocationMarkingsById(
+        MarkingPagingResponseDto locationMarkings = markingSearchService.findLocationMarkings(
             locationBoundsDto, offset,
             sortType);
 
-        if (nearbyMarkers.getMarkings().isEmpty()) {
+        if (locationMarkings.getMarkings().isEmpty()) {
             return baseResponse.sendNoContentResponse();
         }
-        return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(locationMarkings, HttpStatus.OK.value());
     }
 
 
@@ -106,7 +106,7 @@ public class MarkingSearchController {
      *     닉네임으로 검색 추후 변경할수도 있음
      * @return
      */
-    @GetMapping("/{nickname}")
+    @GetMapping("/users/{nickname}")
     public ResponseEntity<CommonBaseResult> getMyMarkingsByUser(@PathVariable(name = "nickname") String nickname,
         @ModelAttribute MarkingSearchDto markingSearchDto,
         @ModelAttribute LocationBoundsDto locationBoundsDto,
