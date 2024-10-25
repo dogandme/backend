@@ -3,7 +3,7 @@ name: Deploy String boot
 on:
   push:
     branches:
-      - main  #main branch에 push 시 동작
+      - develop 
 
 env:
   S3_BUCKET_NAME : mungwithmeback
