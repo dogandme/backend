@@ -24,8 +24,18 @@ jobs:
           java-version: 17 
       
       - uses: actions/checkout@v2
-      - run: touch ./src/main/resources/application-security.properties
-      - run: echo "${{ secrets.APPLICATION_PROPERTIES }}" > ./src/main/resources/application-security.properties
+      
+      - run: touch ./src/main/resources/application-db.yml
+      - run: echo "${{ secrets.APPLICATION_DB }}" > ./src/main/resources/application-db.yml
+      
+      - run: touch ./src/main/resources/application-jwt.yml
+      - run: echo "${{ secrets.APPLICATION_JWT }}" > ./src/main/resources/application-jwt.yml
+      
+      - run: touch ./src/main/resources/application-oauth.yml
+      - run: echo "${{ secrets.APPLICATION_OAUTH }}" > ./src/main/resources/application-oauth.yml
+      
+      - run: touch ./src/main/resources/application-google.yml
+      - run: echo "${{ secrets.APPLICATION_GOOGLE }}" > ./src/main/resources/application-google.yml
 
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
