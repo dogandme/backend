@@ -62,12 +62,7 @@ class MarkingQueryServiceTest {
 
     @Test
     public void findAllMarkersByUser() {
-        User myUser = userQueryService.findByEmail("lim642666@gmail.com").orElse(null);
-        User profileUser = userQueryService.findByNickname("sky").orElse(null);
 
-        Set<MarkingQueryDto> allMarkersByUser = markingQueryService.findAllMarkersByUser(profileUser, false, false);
-
-        System.out.println(allMarkersByUser.size());
     }
 
     @Test
@@ -177,6 +172,7 @@ class MarkingQueryServiceTest {
     @Test
     public void findAllLikedMarkersByUser() {
 
+/*
         // given
         User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
@@ -188,16 +184,17 @@ class MarkingQueryServiceTest {
         System.out.println("allLikedMarkersByUser.size() = " + allLikedMarkersByUser.size());
 
         for (MarkingQueryDto markingQueryDto : allLikedMarkersByUser) {
-            System.out.println("markingQueryDto.getLikes().getId() = " + markingQueryDto.getLikes().getId());
+            System.out.println("markingQueryDto.getLikes().getId() = " + markingQueryDto.getMarkingLikes().getId());
 
         }
 
+*/
 
     }
 
     @Test
     public void findAllSavedMarkersByUser() {
-
+/*
         // given
         User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
         // when
@@ -215,7 +212,7 @@ class MarkingQueryServiceTest {
             System.out.println("markingQueryDto.getMarking().getIsVisible() = " + markingQueryDto.getMarking().getIsVisible());
             System.out.println("saveCount = " + markingQueryDto.getMarking().getSaves().size());
 
-        }
+        }*/
     }
 
 

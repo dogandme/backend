@@ -2,6 +2,8 @@ package com.mungwithme.marking.model.dto.response;
 
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.mungwithme.address.model.dto.response.AddressResponseDto;
+import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.Visibility;
@@ -10,6 +12,7 @@ import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.entity.Pet;
 import com.mungwithme.user.model.entity.User;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -19,7 +22,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Getter
 @Setter(AccessLevel.PRIVATE)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -31,6 +36,8 @@ public class MarkingInfoResponseDto {
     private Visibility isVisible;
 
     private LocalDateTime regDt;
+
+    private String previewImage;
 
     private Long userId;
 
@@ -50,13 +57,17 @@ public class MarkingInfoResponseDto {
     // 값이 널이면 json 객체에서 제외
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private MarkingSavedInfoResponseDto savedInfo;
-
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AddressResponseDto address;
 
     private MarkingCountDto countData;
 
+    // 값이 널이면 json 객체에서 제외
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private PetInfoResponseDto pet;
 
     private List<MarkImageResponseDto> images;
+
 
     /**
      * 회원이 조회를 했을경우
@@ -70,6 +81,12 @@ public class MarkingInfoResponseDto {
         this.markingId = marking.getId();
         this.region = marking.getRegion();
         this.userId = marking.getUser().getId();
+
+        Address markingAddress = marking.getAddress();
+        address = AddressResponseDto.builder().id(markingAddress.getId()).subDistrict(markingAddress.getSubDistrict())
+            .district(markingAddress.getDistrict()).province(markingAddress.getProvince())
+            .cityCounty(markingAddress.getCityCounty())
+            .build();
         this.nickName = marking.getUser().getNickname();
         this.content = marking.getContent();
         this.lat = marking.getLat();
@@ -77,15 +94,24 @@ public class MarkingInfoResponseDto {
         this.isTempSaved = marking.getIsTempSaved();
         this.isVisible = marking.getIsVisible();
         this.regDt = marking.getRegDt();
+        this.countData = new MarkingCountDto();
+        this.isOwner = false;
+        this.previewImage = marking.getPreviewImage();
+        this.images = new ArrayList<>();
+    }
+
+
+    public void updateImage(List<MarkImage> markImages) {
+        if (markImages == null) {
+            return;
+        }
+
         List<MarkImageResponseDto> imageDtos = new java.util.ArrayList<>(
-            marking.getImages().stream().map(MarkImageResponseDto::new)
+            markImages.stream().map(MarkImageResponseDto::new)
                 .toList());
         imageDtos.sort(Comparator.comparing(MarkImageResponseDto::getLank));
-        this.images = imageDtos;
+        this.images.addAll(imageDtos);
 
-        this.countData = new MarkingCountDto(0L, (long) marking.getSaves().size());
-
-        this.isOwner = false;
     }
 
     public void updateIsOwner(boolean isOwner) {
@@ -96,19 +122,30 @@ public class MarkingInfoResponseDto {
         this.countData.updateLikedCount(count);
     }
 
+    public void updateSaveCount(long count) {
+        this.countData.updateSavedCount(count);
+    }
+
     public void updateLikedInfo(long likeId, LocalDateTime regDt) {
         this.likedInfo = new MarkingLikedInfoResponseDto(likeId, regDt);
     }
+
     public void updateSavedInfo(long savedId, LocalDateTime regDt) {
         this.savedInfo = new MarkingSavedInfoResponseDto(savedId, regDt);
     }
 
     public void updatePet(Pet pet) {
+        if (pet == null) {
+            return;
+        }
         this.pet = PetInfoResponseDto.builder()
-                .petId(pet.getId())
-                .name(pet.getName())
-                .profile(pet.getProfile())
-                .build();
+            .petId(pet.getId())
+            .name(pet.getName())
+            .description(pet.getDescription())
+            .profile(pet.getProfile())
+            .breed(pet.getBreed())
+            .personalities(pet.getPersonalities())
+            .build();
     }
 
 

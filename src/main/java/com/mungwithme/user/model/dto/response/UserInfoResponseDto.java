@@ -28,6 +28,7 @@ public class UserInfoResponseDto {
     private Gender gender;          // 성별
     private SocialType socialType;  // 소셜 채널(Kakao, Google, Naver)
 
+    @Builder.Default
     private Set<Address> regions = new HashSet<>();
 
 

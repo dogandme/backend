@@ -24,6 +24,9 @@ repositories {
 }
 
 dependencies {
+
+	implementation 'org.springframework:spring-test'
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
@@ -40,6 +43,12 @@ dependencies {
 	implementation 'org.springframework:spring-context-support:5.3.9'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+
+	//image resizing 을 위한 라이브러리
+	implementation 'com.github.downgoon:marvin:1.5.5'
+	implementation 'com.github.downgoon:MarvinPlugins:1.5.5'
+
+
 	// Apache Tika
 	implementation 'org.apache.tika:tika-core:2.8.0'
 	implementation 'org.apache.tika:tika-parsers:2.8.0'
@@ -47,18 +56,49 @@ dependencies {
 	// validated 사용을 위한 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'// 쿼리로그 남기기
-
-	// 서버 코드 변경시 자동으로 ReStart
-	compileOnly('org.springframework.boot:spring-boot-devtools')
+	// 쿼리로그 남기기
+	implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.0'
+	// JSR-305 관련 의존성 추가 (javax.annotation 관련 경고 해결)
+	implementation 'com.google.code.findbugs:jsr305:3.0.2'
 
 
 	//GeoLite2
 	implementation group: 'com.maxmind.geoip2', name: 'geoip2', version: '4.0.1'
 
+	// queryDsl
+	implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
+	annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
+	annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+	annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
+
+	// 서버 코드 변경시 자동으로 ReStart
+	compileOnly('org.springframework.boot:spring-boot-devtools')
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+}
+
+// Querydsl 설정부
+def generated = 'src/main/generated'
+
+
+// java source set 에 QClass 위치 추가
+sourceSets {
+	main {
+		java {
+			srcDirs += generated
+		}
+	}
+}
+
+// gradle clean 시에 QClass 디렉토리 삭제
+clean {
+	delete file(generated)
+}
+// querydsl QClass 파일 생성 위치를 지정
+tasks.withType(JavaCompile) {
+	options.annotationProcessorGeneratedSourcesDirectory = file(generated)
+	options.annotationProcessorPath = configurations.annotationProcessor
 }

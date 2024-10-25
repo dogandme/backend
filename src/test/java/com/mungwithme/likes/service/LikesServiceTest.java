@@ -14,17 +14,17 @@ class LikesServiceTest {
 
 
     @Autowired
-    LikesService likesService;
+    MarkingLikesService likesService;
 
     @Test
     void addLikes1() {
-        likesService.addLikes(16L, ContentType.MARKING);
+        likesService.addLikes(16L);
 
     }
 
     @Test
     void addLikes2() {
-        likesService.addLikes(16L, ContentType.MARKING);
+        likesService.addLikes(16L);
 
     }
 
@@ -37,15 +37,13 @@ class LikesServiceTest {
         contentsIds.add(12L);
         contentsIds.add(13L);
         contentsIds.add(15L);
-        Set<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.findLikeCounts(contentsIds,
-            ContentType.MARKING);
+        Set<LikeCountResponseDto> contentLikeCountResponseDtos = likesService.findLikeCounts(contentsIds);
 
         for (LikeCountResponseDto likeCountResponseDto : contentLikeCountResponseDtos) {
 
             System.out.println(" ======================== " );
             System.out.println("likeCountResponseDto.getContentId() = " + likeCountResponseDto.getContentId());
             System.out.println("likeCountResponseDto.getCount() = " + likeCountResponseDto.getCount());
-            System.out.println("likeCountResponseDto.getContentType() = " + likeCountResponseDto.getContentType());
 
         }
 
@@ -57,7 +55,7 @@ class LikesServiceTest {
     public void removeLikes() {
 
         // given
-        likesService.removeLikes(16L, ContentType.MARKING);
+        likesService.removeLikes(16L);
         // when
 
         // then

@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -76,6 +77,7 @@ public class AddressQueryService {
      *
      */
 
+
     /**
      * 좌표를 사용하여 근처 미터 단위로 읍면동 리스트 검색 API
      *
@@ -96,11 +98,8 @@ public class AddressQueryService {
         double lng = coordinatesDto.getLng();
 
         // 좌표 값 확인
-        GeoUtils.isWithinKorea(lat,lng);
 
-        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
-
-        List<Address> addressList = addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
+        List<Address> addressList = findAllWithinDistance(radius, lat, lng, pageNumber, pageSize);
 
         if (addressList.isEmpty()) {
             throw new ResourceNotFoundException("error.notfound.coordinates");
@@ -113,6 +112,15 @@ public class AddressQueryService {
         ).toList();
     }
 
+    public List<Address> findAllWithinDistance(int radius, double lat, double lng, int pageNumber, int pageSize) {
+
+        GeoUtils.isWithinKorea(lat, lng);
+
+        PageRequest pageRequest = PageRequest.of(pageNumber, pageSize);
+
+        return addressRepository.findAllWithinDistance(lng, lat, radius, pageRequest);
+    }
+
     public Optional<Address> findById(long id) {
         return addressRepository.findById(id);
     }
@@ -122,5 +130,10 @@ public class AddressQueryService {
     }
 
 
-
+    public Set<Address> findAddressInBounds(double southBottomLat,
+        double northTopLat,
+        double southLeftLng,
+        double northRightLng) {
+        return addressRepository.findAddressInBounds(southBottomLat, northTopLat, southLeftLng, northRightLng);
+    }
 }

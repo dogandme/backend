@@ -1,7 +1,5 @@
 package com.mungwithme.marking.repository.markingSaves;
 
-import com.mungwithme.likes.model.entity.Likes;
-import com.mungwithme.likes.model.enums.ContentType;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.user.model.entity.User;

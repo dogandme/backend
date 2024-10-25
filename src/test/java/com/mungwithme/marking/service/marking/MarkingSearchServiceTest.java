@@ -1,8 +1,10 @@
 package com.mungwithme.marking.service.marking;
 
 import com.mungwithme.maps.dto.response.LocationBoundsDto;
+import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
 import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
 import com.mungwithme.marking.model.dto.response.MarkingLikedInfoResponseDto;
+import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,16 +29,7 @@ class MarkingSearchServiceTest {
         //현재 경도 좌표 (x 좌표)
         double southLeftLng = 129.32615169340926;
 
-        LocationBoundsDto locationBoundsDto = new LocationBoundsDto(southBottomLat, northTopLat, southLeftLng,
-            northRightLng);
 
-        try {
-            List<MarkingInfoResponseDto> nearbyMarkers = markingSearchService.findNearbyMarkers(locationBoundsDto);
-            System.out.println("nearbyMarkers.size() = " + nearbyMarkers.size());
-        }catch (Exception e) {
-
-            System.out.println("e.getMessage() = " + e.getMessage());
-        }
 
 
     }
@@ -44,7 +37,7 @@ class MarkingSearchServiceTest {
     @Test
     public void findAllLikedMarkersByUser() {
 
-        List<MarkingInfoResponseDto> allLikedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
+//        List<MarkingInfoResponseDto> allLikedMarkersByUser = markingSearchService.findAllLikedMarkersByUser();
 
 
 

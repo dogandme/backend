@@ -105,7 +105,10 @@ public class SecurityConfig {
                         "/users/follows/followings"
                         , "/users/follows/followers",
                         "/swagger-ui.html",
-                        "/markings/search",
+                        "/markings/marks",
+                        "/markings/nearby",
+                        "/markings/location",
+                        "/markings/district/count",
                         "/health",
                         "/pets/image/**",
                         "/markings/image/**",
@@ -172,7 +175,7 @@ public class SecurityConfig {
                     .userService(customOAuth2UserService(userService))))
         ;
 
-        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(userService),
+        http.addFilterAfter(customJsonUsernamePasswordAuthenticationFilter(),
             LogoutFilter.class);                              // json 로그인 필터
         http.addFilterBefore(jwtAuthenticationProcessingFilter(),
             CustomJsonUsernamePasswordAuthenticationFilter.class);        // jwt 인증/인가 필터
@@ -245,9 +248,9 @@ public class SecurityConfig {
      * CustomJsonUsernamePasswordAuthenticationFilter 빈 등록
      */
     @Bean
-    public CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter(UserService userService) {
+    public CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordAuthenticationFilter() {
         CustomJsonUsernamePasswordAuthenticationFilter customJsonUsernamePasswordLoginFilter
-            = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper, userService);
+            = new CustomJsonUsernamePasswordAuthenticationFilter(objectMapper);
         customJsonUsernamePasswordLoginFilter.setAuthenticationManager(
             authenticationManager());        // 위에서 등록한 AuthenticationManager(ProviderManager) 설정
         customJsonUsernamePasswordLoginFilter.setAuthenticationSuccessHandler(

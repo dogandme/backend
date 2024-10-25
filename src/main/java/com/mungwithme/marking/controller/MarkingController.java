@@ -51,7 +51,6 @@ public class MarkingController {
     private final MarkingService markingService;
     private final BaseResponse baseResponse;
     private final FileStore fileStore;
-    private final ObjectMapper objectMapper;
 
     /**
      * marking 저장 API
@@ -63,7 +62,8 @@ public class MarkingController {
     @PostMapping
     public ResponseEntity<CommonBaseResult> createMarkingWithImages(
         @Validated @RequestPart(name = "markingAddDto") MarkingAddDto markingAddDto,
-        @RequestPart(name = "images") List<MultipartFile> images, HttpServletRequest request) throws IOException {
+        @RequestPart(name = "images", required = false) List<MultipartFile> images, HttpServletRequest request)
+        throws IOException {
         markingService.addMarking(markingAddDto, images, false);
         return baseResponse.sendSuccessResponse(HttpStatus.OK.value(), "marking.save.success", request.getLocale());
 
@@ -128,7 +128,8 @@ public class MarkingController {
      * @throws IOException
      */
     @GetMapping("/image/{marking-id}/{fileName}")
-    public ResponseEntity<UrlResource> getMarkingImage(@PathVariable(name = "marking-id") Long markingId,@PathVariable(name = "fileName") String fileName) {
+    public ResponseEntity<UrlResource> getMarkingImage(@PathVariable(name = "marking-id") Long markingId,
+        @PathVariable(name = "fileName") String fileName) {
         // file MediaType 확인 후 header 에 저장
         MediaType mediaType = null;
         UrlResource pictureImage = null;
@@ -144,5 +145,31 @@ public class MarkingController {
             .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
             .body(pictureImage);
     }
+
+    /**
+     * 서버에서 프리뷰 이미지 가져오기
+     *
+     * @return
+     * @throws IOException
+     */
+    @GetMapping("/image/preview/{marking-id}/{fileName}")
+    public ResponseEntity<UrlResource> getPreviewImage(@PathVariable(name = "marking-id") Long markingId,
+        @PathVariable(name = "fileName") String fileName) {
+        // file MediaType 확인 후 header 에 저장
+        MediaType mediaType = null;
+        UrlResource pictureImage = null;
+        try {
+            if (StringUtils.hasText(fileName)) {
+                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
+                pictureImage = fileStore.getUrlResource(fileName, FileStore.PREVIEW_DIR + File.separator + markingId);
+            }
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("error.notfound.image");
+        }
+        return ResponseEntity.ok()
+            .header(HttpHeaders.CONTENT_TYPE, mediaType.toString())
+            .body(pictureImage);
+    }
+
 
 }

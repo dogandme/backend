@@ -3,6 +3,7 @@ package com.mungwithme.likes.model.entity;
 
 import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.likes.model.enums.ContentType;
+import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.user.model.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,7 +29,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @Builder
 @Entity
-public class Likes extends BaseTimeEntity {
+public class MarkingLikes extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -38,15 +39,12 @@ public class Likes extends BaseTimeEntity {
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;              // 좋아요를 한 사용자
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    private ContentType contentType;   // 좋아요한 컨텐츠 타입 ) 마킹,댓글 등등
-
-    private Long contentId;         // 좋아요한 콘텐츠 아이디
+    @JoinColumn(name = "marking_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Marking marking;         // 좋아요한 콘텐츠 아이디
     
-    public static Likes create(User user,long contentId,ContentType contentType) {
-        return Likes.builder().contentId(contentId).user(user).contentType(contentType).build();
+    public static MarkingLikes create(User user,Marking marking) {
+        return MarkingLikes.builder().marking(marking).user(user).build();
     }
 
 

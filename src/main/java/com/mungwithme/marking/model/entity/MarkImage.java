@@ -49,11 +49,7 @@ public class MarkImage extends BaseTimeEntity {
     @Column(nullable = false)
     private Integer lank;
 
-
-
     public static MarkImage create (Marking marking, String imageUrl,int order) {
         return MarkImage.builder().marking(marking).imageUrl(imageUrl).lank(order).build();
     }
-
-
 }

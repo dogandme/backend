@@ -96,7 +96,7 @@ public class PetController {
     /**
      * id:user_file_Api_1
      * <p>
-     * 서버에서 마킹 이미지 가져오기
+     * 서버에서 펫 이미지 가져오기
      *
      * @return
      * @throws IOException

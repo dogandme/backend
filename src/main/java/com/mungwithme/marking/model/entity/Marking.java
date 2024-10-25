@@ -1,7 +1,9 @@
 package com.mungwithme.marking.model.entity;
 
+import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.common.base.BaseTimeEntity;
 import com.mungwithme.common.util.TokenUtils;
+import com.mungwithme.likes.model.entity.MarkingLikes;
 import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.dto.request.MarkingAddDto;
 import com.mungwithme.user.model.entity.User;
@@ -28,17 +30,14 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+
 
 /**
  * 마킹 ENTITY
  */
 @Getter
 @Setter(AccessLevel.PRIVATE)
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(indexes = {@Index(name = "idx_marking_id", columnList = "id", unique = true),
     @Index(name = "idx_marking_token", columnList = "token", unique = true)})
@@ -50,9 +49,13 @@ public class Marking extends BaseTimeEntity {
 
     @JoinColumn(name = "user_id", nullable = false)
     @ManyToOne(fetch = FetchType.LAZY)
-    private User user;              // 작성자
+    private User user;              // 작성
 
-    @Column(nullable = false,unique = true)
+    @JoinColumn(name = "address_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Address address;          // 주소
+
+    @Column(nullable = false, unique = true)
     private String token;
 
     @Column(nullable = false)
@@ -77,6 +80,7 @@ public class Marking extends BaseTimeEntity {
     private Visibility isVisible;   // 마킹 권한 보기 설정
 
 
+    private String previewImage; // 썸네일 및 마커 이미지
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private List<MarkImage> images = new ArrayList<>();   // One(marking)-to-Many(images) Join
@@ -84,29 +88,58 @@ public class Marking extends BaseTimeEntity {
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
     private Set<MarkingSaves> saves = new HashSet<>();   // One(marking)-to-Many(images) Join
 
-    public static Marking create(MarkingAddDto markingAddDto, User user) {
+    @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
+    private Set<MarkingLikes> likes = new HashSet<>();   // One(marking)-to-Many(images) Join
+
+
+    @Builder
+    public Marking(Long id, User user, Address address, String token, String region, Double lat, Double lng,
+        String content,
+        Boolean isTempSaved, Boolean isDeleted, Visibility isVisible,String previewImage) {
+        this.id = id;
+        this.user = user;
+        this.address = address;
+        this.token = token;
+        this.region = region;
+        this.lat = lat;
+        this.lng = lng;
+        this.content = content;
+        this.isTempSaved = isTempSaved;
+        this.isDeleted = isDeleted;
+        this.isVisible = isVisible;
+        this.previewImage = previewImage;
+    }
+
+    public static Marking create(MarkingAddDto markingAddDto, User user,Address address) {
         return Marking.builder().content(markingAddDto.getContent())
             .region(markingAddDto.getRegion())
             .lat(markingAddDto.getLat())
             .lng(markingAddDto.getLng())
             .isDeleted(false)
+            .address(address)
             .token(TokenUtils.getToken())
             .isVisible(markingAddDto.getIsVisible())
             .user(user).build();
     }
-    public void updateIsTempSaved (boolean isTempSaved) {
+
+    public void updatePreviewImage(String previewImage) {
+        this.previewImage = previewImage;
+    }
+
+    public void updateIsTempSaved(boolean isTempSaved) {
         this.isTempSaved = isTempSaved;
     }
-    public void updateIsDeleted (boolean isDeleted) {
+
+    public void updateIsDeleted(boolean isDeleted) {
         this.isDeleted = isDeleted;
     }
 
 
-    public void updateContent (String content) {
+    public void updateContent(String content) {
         this.content = content;
     }
 
-    public void updateIsVisible (Visibility isVisible) {
+    public void updateIsVisible(Visibility isVisible) {
         this.isVisible = isVisible;
     }
 

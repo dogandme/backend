@@ -7,7 +7,6 @@ import com.mungwithme.pet.model.dto.request.PetRequestDto;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.dto.response.PetSignUpDto;
 import com.mungwithme.pet.model.entity.Pet;
-import com.mungwithme.pet.model.entity.Pet.PetBuilder;
 import com.mungwithme.pet.repository.PetRepository;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.enums.Role;

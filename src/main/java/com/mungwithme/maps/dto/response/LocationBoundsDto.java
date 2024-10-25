@@ -1,6 +1,8 @@
 package com.mungwithme.maps.dto.response;
 
 
+import com.mungwithme.marking.model.enums.SortType;
+import com.mungwithme.user.model.enums.SocialType;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,18 +11,18 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class LocationBoundsDto {
 
-    @NotNull(message = "{error.NotNull}")
-    private Double southBottomLat;
 
-    @NotNull(message = "{error.NotNull}")
+    private Double southBottomLat;
     private Double northTopLat;
-    @NotNull(message = "{error.NotNull}")
     private Double southLeftLng;
-    @NotNull(message = "{error.NotNull}")
     private Double northRightLng;
 
+    public LocationBoundsDto(){
+        this.southBottomLat = 0.0;
+        this.northTopLat = 0.0;
+        this.southLeftLng = 0.0;
+        this.northRightLng = 0.0;
+    }
 }
