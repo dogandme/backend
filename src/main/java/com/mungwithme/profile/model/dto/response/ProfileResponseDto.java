@@ -17,6 +17,7 @@ public class ProfileResponseDto {
     private PetInfoResponseDto pet;                 // 펫 정보
     private List<Long> followersIds;                   // 팔로워 userId 목록
     private List<Long> FollowingsIds;                  // 팔로윙 userId 목록
+    private SocialType socialType;                  // 소셜 로그인 타입
 
 
 
@@ -28,5 +29,6 @@ public class ProfileResponseDto {
     private List<Long> bookmarks;                   // 북마크 마킹 id 목록
     @JsonInclude(Include.NON_NULL)
     private List<Long> markings;     // 마킹 id, 썸네일 목록
+
 
 }
