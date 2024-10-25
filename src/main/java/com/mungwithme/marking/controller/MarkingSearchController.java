@@ -33,7 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/markings/search")
+@RequestMapping("/markings")
 public class MarkingSearchController {
 
 
@@ -50,8 +50,8 @@ public class MarkingSearchController {
      * @return
      */
 //    @NoneAuthorize
-    @GetMapping
-    public ResponseEntity<CommonBaseResult> getMarkingsById(
+    @GetMapping("/nearby")
+    public ResponseEntity<CommonBaseResult> getNearbyMarkingsById(
         @ModelAttribute MarkingSearchDto markingSearchDto,
         @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
@@ -68,6 +68,31 @@ public class MarkingSearchController {
         }
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
+
+    /**
+     *
+     * 이 장소 마킹 리스트 불러오기
+     */
+    @GetMapping("/location")
+    public ResponseEntity<CommonBaseResult> getLocationMarkingsById(
+        @ModelAttribute MarkingSearchDto markingSearchDto,
+        @ModelAttribute LocationBoundsDto locationBoundsDto,
+        @RequestParam(value = "offset", defaultValue = "0") int offset,
+        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
+    )
+        throws IOException {
+        MarkingPagingResponseDto nearbyMarkers = markingSearchService.findLocationMarkingsById(
+            locationBoundsDto, offset,
+            sortType);
+
+        if (nearbyMarkers.getMarkings().isEmpty()) {
+            return baseResponse.sendNoContentResponse();
+        }
+        return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
+    }
+
+
+
 
     /**
      * 유저 마킹 리스트 출력
@@ -106,7 +131,7 @@ public class MarkingSearchController {
      *
      * @return
      */
-    @GetMapping("/temp")
+    @GetMapping("/temps")
     public ResponseEntity<CommonBaseResult> getMyTempMarkingsByUser(
         @RequestParam(value = "offset", defaultValue = "0") int offset)
         throws IOException {
@@ -234,6 +259,7 @@ public class MarkingSearchController {
         }
         return baseResponse.sendContentResponse(markPagingRepDto, HttpStatus.OK.value());
     }
+
 
 
 }
