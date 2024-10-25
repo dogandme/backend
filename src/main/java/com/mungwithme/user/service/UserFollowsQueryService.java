@@ -3,6 +3,7 @@ package com.mungwithme.user.service;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.pet.model.dto.response.PetInfoResponseDto;
 import com.mungwithme.pet.model.entity.Pet;
+import com.mungwithme.user.model.dto.response.UserInfoRepPagingDto;
 import com.mungwithme.user.model.dto.response.UserInfoResponseDto;
 import com.mungwithme.user.model.dto.sql.UserFollowQueryDto;
 import com.mungwithme.user.model.entity.User;
@@ -69,7 +70,7 @@ public class UserFollowsQueryService {
      * @param nickname
      * @return
      */
-    public List<UserInfoResponseDto> findFollowingUsers(String nickname, int offset, int size) {
+    public UserInfoRepPagingDto findFollowingUsers(String nickname, int offset, int size) {
         User user = userQueryService.findByNickname(nickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
 
@@ -81,7 +82,7 @@ public class UserFollowsQueryService {
         List<UserFollowQueryDto> userFollowQueryDtoList = queryDtoPage.getContent();
 
         // 유저 정보와 펫정보를 리스트
-        return userFollowQueryDtoList.stream().map(data ->
+        List<UserInfoResponseDto> userInfos = userFollowQueryDtoList.stream().map(data ->
             {
                 UserFollows userFollows = data.getUserFollows();
                 Pet pet = data.getPet();
@@ -89,7 +90,9 @@ public class UserFollowsQueryService {
                 User followingUser = userFollows.getFollowingUser();
                 return buildUserInfoResponseDto(pet, followingUser);
             }
-        ).collect(Collectors.toList());
+        ).toList();
+        return new UserInfoRepPagingDto(userInfos, queryDtoPage.getTotalElements(), queryDtoPage.getTotalPages(),
+            queryDtoPage.getPageable());
     }
 
     /**
@@ -98,7 +101,7 @@ public class UserFollowsQueryService {
      * @param nickname
      * @return
      */
-    public List<UserInfoResponseDto> findFollowerUsers(String nickname, int offset, int size) {
+    public UserInfoRepPagingDto findFollowerUsers(String nickname, int offset, int size) {
         User user = userQueryService.findByNickname(nickname)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
 
@@ -110,14 +113,16 @@ public class UserFollowsQueryService {
         List<UserFollowQueryDto> userFollowQueryDtoList = queryDtoPage.getContent();
 
         // 유저 정보와 펫정보를 리스트
-        return userFollowQueryDtoList.stream().map(data ->
+        List<UserInfoResponseDto> userInfos = userFollowQueryDtoList.stream().map(data ->
             {
                 UserFollows userFollows = data.getUserFollows();
                 Pet pet = data.getPet();
                 User followerUser = userFollows.getFollowerUser();
                 return buildUserInfoResponseDto(pet, followerUser);
             }
-        ).collect(Collectors.toList());
+        ).toList();
+        return new UserInfoRepPagingDto(userInfos,queryDtoPage.getTotalElements(),queryDtoPage.getTotalPages(),queryDtoPage.getPageable());
+
     }
 
     private static UserInfoResponseDto buildUserInfoResponseDto(Pet pet, User user) {

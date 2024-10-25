@@ -23,6 +23,7 @@ import com.mungwithme.user.model.enums.Role;
 import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.dto.UserSignUpDto;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.enums.SocialType;
 import com.mungwithme.user.repository.UserRepository;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -111,6 +112,7 @@ public class UserService {
 
         // 유저 등록
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
+        newUser.setSocialType(SocialType.EMAIL);   // 이메일 회원가입 시
         addUser(newUser);    // DB 저장
 
         String userAgent = request.getHeader("User-Agent");
@@ -129,7 +131,7 @@ public class UserService {
      *     추가 회원정보
      */
     @Transactional
-    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request) throws Exception {
+    public UserResponseDto signUp2(UserSignUpDto userSignUpDto, HttpServletRequest request,HttpServletResponse response) throws Exception {
 
         // 닉네임 중복 확인
         userQueryService.duplicateNickname(userSignUpDto.getNickname());
@@ -143,7 +145,7 @@ public class UserService {
         // region ID를 기반으로 Address 엔터티 조회
         Set<Address> addresses = regionIds.stream()
             .map(addressId -> addressQueryService.findById(addressId)
-                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.address")))
+                .orElseThrow(() -> new IllegalArgumentException("error.arg.address")))
             .collect(Collectors.toSet());
 
         Set<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
@@ -155,6 +157,7 @@ public class UserService {
         currentUser.setAge(userSignUpDto.getAge());
         currentUser.setUserAddresses(userAddresses);
         currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
+        currentUser.setNickLastModDt(LocalDateTime.now());
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
@@ -163,6 +166,13 @@ public class UserService {
 
         String accessToken = jwtService.createAccessToken(currentUser.getEmail(), currentUser.getRole().getKey(),
             redisAuthToken);
+
+        String refreshToken = jwtService.createRefreshToken(currentUser.getEmail(), Role.GUEST.getKey(),
+            redisAuthToken)
+            ;
+        // RefreshToken 발급
+        jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
+
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(currentUser.getRole().getKey());
         userResponseDto.setNickname(currentUser.getNickname());
@@ -194,7 +204,7 @@ public class UserService {
         User currentUser = userQueryService.findCurrentUser();
 
         // 패스워드가 없고 일반회원이 아닌 경우
-        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != null) {
+        if (!StringUtils.hasText(currentUser.getPassword()) && currentUser.getSocialType() != SocialType.EMAIL) {
             throw new IllegalArgumentException("error.arg.social.pw");
         }
 
@@ -229,29 +239,34 @@ public class UserService {
             return;
         }
 
-        LocalDateTime nickExModDt = currentUser.getNickExModDt();
+        // 최신 변경 일자
+        LocalDateTime nickLastModDt = currentUser.getNickLastModDt();
 
         // 현재 시간
         LocalDateTime now = LocalDateTime.now();
 
-        // 한달 후 시간을 DB 에 저장
-        LocalDateTime plusMonths = now.plusMonths(1);
+        if (nickLastModDt != null ) {
+            // 닉네임 변경 가능 시작 시간
+            LocalDateTime plusMonths = nickLastModDt.plusMonths(1);
 
-        String nickname = userNicknameUpdateDto.getNickname();
 
-        // 사용자가 닉네임을 변경을 한지 한달을 초과했는지 획인을 위해
-        // 현재 시간을 가지고 와서 DB에 저장되어 있는 날짜와 비교 후 초과가 되지 않았다면 예외 발생
-        // 가입하고나서 처음 닉네임을 변경한다면 변경 가능
-        if (nickExModDt != null && !now.isAfter(nickExModDt)) {
-            // 1개월이 넘지못했다면
-            DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("YYYY-MM-dd E HH:mm");
-            throw new CustomIllegalArgumentException("error.arg.nickname.ex", nickExModDt.format(dateTimeFormatter));
+
+            // 사용자가 닉네임을 변경을 한지 한달을 초과했는지 획인을 위해
+            // 현재 시간을 가지고 와서 DB에 저장되어 있는 날짜와 비교 후 초과가 되지 않았다면 예외 발생
+            // 가입하고나서 처음 닉네임을 변경한다면 변경 가능
+            if (!now.isAfter(plusMonths)) {
+                // 1개월이 넘지못했다면
+                DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd E HH:mm");
+                throw new CustomIllegalArgumentException("error.arg.nickname.ex", plusMonths.format(dateTimeFormatter));
+            }
+
         }
+        String nickname = userNicknameUpdateDto.getNickname();
         // 중복 검사
         userQueryService.duplicateNickname(nickname);
 
-        // 한달 후 시간을 저장
-        currentUser.updateNickModDt(plusMonths);
+        // 닉네임 변경 시간을 저장
+        currentUser.updateNickModDt(now);
         // Update
         currentUser.updateNickname(userNicknameUpdateDto.getNickname());
     }
@@ -289,63 +304,32 @@ public class UserService {
      */
     @Transactional
     public void editAddress(UserAddressUpdateDto userAddressUpdateDto) {
+        Set<Long> addIds = userAddressUpdateDto.getNewIds();
 
-        // 삭제할 주소 ID 목록
-        Set<Long> removeIds = userAddressUpdateDto.getRemoveIds();
-
-        // 추가할 주소 ID 목록
-        Set<Long> addIds = userAddressUpdateDto.getAddIds();
-
-        if (removeIds.isEmpty() && addIds.isEmpty()) {
-            throw new IllegalArgumentException("error.arg");
-        }
-
-        // 현재 사용자 가져오기
         User currentUser = userQueryService.findCurrentUser();
 
-        // 사용자의 현재 주소 목록
-        Set<UserAddress> userAddresses = currentUser.getUserAddresses();
-
-        // 삭제할 Address 객체 목록
-        Set<UserAddress> removeAddress = userAddresses.stream()
-            .filter(address -> removeIds.contains(address.getAddress().getId()))
-            .collect(Collectors.toSet());
-
-        // 중복 주소 필터링
-        Set<UserAddress> duplicateAddresses = userAddresses.stream()
-            .filter(region -> addIds.contains(region.getAddress().getId()))
-            .collect(Collectors.toSet());
-
-        // 총 추가할 주소 개수에서 중복되는 주소 개수 제외
-        int addSize = addIds.size() - duplicateAddresses.size();
-
-        // 최종 주소 개수 (기존 주소 + 추가할 주소)
-        int finalRegionSize = userAddresses.size() + addSize;
-
         // 유효성 검사: 1~5개의 주소만 허용
-        if (finalRegionSize < 1 || finalRegionSize > 5) {
+        if (addIds.isEmpty() || addIds.size() > 5) {
             throw new IllegalArgumentException("error.arg.address.limit");
         }
 
-        // Transactional
-        userAddressService.removeSet(removeAddress);
+        List<Address> addresses = addressQueryService.findByIds(addIds);
 
-        // 중복제거
-        duplicateAddresses.stream()
-            .map(data -> data.getAddress().getId())
-            .forEach(addIds::remove);
-
-        // 추가할 Address 객체를 데이터베이스에서 조회
-        List<Address> addressList = addressQueryService.findByIds(addIds);
+        if (addresses.isEmpty()) {
+            throw new IllegalArgumentException("error.arg.address");
+        }
 
 
-        // 중복되지 않는 주소만 추가
-        Set<UserAddress> addressSet = addressList.stream().map(address -> UserAddress.create(currentUser, address))
-            .collect(Collectors.toSet());
 
-        // Transactional
-        // 업데이트된 주소를 사용자 객체에 설정
-        userAddressService.addSet(addressSet);
+        List<UserAddress> newAddress = addresses.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toList());
+
+        userAddressService.removeAllByUser(currentUser);
+
+        userAddressService.saveAll(newAddress,LocalDateTime.now());
+
+
+
     }
 
 
@@ -370,7 +354,7 @@ public class UserService {
 
         // 만약 유저가 oAuthAPI 를 연동한 회원일 경우
         // 연동 해제
-        if (currentUser.getSocialType() != null) {
+        if (currentUser.getSocialType() != SocialType.EMAIL) {
             oAuth2Service.disconnectOAuth2Account(currentUser.getSocialType(), currentUser.getOAuthRefreshToken());
         }
 
@@ -482,7 +466,7 @@ public class UserService {
 
         // 만약 기존에 있던 계정이 일반 회원가입인 경우
         // socialType update
-        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == null) {
+        if (StringUtils.hasText(user.getPassword()) && user.getSocialType() == SocialType.EMAIL) {
             user.updateSocialType(oAuth2UserInfo.socialType());
         }
 
@@ -498,12 +482,13 @@ public class UserService {
 
         // 조건1 : 소셜 계정
         User currentUser = userQueryService.findCurrentUser_v2();
-        if (currentUser.getSocialType() == null) {
+        if (currentUser.getSocialType() == SocialType.EMAIL) {
             throw new IllegalArgumentException("error.arg.standard.pw");
         }
 
         // 조건 2 : 첫 비밀번호 설정
-        if (StringUtils.hasText(currentUser.getPassword())) {
+
+        if (currentUser.getPassword() != null) {
             throw new IllegalArgumentException("error.arg.standard.pw.first");
         }
 

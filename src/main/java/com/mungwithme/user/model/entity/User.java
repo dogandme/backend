@@ -58,9 +58,8 @@ public class User extends BaseTimeEntity {
     // oAuth에서 제공해주는 refreshToken 기한 1년
     private String oAuthRefreshToken;
 
-
-    // 닉네임 변경시 한달 후의 날짜를 저장
-    private LocalDateTime nickExModDt;
+    // 최신 닉네임 변경 일자
+    private LocalDateTime nickLastModDt;
 
     private Boolean marketingYn;    // 마케팅 수신 동의 여부
     private Boolean persistLogin;   // 로그인 유지 여부
@@ -147,7 +146,7 @@ public class User extends BaseTimeEntity {
 
 
     public void updateNickModDt(LocalDateTime nickExModDt) {
-        this.nickExModDt = nickExModDt;
+        this.nickLastModDt = nickExModDt;
     }
 
     public void updateGender(Gender gender) {

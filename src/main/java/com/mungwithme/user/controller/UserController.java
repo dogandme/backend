@@ -107,9 +107,9 @@ public class UserController {
      *     추가회원정보
      */
     @PutMapping("/additional-info")
-    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto,HttpServletRequest request)
+    public ResponseEntity<CommonBaseResult> createUserInfoSignUp2(@RequestBody UserSignUpDto userSignUpDto,HttpServletRequest request,HttpServletResponse response)
         throws Exception {
-        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto,request), HttpStatus.OK.value());
+        return baseResponse.sendContentResponse(userService.signUp2(userSignUpDto,request,response), HttpStatus.OK.value());
 
     }
 

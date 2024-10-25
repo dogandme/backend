@@ -3,6 +3,7 @@ package com.mungwithme.user.controller;
 
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
+import com.mungwithme.user.model.dto.response.UserInfoRepPagingDto;
 import com.mungwithme.user.model.dto.response.UserInfoResponseDto;
 import com.mungwithme.user.service.UserFollowService;
 import com.mungwithme.user.service.UserFollowsQueryService;
@@ -91,12 +92,12 @@ public class UserFollowController {
     public ResponseEntity<CommonBaseResult> getFollowings(@PathVariable(name = "nickname") String nickname,
         @RequestParam(name="offset",defaultValue = "0") int offset
     ) throws IOException {
-        int size = 10;
+        int size = 20;
 
-        List<UserInfoResponseDto> followingUsers = userFollowsQueryService.findFollowingUsers(nickname, offset, size);
+        UserInfoRepPagingDto followingUsers = userFollowsQueryService.findFollowingUsers(nickname, offset, size);
 
         int statusCode = HttpStatus.OK.value();
-        if (followingUsers.isEmpty()) {
+        if (followingUsers.getUserInfos().isEmpty()) {
             statusCode = HttpStatus.NO_CONTENT.value();
         }
         return baseResponse.sendContentResponse(followingUsers, statusCode);
@@ -112,13 +113,13 @@ public class UserFollowController {
     public ResponseEntity<CommonBaseResult> getFollowers(@PathVariable(name = "nickname") String nickname,
         @RequestParam(name="offset",defaultValue = "0") int offset
     ) throws IOException {
-        int size = 10;
+        int size = 20;
 
-        List<UserInfoResponseDto> followerUsers = userFollowsQueryService.findFollowerUsers(nickname, offset, size);
+        UserInfoRepPagingDto followerUsers = userFollowsQueryService.findFollowerUsers(nickname, offset, size);
 
         int statusCode = HttpStatus.OK.value();
 
-        if (followerUsers.isEmpty()) {
+        if (followerUsers.getUserInfos().isEmpty()) {
             statusCode = HttpStatus.NO_CONTENT.value();
         }
         return baseResponse.sendContentResponse(followerUsers, statusCode);

@@ -71,7 +71,7 @@ public class MarkingTempService {
      * @param userId 유저PK
      * @return 임시 저장 마킹 수
      */
-    public int countTempMarkingByUserId(Long userId) {
-        return markingQueryService.countMarkingByUserId(userId);
+    public int countTempMarkingByUserIdAndIsTempSavedTrue(Long userId) {
+        return markingQueryService.countTempMarkingByUserIdAndIsTempSavedTrue(userId);
     }
 }

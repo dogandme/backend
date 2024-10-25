@@ -14,11 +14,13 @@ import com.mungwithme.user.model.dto.UserResponseDto;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.service.UserQueryService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -47,7 +49,8 @@ public class PetService {
      *     애완동물정보
      */
     @Transactional
-    public UserResponseDto addPet(PetSignUpDto petSignUpDto, MultipartFile image, HttpServletRequest request)
+    public UserResponseDto addPet(PetSignUpDto petSignUpDto, MultipartFile image, HttpServletRequest request,
+        HttpServletResponse response)
         throws IOException {
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser();
@@ -80,8 +83,16 @@ public class PetService {
             String accessToken = jwtService.createAccessToken(user.getEmail(), user.getRole().getKey(), redisAuthToken);
             userResponseDto.setAuthorization(accessToken);
         }
+
         userResponseDto.setNickname(user.getNickname());
         userResponseDto.setRole(user.getRole().getKey());
+
+        String refreshToken = jwtService.createRefreshToken(user.getEmail(), Role.USER.getKey(),
+            redisAuthToken)
+            ;
+        // RefreshToken 발급
+        jwtService.setRefreshTokenCookie(response, refreshToken);                          // RefreshToken 쿠키에 저장
+
         return userResponseDto;
     }
 
@@ -133,6 +144,11 @@ public class PetService {
     /**
      * 펫 정보 수정
      *
+     * 사용자가 이미지만 삭제한 경우
+     * 사용자가 이미지를 삭제하고 이미지를 추가한 경우
+     * 이미지를 추가한 경우
+     *
+     *
      * @param petDtoJson
      *     수정 정보
      * @param image
@@ -140,6 +156,8 @@ public class PetService {
      */
     @Transactional
     public void editPet(String petDtoJson, MultipartFile image) throws IOException {
+        // JSON 문자열을 DTO로 변환
+        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
 
         // UserDetails에서 user 엔터티 조회
         User user = userQueryService.findCurrentUser_v2();
@@ -147,10 +165,12 @@ public class PetService {
         // 이전 강쥐 프로필 이미지 삭제
         Pet prevPet = petQueryService.findByUser(user)
             .orElseThrow(() -> new ResourceNotFoundException("error.notfound.pet"));
-        fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
 
-        // JSON 문자열을 DTO로 변환
-        PetRequestDto petRequestDto = objectMapper.readValue(petDtoJson, PetRequestDto.class);
+        // 펫의 원래 이미지가 있는데 사용자가 profile 이미지를 삭제 한 경우
+        //  prevPet.getProfile != null && isProfile true 인경우
+        if (StringUtils.hasText(prevPet.getProfile())  && petRequestDto.getIsChaProfile()) {
+            fileStore.deleteFile(FileStore.PET_DIR, prevPet.getProfile());
+        }
 
         // 강쥐 프로필 이미지 업로드
         String profile = null;
@@ -158,15 +178,24 @@ public class PetService {
             profile = fileStore.uploadFile(image, FileStore.PET_DIR);
         }
 
+//        PetBuilder builder = Pet.builder()
+//            .id(prevPet.getId())
+//            .name(petRequestDto.getName())
+//            .description(petRequestDto.getDescription())
+//            .personalities(petRequestDto.getPersonalities())
+//            .breed(petRequestDto.getBreed())
+//            .user(user);
+//
+        prevPet.updateBreed(petRequestDto.getBreed());
+        prevPet.updateName(petRequestDto.getName());
+        prevPet.updatePersonalities(petRequestDto.getPersonalities());
+        prevPet.updateDescription(petRequestDto.getDescription());
+
+        // Profile 사진을 변경 했을 경우
+        if (petRequestDto.getIsChaProfile()) {
+            prevPet.updateProfile(profile);
+        }
+
         // 강쥐 DB 저장
-        petRepository.save(Pet.builder()
-            .id(prevPet.getId())
-            .name(petRequestDto.getName())
-            .description(petRequestDto.getDescription())
-            .personalities(petRequestDto.getPersonalities())
-            .profile(profile)
-            .breed(petRequestDto.getBreed())
-            .user(user)
-            .build());
     }
 }

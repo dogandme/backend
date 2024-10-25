@@ -42,4 +42,28 @@ public class Pet extends BaseTimeEntity {
     @OneToOne(fetch = FetchType.LAZY,cascade = CascadeType.REMOVE)       // One(User)-to-One(Pet) Join
     @JoinColumn(name = "user_id")           // 외래 키 설정
     private User user;
+
+
+
+    public void updateName(String name) {
+        this.name = name;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateProfile(String profile) {
+        this.profile = profile;
+    }
+
+    public void updateBreed(String breed) {
+        this.breed = breed;
+    }
+
+    public void updatePersonalities(List<String> personalities) {
+        this.personalities = personalities;
+    }
+
+
 }
