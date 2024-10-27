@@ -1,11 +1,17 @@
 package com.mungwithme.security.jwt.controller;
 
+import com.auth0.jwt.interfaces.Claim;
+import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.common.response.BaseResponse;
 import com.mungwithme.common.response.CommonBaseResult;
 import com.mungwithme.security.jwt.service.JwtService;
 import com.mungwithme.user.model.dto.UserResponseDto;
+import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.service.UserQueryService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +31,7 @@ public class JwtController {
 
     private final JwtService jwtService;
     private final BaseResponse baseResponse;
+    private final UserQueryService userQueryService;
 
     @GetMapping("")
     public ResponseEntity<CommonBaseResult> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
@@ -40,7 +47,17 @@ public class JwtController {
 
             // Refresh Token 으로 유저 정보 찾기 & Access/Refresh Token 재발급 메소드
             accessToken = jwtService.checkRefreshTokenAndReIssueAccessToken(response, refreshToken);
+
+            Map<String, Claim> jwtClaim = jwtService.getJwtClaim(refreshToken);
+
+
+
             userResponseDto.setAuthorization(accessToken);
+            userResponseDto.setRole(String.valueOf(jwtClaim.get(JwtService.ROLE_CLAIM)));
+
+            User user = userQueryService.findByEmail(String.valueOf(jwtClaim.get(JwtService.EMAIL_CLAIM)))
+                .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
+            userResponseDto.setRole(user.getNickname());
 
             return baseResponse.sendContentResponse(userResponseDto, 200);
         } else {
