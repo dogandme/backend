@@ -12,6 +12,7 @@ import java.util.Map;
 @Data
 public class ProfileResponseDto {
 
+    private Long userId; // user 고유 번호
     private String nickname;                        // 닉네임
     private int tempCnt;                            // 임시 저장 수
     private PetInfoResponseDto pet;                 // 펫 정보

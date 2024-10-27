@@ -56,6 +56,8 @@ public class ProfileQueryService {
         // 본인 프로필 조회 여부
         boolean isSelf = user.getId().equals(userQueryService.findCurrentUser_v2().getId());
 
+        profileResponseDto.setUserId(userId);
+
         // 조회하는 프로필이 본인일 경우 분기 처리
         if (isSelf) {
           
