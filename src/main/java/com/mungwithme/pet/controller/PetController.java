@@ -108,7 +108,7 @@ public class PetController {
         UrlResource pictureImage = null;
         try {
             if (StringUtils.hasText(fileName)) {
-                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
+                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName + "." + FileStore.IMAGE_EXT)));
                 pictureImage = fileStore.getUrlResource(fileName, FileStore.PET_DIR);
             }
         } catch (Exception e) {

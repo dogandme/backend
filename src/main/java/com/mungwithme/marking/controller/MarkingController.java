@@ -135,7 +135,7 @@ public class MarkingController {
         UrlResource pictureImage = null;
         try {
             if (StringUtils.hasText(fileName)) {
-                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
+                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName + "." + FileStore.IMAGE_EXT)));
                 pictureImage = fileStore.getUrlResource(fileName, FileStore.MARKING_DIR + File.separator + markingId);
             }
         } catch (Exception e) {
@@ -160,7 +160,7 @@ public class MarkingController {
         UrlResource pictureImage = null;
         try {
             if (StringUtils.hasText(fileName)) {
-                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName)));
+                mediaType = MediaType.parseMediaType(Files.probeContentType(Paths.get(fileName + "." + FileStore.IMAGE_EXT)));
                 pictureImage = fileStore.getUrlResource(fileName, FileStore.PREVIEW_DIR + File.separator + markingId);
             }
         } catch (Exception e) {

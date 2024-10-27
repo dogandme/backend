@@ -303,6 +303,8 @@ public class FileStore {
     public UrlResource getUrlResource(String fileName, String dirPath) {
         UrlResource resource = null;
         try {
+            log.info("\"file:\" + uploadPath + File.separator + dirPath + File.separator + fileName + \".\" + IMAGE_EXT = {}", "file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
+
             resource = new UrlResource("file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
         } catch (MalformedURLException e) {
             throw new ResourceNotFoundException("error.notfound.image");
