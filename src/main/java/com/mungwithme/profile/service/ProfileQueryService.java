@@ -71,6 +71,9 @@ public class ProfileQueryService {
             List<Long> markingsIds = markingsByUser.stream().map(Marking::getId).toList();
             profileResponseDto.setLikes(likesQueryService.findAllLikesIdsByUserId(userId));               // 좋아요 마킹 목록
             profileResponseDto.setMarkings(markingsIds);
+            int tempCount = markingTempService.countTempMarkingByUserIdAndIsTempSavedTrue(userId);
+
+            profileResponseDto.setTempCnt(tempCount);
 
         }
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
