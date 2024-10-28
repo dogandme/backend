@@ -335,6 +335,8 @@ public class MarkingSearchService {
 
             // true 일경우 팔로우 O, false 인 경우 팔로우 X
             isFollowing = !userFollowService.existsFollowing(currentUser, profileUser);
+        } else {
+            profileUser = currentUser;
         }
 
         Page<MarkRepDto> pageDto = markingQueryDslRepository.findAllMarksByUser(false, false, profileUser,
