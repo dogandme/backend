@@ -106,10 +106,7 @@ public class MarkingService {
             // 마커용 프리뷰 이미지는 이름이 고정적
             // 마커용 프리뷰 이미지 생성
             if (!images.isEmpty()) {
-                fileStore.updatePreviewFile(500, images.get(0),
-                    FileStore.PREVIEW_DIR + File.separator + marking.getId(), previewImageName
-                );
-
+                fileStore.uploadFile(images.get(0), FileStore.PREVIEW_DIR + File.separator + marking.getId(), previewImageName);
             }
 
             // MarkImage 리스트와 현재 시간을 데이터베이스에 저장
@@ -325,7 +322,7 @@ public class MarkingService {
                 FileStore.MARKING_DIR + File.separator + marking.getId());
             try {
                 // 기존의 이름과 동일하게
-                fileStore.updatePreviewFile(500, previewFile, filePath, previewImage);
+                fileStore.uploadFile(previewFile, filePath, previewImage);
             } catch (IOException e) {
                 log.error("File upload failed: {}", e.getMessage(), e);
             }

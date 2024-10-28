@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
@@ -76,6 +77,19 @@ public class FileStore {
      * @throws IOException
      */
     public String uploadFile(MultipartFile multipartFile, String pathType) throws IOException {
+
+        return uploadFile(multipartFile, pathType, UUID.randomUUID().toString());
+    }
+
+    /**
+     * @param multipartFile
+     *     업로드 할 파일
+     * @param pathType
+     *     pathType (pet,profile,marking)
+     * @return
+     * @throws IOException
+     */
+    public String uploadFile(MultipartFile multipartFile, String pathType, String uuid) throws IOException {
         // 이미지 파일만 업로드
         FileUtils.validImgFile(multipartFile);
 
@@ -83,8 +97,6 @@ public class FileStore {
         // 사진 이미지의 파일명은 전부다 랜덤아이디로
 
         String folderPath = makeFolder(pathType);  // 날짜 폴더 생성
-
-        String uuid = UUID.randomUUID().toString(); // UUID 생성
 
         String storeName = uuid + "." + IMAGE_EXT;
 
@@ -101,20 +113,19 @@ public class FileStore {
     /**
      * 마커용 프리뷰 이미지 생성
      *
-     *
      * @param targetWidth
-     *         변경할 사이즈
+     *     변경할 사이즈
      * @param multipartFile
-     *          파일
+     *     파일
      * @param pathType
-     *          폴더
+     *     폴더
      * @param previewFileName
-     *          파일 네임
+     *     파일 네임
      * @throws IOException
      */
     public void updatePreviewFile(int targetWidth,
         MultipartFile multipartFile,
-        String pathType,String previewFileName) throws IOException {
+        String pathType, String previewFileName) throws IOException {
         // 이미지 파일만 업로드
         FileUtils.validImgFile(multipartFile);
 
@@ -268,10 +279,9 @@ public class FileStore {
     }
 
 
-
-    public MultipartFile convertUrlResourceToMultipartFile(String fileName,String dirPath) {
+    public MultipartFile convertUrlResourceToMultipartFile(String fileName, String dirPath) {
         // 1. UrlResource를 생성합니다.
-        UrlResource  urlResource = getUrlResource(fileName,dirPath);
+        UrlResource urlResource = getUrlResource(fileName, dirPath);
 
         // 2. UrlResource에서 InputStream을 가져옵니다.
         try (InputStream inputStream = urlResource.getInputStream()) {
@@ -290,7 +300,6 @@ public class FileStore {
     }
 
 
-
     /**
      * image URLResource 반환
      *
@@ -303,9 +312,12 @@ public class FileStore {
     public UrlResource getUrlResource(String fileName, String dirPath) {
         UrlResource resource = null;
         try {
-            log.info("\"file:\" + uploadPath + File.separator + dirPath + File.separator + fileName + \".\" + IMAGE_EXT = {}", "file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
+            log.info(
+                "\"file:\" + uploadPath + File.separator + dirPath + File.separator + fileName + \".\" + IMAGE_EXT = {}",
+                "file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
 
-            resource = new UrlResource("file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
+            resource = new UrlResource(
+                "file:" + uploadPath + File.separator + dirPath + File.separator + fileName + "." + IMAGE_EXT);
         } catch (MalformedURLException e) {
             throw new ResourceNotFoundException("error.notfound.image");
         }
