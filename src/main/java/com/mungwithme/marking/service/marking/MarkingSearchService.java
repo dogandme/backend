@@ -337,7 +337,7 @@ public class MarkingSearchService {
             isFollowing = !userFollowService.existsFollowing(currentUser, profileUser);
         }
 
-        Page<MarkRepDto> pageDto = markingQueryDslRepository.findAllMarksByUser(false, false, currentUser,
+        Page<MarkRepDto> pageDto = markingQueryDslRepository.findAllMarksByUser(false, false, profileUser,
             pageRequest, isMyProfile, isFollowing);
 
         return new MarkPagingRepDto(pageDto.getContent(), pageDto.getTotalElements(), pageDto.getTotalPages(),
