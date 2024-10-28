@@ -11,6 +11,6 @@ import org.springframework.data.domain.Pageable;
 public class BasePagingRepDto {
     private Long totalElements;
     private int totalPages;
-    private Pageable pageable;
+    private Pageable pageAble;
 
 }
