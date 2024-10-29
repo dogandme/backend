@@ -2,78 +2,57 @@ name: Build and Deploy for BACKEND server to AWS EC2
 
 on:
   push:
-    branches: [ develop ]
+    branches: [develop]
 
 env:
-  # 버킷에 저장할 폴더 이름
   PROJECT_NAME: BE_Server
-  # S3 버킷 이름
   BUCKET_NAME: mungwithme-github-action-s3-bucket
-  # CodeDeploy의 애플리케이션 이름
   CODE_DEPLOY_APP_NAME: mungwithme-app
-  # CodeDeploy의 배포그룹 이름
   DEPLOYMENT_GROUP_NAME: mungwithme-app-deployment-group
-  
 
 jobs:
   build:
-    # 실행 환경 설정
     runs-on: ubuntu-latest
 
-    # 차례대로 실행
     steps:
-    - uses: actions/checkout@v2
-    
+    - uses: actions/checkout@v3
+
     - name: Set up JDK 17
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
         java-version: 17
-    
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
-    # 필요한 YAML 파일들 생성
-    - name: Create application-db.yml
-      run: touch ./src/main/resources/application-db.yml
-    - name: Populate application-db.yml
-      run: echo "${{ secrets.APPLICATION_DB }}" > ./src/main/resources/application-db.yml
+    - name: Create and populate application YAML files
+      run: |
+        echo "${{ secrets.APPLICATION_DB }}" > ./src/main/resources/application-db.yml
+        echo "${{ secrets.APPLICATION_JWT }}" > ./src/main/resources/application-jwt.yml
+        echo "${{ secrets.APPLICATION_OAUTH }}" > ./src/main/resources/application-oauth.yml
+        echo "${{ secrets.APPLICATION_GOOGLE }}" > ./src/main/resources/application-google.yml
 
-    - name: Create application-jwt.yml
-      run: touch ./src/main/resources/application-jwt.yml
-    - name: Populate application-jwt.yml
-      run: echo "${{ secrets.APPLICATION_JWT }}" > ./src/main/resources/application-jwt.yml
-
-    - name: Create application-oauth.yml
-      run: touch ./src/main/resources/application-oauth.yml
-    - name: Populate application-oauth.yml
-      run: echo "${{ secrets.APPLICATION_OAUTH }}" > ./src/main/resources/application-oauth.yml
-
-    - name: Create application-google.yml
-      run: touch ./src/main/resources/application-google.yml
-    - name: Populate application-google.yml
-      run: echo "${{ secrets.APPLICATION_GOOGLE }}" > ./src/main/resources/application-google.yml
-    
-    # Gradle build (Test 제외)
     - name: Build with Gradle
       run: ./gradlew clean build -x test
-      
-    # 압축 파일 만들기
+
     - name: Make Zip File
       run: zip -qq -r ./$GITHUB_SHA.zip .
       shell: bash
-      
-    # AWS 인증
+
     - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
+      uses: aws-actions/configure-aws-credentials@v2
       with:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
-      
-    # S3 버킷으로 파일을 업로드
+
     - name: Upload to S3
       run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
 
-    # S3 버킷에 업로드 된 파일을 대상으로 CodeDeploy에서 배포 요청
     - name: Code Deploy
-      run: aws deploy create-deployment --application-name $CODE_DEPLOY_APP_NAME --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name $DEPLOYMENT_GROUP_NAME --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
+      run: |
+        aws deploy create-deployment \
+          --application-name $CODE_DEPLOY_APP_NAME \
+          --deployment-config-name CodeDeployDefault.OneAtATime \
+          --deployment-group-name $DEPLOYMENT_GROUP_NAME \
+          --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
