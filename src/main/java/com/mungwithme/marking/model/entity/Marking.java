@@ -22,6 +22,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import lombok.AccessLevel;
@@ -40,7 +41,11 @@ import lombok.Setter;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
 @Table(indexes = {@Index(name = "idx_marking_id", columnList = "id", unique = true),
-    @Index(name = "idx_marking_token", columnList = "token", unique = true)})
+    @Index(name = "idx_marking_token", columnList = "token", unique = true),
+    @Index(name = "idx_mark_lat_lng",columnList = "lat,lng" ),
+    @Index(name = "idx_mark_reg_dt",columnList = "reg_dt" )
+}
+)
 public class Marking extends BaseTimeEntity {
 
     @Id
@@ -128,6 +133,10 @@ public class Marking extends BaseTimeEntity {
 
     public void updateIsTempSaved(boolean isTempSaved) {
         this.isTempSaved = isTempSaved;
+    }
+
+    public void updateRegDt(LocalDateTime regDt) {
+        super.setRegDt(regDt);
     }
 
     public void updateIsDeleted(boolean isDeleted) {

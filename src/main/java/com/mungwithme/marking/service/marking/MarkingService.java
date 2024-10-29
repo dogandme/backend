@@ -233,6 +233,8 @@ public class MarkingService {
              */
             isTempSaved = markingModifyDto.getIsTempSaved();
             marking.updateIsTempSaved(isTempSaved);
+            marking.updateRegDt(LocalDateTime.now());
+
         }
 
         // 이미지 삭제 ids

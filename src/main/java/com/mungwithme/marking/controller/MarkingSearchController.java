@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -62,18 +61,14 @@ public class MarkingSearchController {
         MarkingPagingResponseDto nearbyMarkers = markingSearchService.findNearbyMarkers(markingSearchDto,
             locationBoundsDto, offset,
             sortType);
-
-        if (nearbyMarkers.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(nearbyMarkers, HttpStatus.OK.value());
     }
 
     /**
      *
-     * 이 장소 마킹 리스트 불러오기
+     * 이 장소 및 동네 마킹 리스트 불러오기
      */
-    @GetMapping("/location")
+    @GetMapping("/bounds")
     public ResponseEntity<CommonBaseResult> getLocationMarkingsById(
         @ModelAttribute MarkingSearchDto markingSearchDto,
         @ModelAttribute LocationBoundsDto locationBoundsDto,
@@ -81,13 +76,9 @@ public class MarkingSearchController {
         @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
     )
         throws IOException {
-        MarkingPagingResponseDto locationMarkings = markingSearchService.findLocationMarkings(
+        MarkingPagingResponseDto locationMarkings = markingSearchService.findMarkingsByBounds(markingSearchDto,
             locationBoundsDto, offset,
             sortType);
-
-        if (locationMarkings.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(locationMarkings, HttpStatus.OK.value());
     }
 
@@ -119,9 +110,6 @@ public class MarkingSearchController {
             nickname,
             locationBoundsDto,
             markingSearchDto, offset, sortType, mapViewMode);
-        if (allMarkersByUser.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(allMarkersByUser, HttpStatus.OK.value());
 
     }
@@ -136,9 +124,6 @@ public class MarkingSearchController {
         @RequestParam(value = "offset", defaultValue = "0") int offset)
         throws IOException {
         MarkingPagingResponseDto tempMarkersByUser = markingSearchService.findTempMarkersByUser(offset);
-        if (tempMarkersByUser.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(tempMarkersByUser, HttpStatus.OK.value());
 
     }
@@ -154,9 +139,6 @@ public class MarkingSearchController {
     )
         throws IOException {
         MarkingPagingResponseDto likedMarkersByUser = markingSearchService.findAllLikedMarkersByUser(offset);
-        if (likedMarkersByUser.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(likedMarkersByUser, HttpStatus.OK.value());
 
     }
@@ -172,9 +154,6 @@ public class MarkingSearchController {
     )
         throws IOException {
         MarkingPagingResponseDto savedMarkersByUser = markingSearchService.findAllSavedMarkersByUser(offset);
-        if (savedMarkersByUser.getMarkings().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(savedMarkersByUser, HttpStatus.OK.value());
     }
 
@@ -192,11 +171,6 @@ public class MarkingSearchController {
 
         List<MarkingDistWithCountRepDto> countBySubDistrict = markingSearchService.findCountBySubDistrict(
             locationBoundsDto);
-
-        if (countBySubDistrict.isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
-
         return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
     }
     /**
@@ -212,11 +186,6 @@ public class MarkingSearchController {
 
         List<MarkRepDto> markByBound = markingSearchService.findMarksByBound(
             locationBoundsDto);
-
-        if (markByBound.isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
-
         return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
     }
 
@@ -232,10 +201,6 @@ public class MarkingSearchController {
     ) throws IOException {
 
         List<MarkRepDto> markByBound = markingSearchService.findMyMarksByBound();
-
-        if (markByBound.isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
 
         return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
     }
@@ -253,10 +218,6 @@ public class MarkingSearchController {
     ) throws IOException {
 
         MarkPagingRepDto markPagingRepDto = markingSearchService.findAllMarksByUser(nickname, offset);
-
-        if (markPagingRepDto.getMarks().isEmpty()) {
-            return baseResponse.sendNoContentResponse();
-        }
         return baseResponse.sendContentResponse(markPagingRepDto, HttpStatus.OK.value());
     }
 

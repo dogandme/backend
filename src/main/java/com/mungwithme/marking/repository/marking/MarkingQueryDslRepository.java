@@ -95,7 +95,6 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
     /**
      * 내 마킹 혹은 상대 마킹 (거리순, 최신순, 인기순) - 현재 위치 중심, 현재 마킹 중심
      *
-     * @param addressSet
      * @param markingSearchDto
      * @param isDeleted
      * @param isTempSaved
@@ -108,8 +107,9 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
      * @return
      */
     public Page<MarkingQueryDto> findAllMarkersByUser(
-        Set<Address> addressSet,
+        LocationBoundsDto locationBoundsDto,
         MarkingSearchDto markingSearchDto,
+
         Boolean isDeleted,
         Boolean isTempSaved,
         User profileUser,
@@ -132,7 +132,8 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             .from(marking);
 
         // 조인 및 조건 추가
-        addJoinsAndConditions(contentQuery, countQuery, addressSet, mapViewMode, isTempSaved, isDeleted, profileUser,
+        addJoinsAndConditions(locationBoundsDto, contentQuery, countQuery, mapViewMode, isTempSaved, isDeleted,
+            profileUser,
             isMyProfile, isMyFollowing);
 
         // 그룹화 및 정렬
@@ -165,7 +166,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             .select(new QMarkingQueryDto(marking))
             .from(marking)
             .where(applyFilters(isTempSaved, isDeleted).and(getUserEq(currentUser.getId())))
-            .orderBy(marking.id.desc())
+            .orderBy(marking.regDt.desc(), marking.id.desc())
             .offset(pageable.getOffset()).limit(pageable.getPageSize());
 
         // 카운트 쿼리 생성
@@ -193,17 +194,24 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
      * @param isMember
      * @return
      */
-    public Page<MarkingQueryDto> findLocationMarkings(
+    public Page<MarkingQueryDto> findMarkingsByBounds(
         Boolean isTempSaved,
         Boolean isDeleted,
         User currentUser,
         LocationBoundsDto locationBoundsDto,
+        MarkingSearchDto markingSearchDto,
         SortType sortType,
         Pageable pageable,
         boolean isMember) {
 
+        double lat = markingSearchDto.getLat();
+        double lng = markingSearchDto.getLng();
+
+        // 거리 계산 (Haversine formula)
+        NumberExpression<Double> distanceExpression = getDistanceExpression(lat, marking.lat, marking.lng, lng);
+
         // Content Query
-        JPAQuery<MarkingQueryDto> contentQuery = selectMarkingQueryDto();
+        JPAQuery<MarkingQueryDto> contentQuery = selectMarkingQueryDto(distanceExpression);
         // Count Query
         JPAQuery<Long> countQuery = getQueryFactory().select(marking.id.count())
             .from(marking);
@@ -219,7 +227,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             ).groupBy(marking.id, pet.id);
 
         // Apply Sorting and Pagination
-        setOrderSortType(0.0, 0.0, sortType, contentQuery);
+        setOrderSortType(lat, lng, sortType, contentQuery);
         contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
 
         countQuery.where(
@@ -267,7 +275,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             applyVisibilityConditions(contentQuery, countQuery, isFollowing);
         }
 
-        contentQuery.orderBy(marking.regDt.desc());
+        contentQuery.orderBy(marking.regDt.desc(), marking.id.desc());
         contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
         return applyPagination(pageable, contentQuery, countQuery);
     }
@@ -333,7 +341,6 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         contentQuery.join(joinTarget).on(joinCondition);
 
         applyUserFollowsLeftJoin(contentQuery, currentUser);
-
 
         contentQuery
             .leftJoin(markingSaves).on(marking.eq(markingSaves.marking))
@@ -483,7 +490,6 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
     /**
      * @param contentQuery
      * @param countQuery
-     * @param addressSet
      * @param mapViewMode
      * @param isTempSaved
      * @param isDeleted
@@ -494,9 +500,9 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
      *     팔로우 여부
      */
     private void addJoinsAndConditions(
+        LocationBoundsDto locationBoundsDto,
         JPAQuery<MarkingQueryDto> contentQuery,
         JPAQuery<Long> countQuery,
-        Set<Address> addressSet,
         MapViewMode mapViewMode,
         Boolean isTempSaved,
         Boolean isDeleted,
@@ -504,16 +510,17 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         boolean isMyProfile,
         boolean isFollowing
     ) {
+
         // 기본 조인 설정
         addFetchJoin(contentQuery)
             .leftJoin(markingSaves).on(marking.eq(markingSaves.marking))
             .leftJoin(markingLikes).on(marking.eq(markingLikes.marking));
 
         // 전체 보기 모드가 아닌 경우 addressSet 필터 추가
-        if (!MapViewMode.ALL_VIEW.equals(mapViewMode) && addressSet != null) {
-            BooleanExpression addressCondition = marking.address.in(addressSet);
-            contentQuery.where(addressCondition);
-            countQuery.where(addressCondition);
+        if (!MapViewMode.ALL_VIEW.equals(mapViewMode)) {
+            BooleanExpression boundCondition = getBoundCondition(locationBoundsDto);
+            contentQuery.where(boundCondition);
+            countQuery.where(boundCondition);
         }
 
         // 삭제 여부, 임시 저장 여부, userId 조건 적용
@@ -621,9 +628,9 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         if (sortType.equals(SortType.DISTANCE)) {
             contentQuery.orderBy(getDistanceExpression(lat, marking.lat, marking.lng, lng).asc());
         } else if (sortType.equals(SortType.POPULARITY)) {
-            contentQuery.orderBy(markingLikes.id.count().coalesce(0L).desc());
+            contentQuery.orderBy(markingLikes.id.count().coalesce(0L).desc(), marking.regDt.desc(), marking.id.desc());
         } else {
-            contentQuery.orderBy(marking.regDt.desc());
+            contentQuery.orderBy(marking.regDt.desc(), marking.id.desc());
         }
     }
 

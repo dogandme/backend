@@ -18,6 +18,7 @@ import com.mungwithme.user.service.UserLogoutService;
 import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -73,7 +74,7 @@ public class SecurityConfig {
                 @Override
                 public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                     CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowedOrigins(Collections.singletonList("http://localhost:5173"));
+                    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173","http://218.239.21.150:5173"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
@@ -107,7 +108,7 @@ public class SecurityConfig {
                         "/swagger-ui.html",
                         "/markings/marks",
                         "/markings/nearby",
-                        "/markings/location",
+                        "/markings/bounds",
                         "/markings/district/count",
                         "/health",
                         "/pets/image/**",
