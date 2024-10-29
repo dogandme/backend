@@ -30,7 +30,7 @@ public class AddressController {
 
 
     /**
-     * 키워드로 읍면동을 기준으로 동네 검색 API
+     * 키워드로 읍면동을기준으로 동네 검색 API
      *
      * @param addressSearchDto
      * @return
