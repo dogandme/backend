@@ -50,7 +50,7 @@ jobs:
 
     - name: Create application-google.yml
       run: touch ./src/main/resources/application-google.yml
-    - name: Populate application-googlname: Build and Deploy for BACKEND server to AWS EC2
+    - name: Populate application-google.yml
 
 on:
   push:
