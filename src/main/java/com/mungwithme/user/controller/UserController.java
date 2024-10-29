@@ -54,8 +54,7 @@ public class UserController {
     /**
      * 회원가입 1단계 : [일반] 이메일/비밀번호 저장
      *
-     * @param userSignUpDto
-     *     가입요청 회원정보
+     * @param userSignUpDto 가입요청 회원정보
      * @return 공통 응답 메세지
      */
     @PostMapping("")
