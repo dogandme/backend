@@ -267,6 +267,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             applyVisibilityConditions(contentQuery, countQuery, isFollowing);
         }
 
+        contentQuery.orderBy(marking.regDt.desc());
         contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
         return applyPagination(pageable, contentQuery, countQuery);
     }
