@@ -10,6 +10,7 @@ import com.mungwithme.marking.model.dto.response.MarkRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingDistWithCountRepDto;
 import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.enums.MapViewMode;
+import com.mungwithme.marking.model.enums.SearchType;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.service.marking.MarkingSearchService;
 import java.io.IOException;
@@ -65,7 +66,6 @@ public class MarkingSearchController {
     }
 
     /**
-     *
      * 이 장소 및 동네 마킹 리스트 불러오기
      */
     @GetMapping("/bounds")
@@ -73,16 +73,15 @@ public class MarkingSearchController {
         @ModelAttribute MarkingSearchDto markingSearchDto,
         @ModelAttribute LocationBoundsDto locationBoundsDto,
         @RequestParam(value = "offset", defaultValue = "0") int offset,
-        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType
+        @RequestParam(value = "sortType", defaultValue = "POPULARITY") SortType sortType,
+        @RequestParam(value = "searchType", defaultValue = "NEARBY") SearchType searchType
     )
         throws IOException {
         MarkingPagingResponseDto locationMarkings = markingSearchService.findMarkingsByBounds(markingSearchDto,
             locationBoundsDto, offset,
-            sortType);
+            sortType, searchType);
         return baseResponse.sendContentResponse(locationMarkings, HttpStatus.OK.value());
     }
-
-
 
 
     /**
@@ -173,11 +172,9 @@ public class MarkingSearchController {
             locationBoundsDto);
         return baseResponse.sendContentResponse(countBySubDistrict, HttpStatus.OK.value());
     }
+
     /**
-     *
-     *  바운더리 내에 마커 불러오기
-     *
-     *
+     * 바운더리 내에 마커 불러오기
      */
     @GetMapping("/marks")
     public ResponseEntity<CommonBaseResult> getMarksByBounds(
@@ -190,10 +187,7 @@ public class MarkingSearchController {
     }
 
     /**
-     *
-     *  나의 마커 전체 불러오기
-     *
-     *
+     * 나의 마커 전체 불러오기
      */
     @GetMapping("/my-marks")
     public ResponseEntity<CommonBaseResult> getMyMarksByBounds(
@@ -206,10 +200,7 @@ public class MarkingSearchController {
     }
 
     /**
-     *
-     *  닉네임 해당되는 마커 출력 API
-     *
-     *
+     * 닉네임 해당되는 마커 출력 API
      */
     @GetMapping("/marks/{nickname}")
     public ResponseEntity<CommonBaseResult> getMarksByNickname(
@@ -220,7 +211,6 @@ public class MarkingSearchController {
         MarkPagingRepDto markPagingRepDto = markingSearchService.findAllMarksByUser(nickname, offset);
         return baseResponse.sendContentResponse(markPagingRepDto, HttpStatus.OK.value());
     }
-
 
 
 }

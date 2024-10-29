@@ -147,7 +147,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
 
 
     /**
-     * 내 마킹 혹은 상대 마킹 (거리순, 최신순, 인기순) - 현재 위치 중심, 현재 마킹 중심
+     * 나의 임시저장 마킹 리스트
      *
      * @param isDeleted
      * @param isTempSaved

@@ -18,6 +18,7 @@ import com.mungwithme.marking.model.entity.MarkImage;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.model.entity.MarkingSaves;
 import com.mungwithme.marking.model.enums.MapViewMode;
+import com.mungwithme.marking.model.enums.SearchType;
 import com.mungwithme.marking.model.enums.SortType;
 import com.mungwithme.marking.repository.marking.MarkingQueryDslRepository;
 import com.mungwithme.pet.model.entity.Pet;
@@ -95,11 +96,11 @@ public class MarkingSearchService {
      */
     public MarkingPagingResponseDto findMarkingsByBounds(MarkingSearchDto markingSearchDto,
         LocationBoundsDto locationBoundsDto, int offset,
-        SortType sortType) {
+        SortType sortType, SearchType searchType) {
         // 거리순은 포함되지 않음
-//        if (sortType.equals(SortType.DISTANCE)) {
-//            sortType = SortType.RECENT;
-//        }
+        if (sortType.equals(SortType.RECENT)  && searchType.equals(SearchType.LOCATION)) {
+            sortType = SortType.POPULARITY;
+        }
         int pageSize = 20;
 
         PageRequest pageRequest = getPageRequest(offset, pageSize);
