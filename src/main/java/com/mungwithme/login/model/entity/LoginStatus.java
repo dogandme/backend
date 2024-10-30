@@ -84,9 +84,8 @@ public class LoginStatus extends BaseTimeEntity {
         LocationFinderService locationFinderService,
         String userAgent, User user, String refreshToken, String sessionId,String redisAuthToken) {
         UserLocationDto userLocationDto;
-        System.out.println("findLocation 전");
+
 //        userLocationDto = locationFinderService.findLocation();
-        System.out.println("findLocation 후");
 
         return LoginStatus.builder()
             .user(user)
@@ -95,7 +94,8 @@ public class LoginStatus extends BaseTimeEntity {
             .redisAuthToken(redisAuthToken)
 //            .defaultLog(
 //                DefaultLocationLog.createDefaultLocationLog(true, userLocationDto, userAgent)
-//            ).sessionId(sessionId)
+//            )
+            .sessionId(sessionId)
             .browser(DeviceDetails.getClientBrowser(userAgent))
             .os(DeviceDetails.getClientOS(userAgent)).build();
     }
