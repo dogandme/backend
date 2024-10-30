@@ -32,9 +32,9 @@ jobs:
     
     # 필요한 YAML 파일들 생성
     - name: Create application-db.yml
-      run: touch ./src/main/resources/application-db.yml
-    - name: Populate application-db.yml
-      run: echo "${{ secrets.APPLICATION_DB }}" > ./src/main/resources/application-db.yml
+      run: touch ./src/main/resources/application-prd.yml
+    - name: Populate application-prd.yml
+      run: echo "${{ secrets.APPLICATION_PRD }}" > ./src/main/resources/application-prd.yml
 
     - name: Create application-jwt.yml
       run: touch ./src/main/resources/application-jwt.yml
