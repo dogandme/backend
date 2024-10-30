@@ -114,7 +114,7 @@ public class UserService {
         newUser.passwordEncode(passwordEncoder);   // 비밀번호 암호화
         newUser.setSocialType(SocialType.EMAIL);   // 이메일 회원가입 시
         addUser(newUser);    // DB 저장
-        log.info("DB 저장 완료");
+        log.info("DB 저장 완료 : {} " + newUser.getId());
         String userAgent = request.getHeader("User-Agent");
         String sessionId = request.getSession().getId();
         log.info("addStatus 시작");
