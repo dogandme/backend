@@ -55,12 +55,13 @@ public class LoginStatusService {
         }
 
         User user = User.builder().id(userId).build();
-
+        System.out.println("user : " + user.toString());
         // UserLoginStatus 생성 후
         LoginStatus saveLoginStatus = LoginStatus.create(locationFinderService,
             userAgent,
             user, refreshToken, sessionId, redisAuthToken);
 
+        System.out.println("saveLoginStatus : " + saveLoginStatus.toString());
         /**
          * Status에 새로 저장하기 전에 현재 세션을 가진
          * 기기들 전부 loginStatus OFF로 바꿔줌으로 인해서
@@ -69,8 +70,10 @@ public class LoginStatusService {
         List<LoginStatus> findStatus = loginStatusRepository.
             findList(user, true, true);
 
+        System.out.println("findStatus : " + findStatus.toString());
         Set<String> statusSet = findStatus.stream().map(LoginStatus::getSessionId).collect(Collectors.toSet());
 
+        System.out.println("statusSet : " + statusSet.toString());
         // 현재 로그인된 디바이스가 3개 이상이면
         if (statusSet.size() >= 3) {
             // 로그인 시간 기준으로 오래된 순서로 정렬
@@ -93,13 +96,16 @@ public class LoginStatusService {
         List<LoginStatus> currentSessionStatus = findStatus.stream()
             .filter(status -> status.getSessionId().equals(sessionId)).toList();
 
+        System.out.println("currentSessionStatus : " + currentSessionStatus.toString());
         if (!currentSessionStatus.isEmpty()) {
             editStatus(user, false, false, sessionId);
             // redis token 다 삭제
             removeAllByRedisToken(currentSessionStatus);
         }
+        System.out.println("저장전");
         //새롭게 저장
         loginStatusRepository.save(saveLoginStatus);
+        System.out.println("저장후");
     }
 
     private void removeAllByRedisToken(List<LoginStatus> logoutStatus) {
