@@ -1,5 +1,5 @@
 PROJECT_ROOT="/home/ec2-user/deploy"
-JAR_FILE="$PROJECT_ROOT/server-0.0.1-SNAPSHOT.jar"
+JAR_FILE="$PROJECT_ROOT/mungwithme-0.0.1-SNAPSHOT.jar"
 
 APP_LOG="$PROJECT_ROOT/application.log"
 ERROR_LOG="$PROJECT_ROOT/error.log"
