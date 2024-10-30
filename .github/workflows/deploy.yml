@@ -6,11 +6,11 @@ env:
   # 버킷에 저장할 폴더 이름
   PROJECT_NAME: BE_Server
   # S3 버킷 이름
-  BUCKET_NAME: mungwithme-github-action-s3
+  BUCKET_NAME: mungwithme-github-action-s3-bucket
   # CodeDeploy의 애플리케이션 이름
-  CODE_DEPLOY_APP_NAME: mungwithme-be-app
+  CODE_DEPLOY_APP_NAME: mungwithme-app
   # CodeDeploy의 배포그룹 이름
-  DEPLOYMENT_GROUP_NAME: mungwithme-be-app-deployment-group
+  DEPLOYMENT_GROUP_NAME: mungwithme-app-deployment-group
   
 
 jobs:
@@ -22,10 +22,10 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: Set up JDK 17
+    - name: Set up JDK 11
       uses: actions/setup-java@v1
       with:
-        java-version: 17
+        java-version: 11
     
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
