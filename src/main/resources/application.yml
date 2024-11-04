@@ -22,7 +22,7 @@ spring:
           batch_size: 10000
 #          배치처리
   profiles:
-    include: prd, jwt, oauth, google
+    include: db, jwt, oauth, google
   data:
     redis:
       host: localhost

@@ -7,7 +7,10 @@ import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.repository.markingSaves.MarkingSavesRepository;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.entity.UserNotify;
+import com.mungwithme.user.model.enums.NotifyType;
 import com.mungwithme.user.service.UserFollowService;
+import com.mungwithme.user.service.UserNotifyService;
 import com.mungwithme.user.service.UserQueryService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ public class MarkingSavesService {
     private final UserFollowService userFollowService;
     private final MarkingQueryService markingQueryService;
     private final MarkingSavesRepository markingSavesRepository;
+    private final UserNotifyService userNotifyService;
 
     /**
      * 마킹을 즐겨찾기 하는 API
@@ -62,6 +66,9 @@ public class MarkingSavesService {
         }
         MarkingSaves markingSaves = MarkingSaves.create(currentUser, marking);
         markingSavesRepository.save(markingSaves);
+
+        UserNotify userNotify = UserNotify.create(NotifyType.SAVE, postUser, currentUser, marking.getId());
+        userNotifyService.addNotify(userNotify);
     }
 
     /**

@@ -12,7 +12,7 @@ import com.mungwithme.marking.model.dto.response.MarkingPagingResponseDto;
 import com.mungwithme.marking.model.enums.MapViewMode;
 import com.mungwithme.marking.model.enums.SearchType;
 import com.mungwithme.marking.model.enums.SortType;
-import com.mungwithme.marking.service.marking.MarkingSearchService;
+import com.mungwithme.marking.service.marking.MarkingQueryDslService;
 import java.io.IOException;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MarkingSearchController {
 
 
-    private final MarkingSearchService markingSearchService;
+    private final MarkingQueryDslService markingSearchService;
     private final BaseResponse baseResponse;
 
     /**

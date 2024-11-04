@@ -28,7 +28,6 @@ import com.mungwithme.user.service.UserQueryService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class MarkingSearchService {
+public class MarkingQueryDslService {
 
     private final AddressQueryService addressQueryService;
     private final UserQueryService userQueryService;
@@ -90,6 +89,7 @@ public class MarkingSearchService {
             pageDto.getTotalPages(), pageDto.getPageable());
     }
 
+
     /**
      * 이 장소 마킹 검색 API
      * 보기 권한에 따른 쿼리 처리`
@@ -98,7 +98,7 @@ public class MarkingSearchService {
         LocationBoundsDto locationBoundsDto, int offset,
         SortType sortType, SearchType searchType) {
         // 거리순은 포함되지 않음
-        if (sortType.equals(SortType.RECENT)  && searchType.equals(SearchType.LOCATION)) {
+        if (sortType.equals(SortType.RECENT) && searchType.equals(SearchType.LOCATION)) {
             sortType = SortType.POPULARITY;
         }
         int pageSize = 20;
@@ -375,6 +375,11 @@ public class MarkingSearchService {
             .build();
     }
 
+
+    public List<Marking> findAllMarkingsByIds(Set<Long> ids, Boolean isTempSaved, Boolean isDeleted) {
+
+        return markingQueryDslRepository.findAllMarkingsByIds(ids, isDeleted, isTempSaved);
+    }
 
     /**
      * 검색한 마킹의 세부정보 저장

@@ -9,7 +9,10 @@ import com.mungwithme.marking.model.enums.Visibility;
 import com.mungwithme.marking.model.entity.Marking;
 import com.mungwithme.marking.service.marking.MarkingQueryService;
 import com.mungwithme.user.model.entity.User;
+import com.mungwithme.user.model.entity.UserNotify;
+import com.mungwithme.user.model.enums.NotifyType;
 import com.mungwithme.user.service.UserFollowService;
+import com.mungwithme.user.service.UserNotifyService;
 import com.mungwithme.user.service.UserQueryService;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +28,7 @@ public class MarkingLikesService {
     private final MarkingQueryService markingQueryService;
     private final UserFollowService userFollowService;
     private final MarkingLikesRepository markingLikesRepository;
+    private final UserNotifyService userNotifyService;
 
     /**
      * 좋아요 추가
@@ -70,6 +74,10 @@ public class MarkingLikesService {
         // content null 방지를 위한 Null 체크
         MarkingLikes likes = MarkingLikes.create(currentUser, marking);
         markingLikesRepository.save(likes);
+
+        UserNotify userNotify = UserNotify.create(NotifyType.LIKE, postUser, currentUser, marking.getId());
+        userNotifyService.addNotify(userNotify);
+
     }
 
     /**

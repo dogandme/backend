@@ -70,6 +70,8 @@ public class UserService {
 
     private final EmailService emailService;
 
+    private final UserNotifyService userNotifyService;
+
 
     private static final String BEARER = "Bearer_";
 
@@ -390,6 +392,9 @@ public class UserService {
 
         // status 삭제
         loginStatusService.removeAllStatusWithRedis(currentUser);
+
+        // 알림 전체 삭제
+        userNotifyService.removeAllByUser(currentUser);
 
         // 유저 삭제
         removeUser(currentUser);

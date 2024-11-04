@@ -4,6 +4,8 @@ package com.mungwithme.user.service;
 import com.mungwithme.common.exception.ResourceNotFoundException;
 import com.mungwithme.user.model.entity.User;
 import com.mungwithme.user.model.entity.UserFollows;
+import com.mungwithme.user.model.entity.UserNotify;
+import com.mungwithme.user.model.enums.NotifyType;
 import com.mungwithme.user.repository.UserFollowRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +22,7 @@ public class UserFollowService {
     private final UserFollowRepository userFollowRepository;
     private final UserQueryService userQueryService;
     private final UserFollowsQueryService userfollowsQueryService;
+    private final UserNotifyService userNotifyService;
 
     /**
      * 팔로우 추가
@@ -48,6 +51,9 @@ public class UserFollowService {
 
         // 추가
         userFollowRepository.save(userFollows);
+
+        UserNotify userNotify = UserNotify.create(NotifyType.FOLLOW, followingUser, followerUser, null);
+        userNotifyService.addNotify(userNotify);
     }
 
     /**

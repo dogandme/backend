@@ -35,10 +35,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Slf4j
 @Repository
+@Transactional(readOnly = true)
 public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
 
     public MarkingQueryDslRepository() {
@@ -180,6 +182,16 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         // 페이지네이션 적용
         return applyPagination(pageable, contentQuery, countQuery);
     }
+
+
+    public List<Marking> findAllMarkingsByIds(Set<Long> ids, Boolean isDeleted, Boolean isTempSaved) {
+
+        return getQueryFactory().selectFrom(marking)
+            .where(
+                applyFilters(isTempSaved, isDeleted).and(marking.id.in(ids))
+            ).fetch();
+    }
+    
 
 
     /**

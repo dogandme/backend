@@ -2,11 +2,7 @@ package com.mungwithme.maps.repository;
 
 import com.mungwithme.address.model.entity.Address;
 import com.mungwithme.address.repository.AddressRepository;
-import com.mungwithme.maps.dto.response.LocationBoundsDto;
-import com.mungwithme.maps.dto.response.LocationBoundsDto;
-import com.mungwithme.marking.model.dto.request.MarkingSearchDto;
-import com.mungwithme.marking.model.dto.response.MarkingInfoResponseDto;
-import com.mungwithme.marking.service.marking.MarkingSearchService;
+import com.mungwithme.marking.service.marking.MarkingQueryDslService;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
@@ -25,7 +21,7 @@ class AddressRepositoryTest {
     AddressRepository addressRepository;
 
     @Autowired
-    MarkingSearchService markingSearchService;
+    MarkingQueryDslService markingSearchService;
     @Test
     void findNearbyMarkers() {
 
