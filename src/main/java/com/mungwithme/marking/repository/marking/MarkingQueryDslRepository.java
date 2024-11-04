@@ -166,7 +166,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             .select(new QMarkingQueryDto(marking))
             .from(marking)
             .where(applyFilters(isTempSaved, isDeleted).and(getUserEq(currentUser.getId())))
-            .orderBy(marking.regDt.desc(), marking.id.desc())
+            .orderBy(marking.releaseDateTime.desc(), marking.id.desc())
             .offset(pageable.getOffset()).limit(pageable.getPageSize());
 
         // 카운트 쿼리 생성
@@ -275,7 +275,7 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
             applyVisibilityConditions(contentQuery, countQuery, isFollowing);
         }
 
-        contentQuery.orderBy(marking.regDt.desc(), marking.id.desc());
+        contentQuery.orderBy(marking.releaseDateTime.desc(), marking.id.desc());
         contentQuery.offset(pageable.getOffset()).limit(pageable.getPageSize());
         return applyPagination(pageable, contentQuery, countQuery);
     }
@@ -628,9 +628,9 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
         if (sortType.equals(SortType.DISTANCE)) {
             contentQuery.orderBy(getDistanceExpression(lat, marking.lat, marking.lng, lng).asc());
         } else if (sortType.equals(SortType.POPULARITY)) {
-            contentQuery.orderBy(markingLikes.id.count().coalesce(0L).desc(), marking.regDt.desc(), marking.id.desc());
+            contentQuery.orderBy(markingLikes.id.count().coalesce(0L).desc(), marking.releaseDateTime.desc(), marking.id.desc());
         } else {
-            contentQuery.orderBy(marking.regDt.desc(), marking.id.desc());
+            contentQuery.orderBy(marking.releaseDateTime.desc(), marking.id.desc());
         }
     }
 

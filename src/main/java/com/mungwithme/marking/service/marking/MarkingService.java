@@ -140,8 +140,8 @@ public class MarkingService {
         fileStore.deleteFolder(FileStore.MARKING_DIR + File.separator + marking.getId());
         fileStore.deleteFolder(FileStore.PREVIEW_DIR + File.separator + marking.getId());
 
-        // isDeleted true 로 업데이트
-        marking.updateIsDeleted(true);
+
+        markingRepository.updateIsDeleted(true,marking);
 
         // 삭제
         markImageRepository.deleteAllInBatch(images);
@@ -231,11 +231,12 @@ public class MarkingService {
              *  isTempSaved 를 false 로 변경
              *  원래 임시저장이였던 마킹을 최종저장으로 업데이트
              */
-            isTempSaved = markingModifyDto.getIsTempSaved();
-            marking.updateIsTempSaved(isTempSaved);
-            marking.updateRegDt(LocalDateTime.now());
-
+            marking.updateReleaseDateTime(LocalDateTime.now());
         }
+
+        // 임시저장으로 업데이트
+        isTempSaved = markingModifyDto.getIsTempSaved();
+        marking.updateIsTempSaved(isTempSaved);
 
         // 이미지 삭제 ids
         Set<Long> removeIds = markingModifyDto.getRemoveIds();

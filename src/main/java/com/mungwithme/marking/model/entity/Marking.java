@@ -31,6 +31,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.format.annotation.DateTimeFormat;
 
 
 /**
@@ -85,6 +86,10 @@ public class Marking extends BaseTimeEntity {
     private Visibility isVisible;   // 마킹 권한 보기 설정
 
 
+    // 최초 공개 시간
+    @DateTimeFormat(pattern = "yyyy:MM:dd HH:mm:ss")
+    private LocalDateTime releaseDateTime;
+
     private String previewImage; // 썸네일 및 마커 이미지
 
     @OneToMany(mappedBy = "marking", cascade = CascadeType.ALL)
@@ -113,6 +118,7 @@ public class Marking extends BaseTimeEntity {
         this.isDeleted = isDeleted;
         this.isVisible = isVisible;
         this.previewImage = previewImage;
+        this.releaseDateTime = LocalDateTime.now();
     }
 
     public static Marking create(MarkingAddDto markingAddDto, User user,Address address) {
@@ -152,4 +158,7 @@ public class Marking extends BaseTimeEntity {
         this.isVisible = isVisible;
     }
 
+    public void updateReleaseDateTime(LocalDateTime releaseDateTime) {
+        this.releaseDateTime = releaseDateTime;
+    }
 }

@@ -63,8 +63,8 @@ public class ProfileQueryService {
           
             profileResponseDto.setSocialType(user.getSocialType());           // 소셜 로그인 타입
 
-            profileResponseDto.setBookmarks(markingSavesQueryService.findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
-
+            profileResponseDto.setBookmarks(markingSavesQueryService.
+                findAllBookmarksIdsByUserId(userId));// 북마크 마킹 목록
 
             // 마킹 id 목록
             Set<Marking> markingsByUser = markingQueryService.findMarkingsByUser(false, false, userId);
@@ -74,7 +74,6 @@ public class ProfileQueryService {
             int tempCount = markingTempService.countTempMarkingByUserIdAndIsTempSavedTrue(userId);
 
             profileResponseDto.setTempCnt(tempCount);
-
         }
         profileResponseDto.setNickname(user.getNickname());                   // 닉네임
         petQueryService.findByUser(user)
