@@ -300,6 +300,28 @@ public class MarkingSearchService {
 
     /***
      *
+     * 좋아요 한 마커 불러오기
+     *
+     */
+    public List<MarkRepDto> findMarksByLiked() {
+        User currentUser = userQueryService.findCurrentUser();
+        return markingQueryDslRepository.findAllTypeMarkByUser(false,false,currentUser, "like");
+    }
+    /***
+     *
+     * 저장 한 마커 불러오기
+     *
+     */
+    public List<MarkRepDto> findMarksBySaved() {
+        User currentUser = userQueryService.findCurrentUser();
+        return markingQueryDslRepository.findAllTypeMarkByUser(false,false,currentUser, "saved");
+    }
+
+
+
+
+    /***
+     *
      * 바운더리 안에 있는 마커 불러오기
      *
      * @return

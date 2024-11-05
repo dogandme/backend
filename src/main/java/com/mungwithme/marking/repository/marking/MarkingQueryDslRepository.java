@@ -421,6 +421,50 @@ public class MarkingQueryDslRepository extends Querydsl5RepositorySupport {
 
 
     /**
+     * Type 에 따른 좋아요 나 저장 리스트 반환
+     *
+     * @param isDeleted
+     * @param isTempSaved
+     * @param currentUser
+     * @param type
+     * @return
+     */
+    public List<MarkRepDto> findAllTypeMarkByUser(
+        Boolean isDeleted,
+        Boolean isTempSaved,
+        User currentUser,
+        String type
+    ) {
+
+        boolean isType = type.equals("like");
+
+        // type 에 따른 Join 분류
+        EntityPathBase<?> joinTarget = isType ? markingLikes : markingSaves;
+
+        // type 에 따른 Join 설정 (Like,save)
+        BooleanExpression joinCondition =
+            isType ? markingLikes.marking.eq(marking).and(markingLikes.user.eq(currentUser))
+                : markingSaves.marking.eq(marking).and(markingSaves.user.eq(currentUser));
+
+        // 조건에 따라 다른 생성자 사용
+        JPAQuery<MarkRepDto> contentQuery = getQueryFactory().select(
+            new QMarkRepDto(marking.id, marking.previewImage, marking.lat, marking.lng)).from(marking);
+
+        contentQuery.join(joinTarget).on(joinCondition);
+
+        applyUserFollowsLeftJoin(contentQuery, currentUser);
+
+        contentQuery.where(applyFilters(isTempSaved, isDeleted).and(isVisibleCondition(currentUser)));
+
+
+        return contentQuery.fetch();
+    }
+
+
+
+
+
+    /**
      * 내 마커 출력 API
      *
      * @param currentUser

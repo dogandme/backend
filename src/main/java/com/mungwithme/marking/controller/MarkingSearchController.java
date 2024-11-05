@@ -186,6 +186,30 @@ public class MarkingSearchController {
         return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
     }
 
+
+    /**
+     * 좋아요한 마커 불러오기
+     */
+    @GetMapping("/marks/likes")
+    public ResponseEntity<CommonBaseResult> getMarksByLiked(
+        @ModelAttribute LocationBoundsDto locationBoundsDto
+    ) throws IOException {
+
+        List<MarkRepDto> markByBound = markingSearchService.findMarksByLiked();
+        return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
+    }
+
+    /**
+     * 바운더리 내에 마커 불러오기
+     */
+    @GetMapping("/marks/saves")
+    public ResponseEntity<CommonBaseResult> getMarksBySaved(
+        @ModelAttribute LocationBoundsDto locationBoundsDto
+    ) throws IOException {
+
+        List<MarkRepDto> markByBound = markingSearchService.findMarksBySaved();
+        return baseResponse.sendContentResponse(markByBound, HttpStatus.OK.value());
+    }
     /**
      * 나의 마커 전체 불러오기
      */

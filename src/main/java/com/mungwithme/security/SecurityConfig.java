@@ -125,7 +125,10 @@ public class SecurityConfig {
                     )
 
 
-                    .requestMatchers("/profile","/users/profile", "/users/profile/**")
+                    .requestMatchers(                          "/markings/marks/saves",
+                        "/markings/marks/likes",
+                        "/profile",
+                        "/users/profile", "/users/profile/**")
                     .hasAnyRole(
                         Role.GUEST.name(), Role.USER.name(), Role.ADMIN.name()
                     )

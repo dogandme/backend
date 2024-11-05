@@ -16,6 +16,7 @@ import com.mungwithme.user.service.UserQueryService;
 import com.mungwithme.user.service.UserService;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -60,7 +61,29 @@ class MarkingQueryDslRepositoryTest {
         List<MarkRepDto> markByBounds = markingQueryDslRepository.findMarksByBound(locationBoundsDto, user);
 
         System.out.println("markByBounds.size() = " + markByBounds.size());
+    }
 
+
+
+    @Test
+    public void findAllTypeMarkByUser() {
+
+    // given
+        User user = userQueryService.findByEmail("2221325@naver.com").orElse(null);
+
+        List<MarkRepDto> like = markingQueryDslRepository.findAllTypeMarkByUser(false, false, user, "like");
+
+        // when
+
+        for (MarkRepDto markRepDto : like) {
+            System.out.println("markRepDto.getMarkingId() = " + markRepDto.getMarkingId());
+
+            System.out.println("markRepDto.getLng() = " + markRepDto.getLng());
+            System.out.println("markRepDto.getLat() = " + markRepDto.getLat());
+
+        }
+
+    // then
 
     }
 

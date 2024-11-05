@@ -41,7 +41,7 @@ public class MarkingInfoResponseDto {
 
     private Long userId;
 
-    private String nickName;
+    private String nickname;
 
     // 자신의 포스트 인지 확인
     private Boolean isOwner;
@@ -87,7 +87,7 @@ public class MarkingInfoResponseDto {
             .district(markingAddress.getDistrict()).province(markingAddress.getProvince())
             .cityCounty(markingAddress.getCityCounty())
             .build();
-        this.nickName = marking.getUser().getNickname();
+        this.nickname = marking.getUser().getNickname();
         this.content = marking.getContent();
         this.lat = marking.getLat();
         this.lng = marking.getLng();
