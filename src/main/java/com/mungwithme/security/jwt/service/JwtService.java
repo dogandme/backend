@@ -238,17 +238,13 @@ public class JwtService {
         String email = jwtClaim.get(JwtService.EMAIL_CLAIM).asString();
 
         String redisAuthToken = jwtClaim.get(JwtService.REDIS_CLAIM).asString();
-        System.out.println("RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY : " + RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY);
-        System.out.println("redisAuthToken : " + redisAuthToken);
 
         // token 으로 갖고 오기
         String redisEmail = redisUtil.getData(RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken);
-        System.out.println("redisEmail : " + redisEmail);
 
         // redis 에 redisAuthToken 이 없는 경우 예외처리
         // 저장해놓은 이메일이 같지 않다면 예외처리
         if (!StringUtils.hasText(redisEmail) || !redisEmail.equals(email)) {
-            System.out.println("해당 에러 진입");
             throw new UnauthorizedException("error.auth");
         }
         return true;

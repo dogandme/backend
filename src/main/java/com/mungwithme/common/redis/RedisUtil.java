@@ -24,6 +24,7 @@ public class RedisUtil {
     public String getData(String key){
         try {
             ValueOperations<String,String> valueOperations=redisTemplate.opsForValue();
+            System.out.println("valueOperations : " + valueOperations);
             return valueOperations.get(key);
         } catch (RedisConnectionFailureException e) {
             log.error("Redis connection failed", e);
