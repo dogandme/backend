@@ -101,6 +101,7 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
         try {
             ClassPathResource imgFile = new ClassPathResource(imagePath);
+            System.out.println("imgFile: " + imgFile);
             if (!imgFile.exists()) {
                 throw new FileNotFoundException("Image file not found at " + imagePath);
             }
