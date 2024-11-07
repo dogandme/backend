@@ -15,10 +15,7 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import javax.mail.util.ByteArrayDataSource;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Random;
 
 @Slf4j
@@ -104,14 +101,17 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
         try {
             ClassPathResource imgFile = new ClassPathResource(imagePath);
-            InputStream inputStream = imgFile.getInputStream();
+            if (!imgFile.exists()) {
+                throw new FileNotFoundException("Image file not found at " + imagePath);
+            }
 
+            InputStream inputStream = imgFile.getInputStream();
             BufferedImage bufferedImage = ImageIO.read(inputStream);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);  // 이미지 형식에 맞게 변경 ("png" 또는 "jpg")
+            ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
 
-            DataSource dataSource = new ByteArrayDataSource(byteArrayOutputStream.toByteArray(), "image/png");  // MIME type에 맞게 설정
-
+            DataSource dataSource = new ByteArrayDataSource(byteArrayOutputStream.toByteArray(), "image/png");
+            System.out.println("dataSource : " + dataSource);
             MimeMessageHelper helper = new MimeMessageHelper(message,true,"utf-8");
             helper.setFrom(FROM_EMAIL);         //이메일의 발신자 주소 설정
             helper.setTo(toMail);               //이메일의 수신자 주소 설정
