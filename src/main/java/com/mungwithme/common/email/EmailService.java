@@ -5,6 +5,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 import java.io.File;
+import java.io.IOException;
 import java.util.Random;
 
 @Slf4j
@@ -96,17 +100,25 @@ public class EmailService {
     public void mailSend(String FROM_EMAIL, String toMail, String title, String content, String imagePath) {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
         try {
+
+
+            Resource[] resources = ResourcePatternUtils
+                    .getResourcePatternResolver(new DefaultResourceLoader())
+                    .getResources("classpath*:static/images/mail_top.png");
+
             MimeMessageHelper helper = new MimeMessageHelper(message,true,"utf-8");
             helper.setFrom(FROM_EMAIL);         //이메일의 발신자 주소 설정
             helper.setTo(toMail);               //이메일의 수신자 주소 설정
             helper.setSubject(title);           //이메일의 제목을 설정
             helper.setText(content,true);  //이메일의 내용 설정 두 번째 매개 변수에 true를 설정하여 html 설정으로한다.
-            helper.addInline("imageId", new ClassPathResource(imagePath));   // 이메일에 이미지 추가
+            helper.addInline("imageId", resources[0]);   // 이메일에 이미지 추가
 
             mailSender.send(message);// 이메일 전송
 
         } catch (MessagingException e) {
             e.printStackTrace();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
