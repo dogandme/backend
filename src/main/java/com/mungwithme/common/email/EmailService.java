@@ -99,8 +99,8 @@ public class EmailService {
      */
     public void mailSend(String FROM_EMAIL, String toMail, String title, String content, String imagePath) {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
+        System.out.println("imagePath : " + imagePath);
         try {
-            System.out.println("imagePath : " + imagePath);
             ClassPathResource imgFile = new ClassPathResource(imagePath);
             System.out.println("imgFile: " + imgFile);
             if (!imgFile.exists()) {
