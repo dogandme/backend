@@ -4,6 +4,7 @@ import com.mungwithme.common.redis.RedisUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -77,7 +78,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "src/main/resources/static/images/mail_top.png";
+        String imagePath = "static/images/mail_top.png";
 
         // redis에 인증번호 저장 (3분 유효)
         redisUtil.setDataExpire(Integer.toString(authNumber),toMail,3 * 60L);
@@ -100,7 +101,7 @@ public class EmailService {
             helper.setTo(toMail);               //이메일의 수신자 주소 설정
             helper.setSubject(title);           //이메일의 제목을 설정
             helper.setText(content,true);  //이메일의 내용 설정 두 번째 매개 변수에 true를 설정하여 html 설정으로한다.
-            helper.addInline("imageId", new File(imagePath));   // 이메일에 이미지 추가
+            helper.addInline("imageId", new ClassPathResource(imagePath));   // 이메일에 이미지 추가
 
             mailSender.send(message);// 이메일 전송
 
