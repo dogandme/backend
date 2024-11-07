@@ -162,7 +162,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "src/main/resources/static/images/mail_top.png";
+        String imagePath = "static/images/mail_top.png";
 
         mailSend(username, toMail, title, content, imagePath);   // 메일 전송
     }
