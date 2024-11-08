@@ -82,7 +82,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "static/images/mail_top.png";
+        String imagePath = "/이게머임/static/images/mail_top.png";
         log.info("imagePath : {}" ,imagePath);
         // redis에 인증번호 저장 (3분 유효)
         redisUtil.setDataExpire(Integer.toString(authNumber),toMail,3 * 60L);
@@ -181,7 +181,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "src/main/resources/static/images/mail_top.png";
+        String imagePath = "/이게머임2/src/main/resources/static/images/mail_top.png";
 
         mailSend(username, toMail, title, content, imagePath);   // 메일 전송
     }
