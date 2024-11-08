@@ -83,7 +83,7 @@ public class EmailService {
 
         // 이미지 파일을 CID로 추가
         String imagePath = "/static/images/mail_top.png";
-        System.out.println("imagePath : " + imagePath);
+        log.info("imagePath : {}" ,imagePath);
         // redis에 인증번호 저장 (3분 유효)
         redisUtil.setDataExpire(Integer.toString(authNumber),toMail,3 * 60L);
 
@@ -99,10 +99,10 @@ public class EmailService {
      */
     public void mailSend(String FROM_EMAIL, String toMail, String title, String content, String imagePath) {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
-        System.out.println("imagePath : " + imagePath);
+        log.info("imagePath : {}" ,imagePath);
         try {
             ClassPathResource imgFile = new ClassPathResource(imagePath);
-            System.out.println("imgFile: " + imgFile);
+            log.info("imgFile : {}" ,imgFile);
             if (!imgFile.exists()) {
                 throw new FileNotFoundException("Image file not found at " + imagePath);
             }
