@@ -82,7 +82,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "/static/images/mail_top.png";
+        String imagePath = "static/images/mail_top.png";
         log.info("imagePath : {}" ,imagePath);
         // redis에 인증번호 저장 (3분 유효)
         redisUtil.setDataExpire(Integer.toString(authNumber),toMail,3 * 60L);
@@ -101,13 +101,12 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();//JavaMailSender 객체를 사용하여 MimeMessage 객체를 생성
         log.info("imagePath : {}" ,imagePath);
         try {
-            ClassPathResource imgFile = new ClassPathResource(imagePath);
-            log.info("imgFile : {}" ,imgFile);
-            if (!imgFile.exists()) {
+            // 클래스패스에서 이미지 로드
+            InputStream inputStream = getClass().getClassLoader().getResourceAsStream(imagePath);
+            if (inputStream == null) {
                 throw new FileNotFoundException("Image file not found at " + imagePath);
             }
 
-            InputStream inputStream = imgFile.getInputStream();
             BufferedImage bufferedImage = ImageIO.read(inputStream);
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             ImageIO.write(bufferedImage, "png", byteArrayOutputStream);
