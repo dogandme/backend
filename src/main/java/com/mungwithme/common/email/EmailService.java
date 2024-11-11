@@ -82,7 +82,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "/이게머임/static/images/mail_top.png";
+        String imagePath = "/static/images/mail_top.png";
         log.info("imagePath : {}" ,imagePath);
         // redis에 인증번호 저장 (3분 유효)
         redisUtil.setDataExpire(Integer.toString(authNumber),toMail,3 * 60L);
@@ -170,7 +170,7 @@ public class EmailService {
                 + "        </div>"
                 + "        <div style='text-align: center; line-height: 1.6; font-size: 18px; color: #333;'>"
                 + "            <p>멍윗미를 방문해주셔서 감사합니다!</p>"
-                + "            <p>아래 임시 비밀번호를 입력하여 로그인을 하세요</p>"
+                + "            <아래 임시 비밀번호를 입력하여 로그인을 하세요</p>"
                 + "            <div style='font-size: 32px; font-weight: bold; color: #ff6720; margin: 20px 0;'>" + temporaryPassword + "</div>"
                 + "        </div>"
                 + "        <div style='text-align: center; padding-top: 20px; font-size: 14px; color: #888;'>"
@@ -181,7 +181,7 @@ public class EmailService {
                 + "</html>";
 
         // 이미지 파일을 CID로 추가
-        String imagePath = "/이게머임2/src/main/resources/static/images/mail_top.png";
+        String imagePath = "/src/main/resources/static/images/mail_top.png";
 
         mailSend(username, toMail, title, content, imagePath);   // 메일 전송
     }
