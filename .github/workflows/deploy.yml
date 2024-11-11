@@ -70,7 +70,7 @@ jobs:
       
     # S3 버킷으로 파일을 업로드
     - name: Upload to S3
-      run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip
+      run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip --delete
 
     # S3 버킷에 업로드 된 파일을 대상으로 CodeDeploy에서 배포 요청
     - name: Code Deploy
