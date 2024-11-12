@@ -22,7 +22,8 @@ else
 fi
 
 # JAR 파일 복사
-JAR_PATH=$(ls $PROJECT_ROOT/deploy/build/libs/*.jar 2> /dev/null)
+JAR_PATH=$(ls $PROJECT_ROOT/deploy/build/libs/mungwithme-0.0.1-SNAPSHOT.jar 2> /dev/null)
+
 if [ -n "$JAR_PATH" ]; then
   cp -f $JAR_PATH $JAR_FILE
   echo "$TIME_NOW > JAR 파일 복사 완료: $JAR_PATH" >> $DEPLOY_LOG
@@ -30,10 +31,6 @@ else
   echo "$TIME_NOW > JAR 파일이 존재하지 않습니다. 복사 실패." >> $DEPLOY_LOG
   exit 1
 fi
-echo "PROJECT_ROOT: $PROJECT_ROOT" >> $DEPLOY_LOG
-echo "JAR 경로: $PROJECT_ROOT/deploy/build/libs" >> $DEPLOY_LOG
-
-
 
 # JAR 파일 실행
 echo "$TIME_NOW > JAR 파일 실행 시작: $JAR_FILE" >> $DEPLOY_LOG
