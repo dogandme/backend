@@ -1,7 +1,10 @@
+# 1 워크플로의 이름 지정
+name: CI and Deploy to Amazon EC2
+
+# 2 워크플로가 시작될 조건 지정
 on:
   push:
     branches: [ develop ]
-
 env:
   # 버킷에 저장할 폴더 이름
   PROJECT_NAME: BE_Server
@@ -11,14 +14,15 @@ env:
   CODE_DEPLOY_APP_NAME: mungwithme-be-app
   # CodeDeploy의 배포그룹 이름
   DEPLOYMENT_GROUP_NAME: mungwithme-be-app-deployment-group
-  
+permissions:
+  contents: read
 
 jobs:
   build:
-    # 실행 환경 설정
+    # 3 실행 환경 설정
     runs-on: ubuntu-latest
 
-    # 차례대로 실행
+    # 4 차례대로 실행
     steps:
     - uses: actions/checkout@v2
     
@@ -69,12 +73,22 @@ jobs:
         aws-region: ap-northeast-2
       
     # S3 버킷으로 파일을 업로드, 기존 파일 삭제
-    # - name: Upload to S3
-    #   run: aws s3 cp --region ap-northeast-2 ./$GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/$GITHUB_SHA.zip --delete
     - name: Upload to S3
-      run: aws s3 sync . s3://$BUCKET_NAME/$PROJECT_NAME/ --region ap-northeast-2 --delete
+      # run: aws s3 sync . s3://$BUCKET_NAME/$PROJECT_NAME/ --region ap-northeast-2 --delete
+      run: |
+        aws deploy push \
+          --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
+          --ignore-hidden-files \
+          --s3-location s3://$BUCKET_NAME/$GITHUB_SHA.zip \
+          --source .
 
 
     # S3 버킷에 업로드 된 파일을 대상으로 CodeDeploy에서 배포 요청
     - name: Code Deploy
-      run: aws deploy create-deployment --application-name $CODE_DEPLOY_APP_NAME --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name $DEPLOYMENT_GROUP_NAME --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
+      run: |
+        aws deploy create-deployment \
+          --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
+          --deployment-config-name CodeDeployDefault.AllAtOnce \
+          --deployment-group-name ${{ env.DEPLOYMENT_GROUP_NAME }} \
+          --s3-location bucket=$BUCKET_NAME,key=$GITHUB_SHA.zip,bundleType=zip
+      # run: aws deploy create-deployment --application-name $CODE_DEPLOY_APP_NAME --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name $DEPLOYMENT_GROUP_NAME --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
