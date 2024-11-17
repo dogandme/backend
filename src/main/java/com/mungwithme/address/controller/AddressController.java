@@ -38,6 +38,10 @@ public class AddressController {
     @GetMapping
     public ResponseEntity<CommonBaseResult> getListBySubDist(
         @Validated @ModelAttribute AddressSearchDto addressSearchDto) throws IOException {
+
+        log.info("addressSearchDto.getKeyword() = {}", addressSearchDto.getKeyword());
+        log.debug("addressSearchDto.getKeyword() = {} ", addressSearchDto.getKeyword());
+        
         return baseResponse.sendContentResponse(
             addressSearchService.findListBySubDist(addressSearchDto, 0, 7), HttpStatus.OK.value());
 
