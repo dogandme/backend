@@ -96,6 +96,7 @@ public class SecurityConfig {
                 authorizeRequests
                     .requestMatchers(
                         "/",
+                        "/maps/**",
                         "/auth",
                         "/users",
                         "/users/auth/**",
@@ -141,7 +142,7 @@ public class SecurityConfig {
 
 
                     .requestMatchers(
-                        "/markings", "/maps/**", "/users/follows",
+                        "/markings", "/users/follows",
                         "/users/follows/**", "/markings/**"
                     ).hasAnyRole(
                         Role.USER.name(), Role.ADMIN.name()
