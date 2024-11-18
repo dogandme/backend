@@ -16,7 +16,7 @@ env:
   DEPLOYMENT_GROUP_NAME: mungwithme-be-app-deployment-group
 permissions:
   contents: read
-
+ 
 jobs:
   build:
     # 3 실행 환경 설정
