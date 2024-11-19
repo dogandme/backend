@@ -35,5 +35,3 @@ com:
       upload:
         path: /Users/imhaneul/files/image
 
-server:
-  port: 80
