@@ -34,4 +34,5 @@ com:
     ex8_fileupload:
       upload:
         path: /Users/imhaneul/files/image
-
+server:
+  port: 80
