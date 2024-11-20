@@ -72,15 +72,10 @@ jobs:
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: ap-northeast-2
       
-    # S3 버킷으로 파일을 업로드, 기존 파일 삭제
+      # S3 버킷으로 파일 업로드 (덮어쓰기)
     - name: Upload to S3
-      # run: aws s3 sync . s3://$BUCKET_NAME/$PROJECT_NAME/ --region ap-northeast-2 --delete
       run: |
-        aws deploy push \
-          --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
-          --ignore-hidden-files \
-          --s3-location s3://$BUCKET_NAME/$GITHUB_SHA.zip \
-          --source .
+        aws s3 cp $GITHUB_SHA.zip s3://$BUCKET_NAME/$PROJECT_NAME/latest.zip --region ap-northeast-2
 
 
     # S3 버킷에 업로드 된 파일을 대상으로 CodeDeploy에서 배포 요청
@@ -90,5 +85,5 @@ jobs:
           --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
           --deployment-config-name CodeDeployDefault.AllAtOnce \
           --deployment-group-name ${{ env.DEPLOYMENT_GROUP_NAME }} \
-          --s3-location bucket=$BUCKET_NAME,key=$GITHUB_SHA.zip,bundleType=zip
+          --s3-location bucket=$BUCKET_NAME,key=$PROJECT_NAME/latest.zip,bundleType=zip
       # run: aws deploy create-deployment --application-name $CODE_DEPLOY_APP_NAME --deployment-config-name CodeDeployDefault.OneAtATime --deployment-group-name $DEPLOYMENT_GROUP_NAME --s3-location bucket=$BUCKET_NAME,bundleType=zip,key=$PROJECT_NAME/$GITHUB_SHA.zip
