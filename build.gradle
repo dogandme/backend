@@ -74,6 +74,9 @@ dependencies {
 
 	// 서버 코드 변경시 자동으로 ReStart
 	compileOnly('org.springframework.boot:spring-boot-devtools')
+
+	// Health check를 위한 Actuator
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
 
 tasks.named('test') {
