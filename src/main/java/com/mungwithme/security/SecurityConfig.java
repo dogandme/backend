@@ -115,7 +115,8 @@ public class SecurityConfig {
                         "/health",
                         "/pets/image/**",
                         "/markings/image/**",
-                        "/addresses", "/addresses/**"
+                        "/addresses", "/addresses/**",
+                        "/healthCheck"
                     ).permitAll()
 
                     .requestMatchers(
