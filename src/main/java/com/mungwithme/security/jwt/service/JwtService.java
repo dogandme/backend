@@ -128,7 +128,7 @@ public class JwtService {
      */
     public Optional<String> extractAccessToken(HttpServletRequest request) {
 
-        log.info("request.getHeader(\"Authorization\") = {}", request.getHeader("Authorization"));
+//        log.info("request.getHeader(\"Authorization\") = {}", request.getHeader("Authorization"));
 
         return Optional.ofNullable(request.getHeader("Authorization"))        // Authorization 헤더를 가져옵니다.
             .filter(header -> header.startsWith(BEARER))                     // 헤더가 "BEARER "로 시작하는지 확인합니다.
