@@ -41,7 +41,7 @@ public interface AddressRepository extends JpaRepository<Address, Long> {
      * @return
      */
     @Query(value = "SELECT *, ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) as distance " +
-        "FROM Address a " +
+        "FROM address a " +
         "WHERE ST_Distance_Sphere(POINT(:lng, :lat), POINT(a.lng, a.lat)) <= :radius "
         + "ORDER BY distance ASC " ,
         nativeQuery = true)
