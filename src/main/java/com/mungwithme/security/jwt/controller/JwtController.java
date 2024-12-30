@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ import java.io.IOException;
  *
  *질문) 비회원도 접근 가능?
  */
+@Slf4j
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/auth")
@@ -35,7 +37,7 @@ public class JwtController {
 
     @GetMapping("")
     public ResponseEntity<CommonBaseResult> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
+        log.info("/auth request : {}", request.toString());
         UserResponseDto userResponseDto = new UserResponseDto();
         String accessToken = "";
 
