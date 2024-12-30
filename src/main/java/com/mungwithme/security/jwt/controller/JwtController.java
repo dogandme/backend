@@ -37,13 +37,13 @@ public class JwtController {
 
     @GetMapping("")
     public ResponseEntity<CommonBaseResult> refreshAccessToken(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        log.info("/auth request : {}", request.toString());
         UserResponseDto userResponseDto = new UserResponseDto();
         String accessToken = "";
 
         String refreshToken = jwtService.extractRefreshToken(request)
                     .filter(jwtService::tokenValid)   // refresh Token이 있고 검증되면 반환
                     .orElse(null);                // 없으면 null 반환
+        log.info("/auth request refreshToken : {}", refreshToken);
 
         if (refreshToken != null) {
 
