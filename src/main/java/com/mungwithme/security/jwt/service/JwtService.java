@@ -202,7 +202,7 @@ public class JwtService {
         cookie.setMaxAge(expirationPeriod);
         cookie.setDomain("mungwithme.site");
         cookie.setPath("/");
-        cookie.setSecure(true);
+//        cookie.setSecure(true);
         cookie.setHttpOnly(httpOnly);
         return cookie;
     }
