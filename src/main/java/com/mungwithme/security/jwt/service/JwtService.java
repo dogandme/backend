@@ -200,6 +200,7 @@ public class JwtService {
     public Cookie createCookie(String key, String value, int expirationPeriod, boolean httpOnly) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(expirationPeriod);
+        cookie.setDomain("https://mungwithme.site");
         cookie.setPath("/");
         cookie.setHttpOnly(httpOnly);
         return cookie;
