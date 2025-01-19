@@ -148,14 +148,14 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("error.arg.address")))
             .collect(Collectors.toSet());
 
-        Set<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
-            .collect(Collectors.toSet());
+        List<UserAddress> userAddresses = addresses.stream().map(address -> UserAddress.create(currentUser, address))
+            .collect(Collectors.toList());
 
         currentUser.setRole(Role.GUEST);
         currentUser.setNickname(userSignUpDto.getNickname());
         currentUser.setGender(userSignUpDto.getGender());
         currentUser.setAge(userSignUpDto.getAge());
-        currentUser.setUserAddresses(userAddresses);
+//        currentUser.setUserAddresses(userAddresses);
         currentUser.setMarketingYn(userSignUpDto.getMarketingYn());
         currentUser.setNickLastModDt(LocalDateTime.now());
 
@@ -176,6 +176,9 @@ public class UserService {
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(currentUser.getRole().getKey());
         userResponseDto.setNickname(currentUser.getNickname());
+        
+
+        userAddressService.saveAll(userAddresses,LocalDateTime.now());
         return userResponseDto;
     }
 
