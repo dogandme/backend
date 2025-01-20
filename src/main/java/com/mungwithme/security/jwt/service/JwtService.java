@@ -182,7 +182,11 @@ public class JwtService {
      * @modification.details 토큰 헤더 저장 -> 토큰 쿠키 저장
      */
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
-        response.addCookie(createCookie(refreshCookie, BEARER + refreshToken, refreshTokenExpirationPeriod, true));
+//        response.addCookie(createCookie(refreshCookie, BEARER + refreshToken, refreshTokenExpirationPeriod, true));
+
+        String setCookieHeader = refreshCookie+"=" + refreshToken + "; Path=/; HttpOnly; Secure; SameSite=None; Max-Age="+refreshTokenExpirationPeriod; // 7일
+        response.addHeader("Set-Cookie", setCookieHeader);
+
     }
 
 
