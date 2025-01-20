@@ -77,6 +77,10 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
                     RedisKeys.REDIS_AUTH_TOKEN_LOGIN_KEY + redisAuthToken, user.getId(), request.getSession().getId());
             });
 
+        String header = response.getHeader("Set-Cookie");
+
+        log.info("header = {}", header);
+        
         // 응답 객체에 accessToken과 권한 담기
         userResponseDto.setAuthorization(accessToken);
         userResponseDto.setRole(roles.get(0));
