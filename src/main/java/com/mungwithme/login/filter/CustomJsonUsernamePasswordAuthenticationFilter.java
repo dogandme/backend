@@ -1,6 +1,7 @@
 package com.mungwithme.login.filter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mungwithme.login.handler.CustomJsonAuthenticationSuccessHandler;
 import com.mungwithme.user.repository.UserRepository;
 import com.mungwithme.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.util.StreamUtils;
 
@@ -38,6 +40,7 @@ public class CustomJsonUsernamePasswordAuthenticationFilter extends AbstractAuth
     // JSON 형식의 로그인 요청을 처리하도록 커스텀
     public CustomJsonUsernamePasswordAuthenticationFilter(ObjectMapper objectMapper) {
         super(DEFAULT_LOGIN_PATH_REQUEST_MATCHER); // 위에서 설정한 "login" + POST로 온 요청을 처리하기 위해 설정
+
         this.objectMapper = objectMapper;
     }
 

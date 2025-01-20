@@ -60,7 +60,10 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
         String refreshToken = jwtService.createRefreshToken(email,roles.get(0),
             redisAuthToken);                    // RefreshToken 발급
 
+        log.info("onAuthenticationSuccess : refreshToken = {}", refreshToken);
+
         jwtService.setRefreshTokenCookie(response, refreshToken);                 // 쿠키에 RefreshToken 담기
+
 
         //loginStatus
         String userAgent = request.getHeader("User-Agent");

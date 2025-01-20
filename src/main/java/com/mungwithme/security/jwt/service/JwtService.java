@@ -185,7 +185,9 @@ public class JwtService {
         response.addCookie(createCookie(refreshCookie, BEARER + refreshToken, refreshTokenExpirationPeriod, true));
     }
 
-    /**
+
+
+/*    *
      * 쿠키 생성
      *
      * @param key
@@ -200,6 +202,7 @@ public class JwtService {
     public Cookie createCookie(String key, String value, int expirationPeriod, boolean httpOnly) {
         Cookie cookie = new Cookie(key, value);
         cookie.setMaxAge(expirationPeriod);
+        cookie.setSecure(true);  // HTTPS 연결에서만 쿠키 전송
         cookie.setPath("/");
         cookie.setHttpOnly(httpOnly);
         return cookie;
