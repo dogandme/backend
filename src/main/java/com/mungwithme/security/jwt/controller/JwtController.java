@@ -57,7 +57,8 @@ public class JwtController {
             userResponseDto.setAuthorization(accessToken);
             userResponseDto.setRole(String.valueOf(jwtClaim.get(JwtService.ROLE_CLAIM)));
 
-            User user = userQueryService.findByEmail(String.valueOf(jwtClaim.get(JwtService.EMAIL_CLAIM)))
+            User user = userQueryService.findByEmail(String.valueOf(jwtClaim.get(JwtService.EMAIL_CLAIM).asString()))
+                
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
             userResponseDto.setRole(user.getNickname());
 
