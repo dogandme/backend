@@ -184,7 +184,7 @@ public class JwtService {
     public void setRefreshTokenCookie(HttpServletResponse response, String refreshToken) {
 //        response.addCookie(createCookie(refreshCookie, BEARER + refreshToken, refreshTokenExpirationPeriod, true));
 
-        String setCookieHeader = refreshCookie+"="+BEARER + refreshToken +"; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age="+refreshTokenExpirationPeriod; // 7일
+        String setCookieHeader = refreshCookie+"="+BEARER + refreshToken +"; Path=/; HttpOnly; Secure; SameSite=None; Max-Age="+refreshTokenExpirationPeriod; // 7일
         response.addHeader("Set-Cookie", setCookieHeader);
 
     }
