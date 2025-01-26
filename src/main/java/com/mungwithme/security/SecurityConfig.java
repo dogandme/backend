@@ -75,16 +75,14 @@ public class SecurityConfig {
                 @Override
                 public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                     CorsConfiguration configuration = new CorsConfiguration();
-                    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173","http://218.239.21.150:5173",
+                    configuration.setAllowedOrigins(Arrays.asList("http://localhost:5173",
+                        "http://218.239.21.150:5173",
                         "https://mungwithme.site"));
                     configuration.setAllowedMethods(Collections.singletonList("*"));
                     configuration.setAllowCredentials(true);
                     configuration.setAllowedHeaders(Collections.singletonList("*"));
                     configuration.setMaxAge(3600L);
                     configuration.setExposedHeaders(Collections.singletonList("Set-Cookie"));
-
-                    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                    source.registerCorsConfiguration("/**", configuration);
                     return configuration;
                 }
             }));
