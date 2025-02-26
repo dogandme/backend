@@ -1,5 +1,7 @@
-# 🐾 mung with me
+# 🐾 Mung With Me
 <img src="https://github.com/user-attachments/assets/a2ec542f-7dc3-4a97-b016-6f5a3c5ff414" width="600" />
+
+🔗 **서비스 바로가기** → [MungWithMe](https://mungwithme.site/map)
 
 # 프로젝트 소개
 >반려동물과 함께한 특별한 장소와 추억을 지도에 마킹하여 기록하고,\
