@@ -78,7 +78,7 @@ GitHub와 Jira를 연동하여 형상 관리, 이슈 추적 및 프로젝트 진
 <img src="https://github.com/user-attachments/assets/68a415ca-8606-4c97-8384-8dd7d8aa81a4"/>
    </td>
    <td align="left" width="500px" class="Jira">
-   <img src="https://github.com/user-attachments/assets/cf0620cd-bd94-40db-b00a-7e917a252bbb"/>
+   <img src="https://github.com/user-attachments/assets/ed9074f4-cbdb-452a-97f1-01b3946fc727"/>
 
   </td>
   </tr>
