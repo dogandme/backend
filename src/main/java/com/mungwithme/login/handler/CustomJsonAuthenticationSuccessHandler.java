@@ -50,7 +50,7 @@ public class CustomJsonAuthenticationSuccessHandler extends SimpleUrlAuthenticat
 
         UserResponseDto userResponseDto = new UserResponseDto();
 
-        
+
         String email = extractUsername(
             authentication);             // 인증 정보에서 Username(email) 추출 (JwtAuthenticationProcessingFilter에서 생성했었음)
         List<String> roles = extractRoles(authentication);          // 인증 정보에서 역할(Role) 추출
