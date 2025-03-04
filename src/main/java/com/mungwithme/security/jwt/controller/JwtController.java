@@ -53,7 +53,7 @@ public class JwtController {
             Map<String, Claim> jwtClaim = jwtService.getJwtClaim(refreshToken);
 
             userResponseDto.setAuthorization(accessToken);
-            userResponseDto.setRole(String.valueOf(jwtClaim.get(JwtService.ROLE_CLAIM)));
+            userResponseDto.setRole(String.valueOf(jwtClaim.get(JwtService.ROLE_CLAIM).asString()));
 
             User user = userQueryService.findByEmail(String.valueOf(jwtClaim.get(JwtService.EMAIL_CLAIM).asString()))
                 
