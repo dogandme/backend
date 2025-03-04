@@ -52,15 +52,13 @@ public class JwtController {
 
             Map<String, Claim> jwtClaim = jwtService.getJwtClaim(refreshToken);
 
-
-
             userResponseDto.setAuthorization(accessToken);
             userResponseDto.setRole(String.valueOf(jwtClaim.get(JwtService.ROLE_CLAIM)));
 
             User user = userQueryService.findByEmail(String.valueOf(jwtClaim.get(JwtService.EMAIL_CLAIM).asString()))
                 
                 .orElseThrow(() -> new ResourceNotFoundException("error.notfound.user"));
-            userResponseDto.setRole(user.getNickname());
+            userResponseDto.setNickname(user.getNickname());
 
             return baseResponse.sendContentResponse(userResponseDto, 200);
         } else {
