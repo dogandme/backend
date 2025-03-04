@@ -15,7 +15,7 @@
 > 24.09.30 ~ 24.12.18 (10주)\
 > 백엔드 2명 프론트 2명 기획자 1명
 
-
+## 멤버
 <div align="center">
 <table align="center"> <!-- 팀원 표 -->
   <tr>
@@ -62,10 +62,11 @@
 ## 목차
 
 > 1. [ERD 구조](#erd-구조)
-> 2. [기술 스택](#기술-스택)
-> 3. [형상 관리 - Notion, Jira](#형상-관리)
-> 4. [API 명세서](#API-명세서)
-> 5. [기능](#기능)
+> 2. [CI/CD 구축](#CI/CD-구축)
+> 3. [기술 스택](#기술-스택)
+> 4. [형상 관리 - Notion, Jira](#형상-관리)
+> 5. [API 명세서](#API-명세서)
+> 6. [기능](#기능)
 
 
 
@@ -75,6 +76,9 @@
 
 <img src="https://github.com/user-attachments/assets/32dcc9fb-7851-46be-9014-5e87189e7628" width="1000" height="600"/>
 
+## CI/CD 구축
+
+<img width="1144" alt="Image" src="https://github.com/user-attachments/assets/82dd0a29-3a95-4b6c-b05a-68ee09d7a787" />
 
 ## 기술 스택
 
