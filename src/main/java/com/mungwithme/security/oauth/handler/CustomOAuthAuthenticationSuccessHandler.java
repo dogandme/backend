@@ -111,6 +111,7 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
             authorizationCookie.setPath("/login");
             roleCookie.setPath("/login");
 
+            
             authorizationCookie.setMaxAge(maxAge);
             roleCookie.setMaxAge(maxAge);
 
