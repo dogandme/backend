@@ -117,7 +117,7 @@ public class CustomOAuthAuthenticationSuccessHandler implements AuthenticationSu
             response.addCookie(authorizationCookie);
             response.addCookie(roleCookie);
 
-            response.sendRedirect("http://mungwithme.site/login");
+            response.sendRedirect("https://mungwithme.site/login");
         } catch (Exception e) {
             throw e;
         }
