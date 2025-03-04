@@ -15,6 +15,50 @@
 > 24.09.30 ~ 24.12.18 (10주)\
 > 백엔드 2명 프론트 2명 기획자 1명
 
+
+<div align="center">
+<table align="center"> <!-- 팀원 표 -->
+  <tr>
+   <th >
+    Backend 장수현
+   </th>
+   <th>
+    Backend 임하늘
+   </th>
+   </tr>
+  <tr>
+    <td align="center">
+        <img src="https://avatars.githubusercontent.com/u/65846005?v=4" width=300px alt="장수현"> 
+        <br/>
+    </td>
+    <td align="center">
+        <img src="https://github.com/YesunPark/cafe-bom/assets/108933466/871f84d5-a2da-49e0-927e-8c023f2419ed" width=300px alt="임하늘"> 
+        <br/>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" class="수현">
+        <a href="https://github.com/JangSuhyeon"><img alt="github-link" height="25" src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=GitHub&logoColor=white"/></a>
+
+   </td>
+   <td align="center" class="하늘">
+        <a href="https://github.com/lhn925"><img alt="github-link" height="25" src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=GitHub&logoColor=white"/></a>
+   </td>
+
+  </tr>
+  <tr>
+    <td align="center" class="우영">
+        -
+   </td>
+    <td align="center" class="민수">
+        -
+   </td>
+
+
+</table>
+</div>
+
+
 ## 목차
 
 > 1. [ERD 구조](#erd-구조)
