@@ -85,9 +85,11 @@
 ## 기술 스택
 
 ### 백엔드
-![Image](https://github.com/user-attachments/assets/3a89d5de-b736-4177-8512-7c7ae79be708)
-<a href="https://github.com/msdio/stackticon"><img src="https://firebasestorage.googleapis.com/v0/b/stackticon-81399.appspot.com/o/images%2F1740549831823?alt=media&token=0902c355-9967-43b7-8200-d8580d10abae" alt="stackticon" /></a>
 
+[//]: # (![Image]&#40;https://github.com/user-attachments/assets/3a89d5de-b736-4177-8512-7c7ae79be708&#41;)
+
+[//]: # (<a href="https://github.com/msdio/stackticon"><img src="https://firebasestorage.googleapis.com/v0/b/stackticon-81399.appspot.com/o/images%2F1740549831823?alt=media&token=0902c355-9967-43b7-8200-d8580d10abae" alt="stackticon" /></a>)
+<a href="https://github.com/msdio/stackticon"><img src="https://firebasestorage.googleapis.com/v0/b/stackticon-81399.appspot.com/o/images%2F1741146925639?alt=media&token=bbf2bdbb-88bc-400e-b152-3abf23879be0" alt="stackticon" /></a>
 ### 프론트
 <img src="https://github.com/user-attachments/assets/0b988f20-3481-426a-8377-8ea4e0381cd6" width="600" />
 
