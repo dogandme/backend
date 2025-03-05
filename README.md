@@ -78,7 +78,9 @@
 
 ## CI/CD 구축
 
-<img width="1144" alt="Image" src="https://github.com/user-attachments/assets/82dd0a29-3a95-4b6c-b05a-68ee09d7a787" />
+![Image](https://github.com/user-attachments/assets/fae95359-8a25-4fd9-b8a1-3662d59baf47)
+
+[//]: # (<img width="1144" alt="Image" src="https://github.com/user-attachments/assets/82dd0a29-3a95-4b6c-b05a-68ee09d7a787" />)
 
 ## 기술 스택
 
